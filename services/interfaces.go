@@ -4,6 +4,7 @@ import "ticken-event-service/models"
 
 type Provider interface {
 	GetEventManager() EventManager
+	GetUserManager() UserManager
 }
 
 type EventManager interface {
@@ -11,6 +12,7 @@ type EventManager interface {
 }
 
 type UserManager interface {
+	GetUserIdFromToken(token string) string
 }
 
 type OrganizationManager interface {

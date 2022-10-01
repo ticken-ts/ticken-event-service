@@ -42,3 +42,7 @@ func NewProvider(db infra.Db, tickenConfig *utils.TickenConfig) (Provider, error
 func (provider *provider) GetEventManager() EventManager {
 	return provider.eventManager
 }
+
+func (provider *provider) GetUserManager() UserManager {
+	return provider.userManager
+}
