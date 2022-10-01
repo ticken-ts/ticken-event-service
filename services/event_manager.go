@@ -8,19 +8,19 @@ import (
 )
 
 type eventManager struct {
-	eventRepository  repos.EventRepository
-	ticketRepository repos.TicketRepository
-	pvtbcConnector   pvtbc.TickenConnector
+	eventRepository        repos.EventRepository
+	organizationRepository repos.OrganizationRepository
+	pvtbcConnector         pvtbc.TickenConnector
 }
 
 func NewEventManager(
 	eventRepository repos.EventRepository,
-	ticketRepository repos.TicketRepository,
+	organizationRepository repos.OrganizationRepository,
 	pvtbcConnector pvtbc.TickenConnector,
 ) EventManager {
 	newEventMan := new(eventManager)
 	newEventMan.eventRepository = eventRepository
-	newEventMan.ticketRepository = ticketRepository
+	newEventMan.organizationRepository = organizationRepository
 	newEventMan.pvtbcConnector = pvtbcConnector
 	return newEventMan
 }
@@ -37,9 +37,27 @@ func (eventManager *eventManager) AddEvent(EventID string, OrganizerID string, P
 func (eventManager *eventManager) GetEvent(eventId string, userId string) (*models.Event, error) {
 	println("getting event with id:", eventId)
 
+	org := eventManager.organizationRepository.FindUserOrganization(userId)
+	if org == nil {
+		return nil, fmt.Errorf("user organization not found")
+	}
+
+	if !contains(org.Events, eventId) {
+		return nil, fmt.Errorf("event not in organization")
+	}
+
 	event := eventManager.eventRepository.FindEvent(eventId)
 	if event == nil {
-		return nil, fmt.Errorf("event not found")
+		return nil, fmt.Errorf("event not foundx")
 	}
 	return event, nil
+}
+
+func contains(list []string, element string) bool {
+	for _, currentElement := range list {
+		if currentElement == element {
+			return true
+		}
+	}
+	return false
 }

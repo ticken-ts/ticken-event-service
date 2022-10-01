@@ -28,7 +28,7 @@ func NewProvider(db infra.Db, tickenConfig *utils.TickenConfig) (Provider, error
 
 	provider.eventManager = NewEventManager(
 		repoProvider.GetEventRepository(),
-		repoProvider.GetTicketRepository(),
+		repoProvider.GetOrganizationRepository(),
 		pvtbcTickenConnector,
 	)
 

@@ -11,7 +11,7 @@ func (controller *EventController) GetEvent(ctx *gin.Context) {
 
 	event, err := controller.serviceProvider.GetEventManager().GetEvent(eventId, userId)
 	if err != nil {
-		ctx.String(404, "event not found")
+		ctx.String(404, err.Error())
 		ctx.Abort()
 		return
 	}

@@ -22,6 +22,6 @@ func (factory *Factory) BuildEventRepository() any {
 	return NewEventRepository(factory.dbClient, factory.dbName)
 }
 
-func (factory *Factory) BuildTicketRepository() any {
-	return NewTicketRepository(factory.dbClient, factory.dbName)
+func (factory *Factory) BuildOrganizationRepository() any {
+	return NewOrganizationRepository(factory.dbClient, factory.dbName)
 }
