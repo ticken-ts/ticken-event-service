@@ -42,22 +42,14 @@ func (eventManager *eventManager) GetEvent(eventId string, userId string) (*mode
 		return nil, fmt.Errorf("user organization not found")
 	}
 
-	if !contains(org.Events, eventId) {
-		return nil, fmt.Errorf("event not in organization")
-	}
-
 	event := eventManager.eventRepository.FindEvent(eventId)
 	if event == nil {
-		return nil, fmt.Errorf("event not foundx")
+		return nil, fmt.Errorf("event not found")
 	}
-	return event, nil
-}
 
-func contains(list []string, element string) bool {
-	for _, currentElement := range list {
-		if currentElement == element {
-			return true
-		}
+	if event.OrganizerID != org.OrganizationID {
+		return nil, fmt.Errorf("user organization does not own event")
 	}
-	return false
+
+	return event, nil
 }
