@@ -34,12 +34,12 @@ func New(router infra.Router, db infra.Db, tickenConfig *utils.TickenConfig) *Ti
 		middlewares.GetUserMiddleware(serviceProvider),
 	}
 
-	for _, controller := range controllers {
-		controller.Setup(router)
-	}
-
 	for _, middleware := range appMiddlewares {
 		router.Use(middleware)
+	}
+
+	for _, controller := range controllers {
+		controller.Setup(router)
 	}
 
 	return tickenEventApp
