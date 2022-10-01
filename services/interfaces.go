@@ -12,7 +12,7 @@ type EventManager interface {
 }
 
 type UserManager interface {
-	GetUserIdFromToken(token string) string
+	GetUserIdFromToken(token string) (string, error)
 }
 
 type OrganizationManager interface {

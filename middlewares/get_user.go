@@ -10,7 +10,11 @@ func GetUserMiddleware(services services.Provider) gin.HandlerFunc {
 
 		token := ctx.GetHeader("token")
 
-		userId := services.GetUserManager().GetUserIdFromToken(token)
+		userId, err := services.GetUserManager().GetUserIdFromToken(token)
+		if err != nil {
+			ctx.String(401, err.Error())
+			ctx.Abort()
+		}
 
 		ctx.Set("userId", userId)
 
