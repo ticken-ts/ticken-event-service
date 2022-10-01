@@ -3,6 +3,7 @@ package mongoDBRepos
 import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"ticken-event-service/models"
 )
 
@@ -13,6 +14,7 @@ type EventMongoDBRepository struct {
 }
 
 func NewEventRepository(dbClient *mongo.Client, dbName string) *EventMongoDBRepository {
+
 	return &EventMongoDBRepository{
 		baseRepository{
 			dbClient:       dbClient,
@@ -20,6 +22,21 @@ func NewEventRepository(dbClient *mongo.Client, dbName string) *EventMongoDBRepo
 			collectionName: EventCollectionName,
 		},
 	}
+}
+
+func (r *EventMongoDBRepository) getCollection() *mongo.Collection {
+	ctx, cancel := r.generateOpSubcontext()
+	defer cancel()
+
+	coll := r.baseRepository.getCollection()
+	_, err := coll.Indexes().CreateOne(ctx, mongo.IndexModel{
+		Keys:    bson.D{{Key: "event_id", Value: 1}},
+		Options: options.Index().SetUnique(true),
+	})
+	if err != nil {
+		panic("error creating event repo: " + err.Error())
+	}
+	return coll
 }
 
 func (r *EventMongoDBRepository) AddEvent(event *models.Event) error {
