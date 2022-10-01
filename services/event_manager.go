@@ -17,11 +17,11 @@ func NewEventManager(
 	ticketRepository repos.TicketRepository,
 	pvtbcConnector pvtbc.TickenConnector,
 ) EventManager {
-	return &eventManager{
-		eventRepository:  eventRepository,
-		ticketRepository: ticketRepository,
-		pvtbcConnector:   pvtbcConnector,
-	}
+	newEventMan := new(eventManager)
+	newEventMan.eventRepository = eventRepository
+	newEventMan.ticketRepository = ticketRepository
+	newEventMan.pvtbcConnector = pvtbcConnector
+	return newEventMan
 }
 
 func (eventManager *eventManager) AddEvent(EventID string, OrganizerID string, PvtBCChannel string) (*models.Event, error) {

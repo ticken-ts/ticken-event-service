@@ -8,9 +8,9 @@ import (
 )
 
 type provider struct {
-	ticketIssuer TicketIssuer
-	ticketSigner TicketSigner
-	eventManager EventManager
+	userManager         UserManager
+	eventManager        EventManager
+	organizationManager OrganizationManager
 }
 
 func NewProvider(db infra.Db, tickenConfig *utils.TickenConfig) (Provider, error) {
@@ -26,37 +26,19 @@ func NewProvider(db infra.Db, tickenConfig *utils.TickenConfig) (Provider, error
 		return nil, err
 	}
 
-	provider.ticketIssuer = NewTicketIssuer(
-		repoProvider.GetEventRepository(),
-		repoProvider.GetTicketRepository(),
-		pvtbcTickenConnector,
-	)
-
 	provider.eventManager = NewEventManager(
 		repoProvider.GetEventRepository(),
 		repoProvider.GetTicketRepository(),
 		pvtbcTickenConnector,
 	)
 
-	provider.ticketSigner = NewTicketSigner(
-		repoProvider.GetEventRepository(),
-		repoProvider.GetTicketRepository(),
-		pvtbcTickenConnector,
-		NewUserManager(), // TODO -> integrate
-	)
+	provider.userManager = NewUserManager()
+
+	provider.organizationManager = NewOrganizationManager()
 
 	return provider, nil
 }
 
-// TODO -> see if it is better to do lazy
-func (provider *provider) GetTicketIssuer() TicketIssuer {
-	return provider.ticketIssuer
-}
-
 func (provider *provider) GetEventManager() EventManager {
 	return provider.eventManager
-}
-
-func (provider *provider) GetTicketSigner() TicketSigner {
-	return provider.ticketSigner
 }
