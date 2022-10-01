@@ -15,3 +15,4 @@
 .idea/
 .env
 .DS_Store
+tmp/build-errors.log
