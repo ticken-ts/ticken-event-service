@@ -23,7 +23,6 @@ func NewOrganizationController(serviceProvider services.Provider) *OrganizationC
 }
 
 func (controller *OrganizationController) Setup(router infra.Router) {
-	router.GET("/orgs/:organizationId", controller.GetOrganization)
-	router.GET("/orgs", controller.GetUserOrganizations)
+	router.GET("/org", controller.GetMyOrganization)
 	//router.PUT("/events/:eventID/tickets/:ticketID/sign", controller.SignTicket) // <- Es REST LCTM
 }
