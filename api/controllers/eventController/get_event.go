@@ -3,17 +3,24 @@ package eventController
 import (
 	"encoding/json"
 	"github.com/gin-gonic/gin"
-	"ticken-event-service/models"
 )
 
 func (controller *EventController) GetEvent(ctx *gin.Context) {
-	var userId = ctx.GetString("userId")
+	eventId := ctx.Param("eventId")
+	userId := ctx.GetString("userId")
 
-	println("User ID is:", userId)
-	res, err := json.Marshal(models.Event{})
-
+	event, err := controller.serviceProvider.GetEventManager().GetEvent(eventId, userId)
 	if err != nil {
-		panic("error returning event")
+		ctx.String(404, "event not found")
+		ctx.Abort()
+		return
+	}
+
+	res, err := json.Marshal(event)
+	if err != nil {
+		ctx.String(500, "error serializing event")
+		ctx.Abort()
+		return
 	}
 
 	ctx.Data(200, "application/json", res)

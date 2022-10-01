@@ -9,6 +9,7 @@ type Provider interface {
 
 type EventManager interface {
 	AddEvent(EventID string, OrganizerID string, PvtBCChannel string) (*models.Event, error)
+	GetEvent(eventId string, userId string) (*models.Event, error)
 }
 
 type UserManager interface {

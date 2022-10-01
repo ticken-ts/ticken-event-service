@@ -23,7 +23,7 @@ func NewEventController(serviceProvider services.Provider) *EventController {
 }
 
 func (controller *EventController) Setup(router infra.Router) {
-	router.GET("/events/:eventID", controller.GetEvent)
+	router.GET("/events/:eventId", controller.GetEvent)
 	router.GET("/events", controller.GetUserEvents)
 	//router.PUT("/events/:eventID/tickets/:ticketID/sign", controller.SignTicket) // <- Es REST LCTM
 }

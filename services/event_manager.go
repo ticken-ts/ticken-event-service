@@ -1,6 +1,7 @@
 package services
 
 import (
+	"fmt"
 	"ticken-event-service/blockchain/pvtbc"
 	"ticken-event-service/models"
 	"ticken-event-service/repos"
@@ -31,4 +32,14 @@ func (eventManager *eventManager) AddEvent(EventID string, OrganizerID string, P
 		return nil, err
 	}
 	return event, err
+}
+
+func (eventManager *eventManager) GetEvent(eventId string, userId string) (*models.Event, error) {
+	println("getting event with id:", eventId)
+
+	event := eventManager.eventRepository.FindEvent(eventId)
+	if event == nil {
+		return nil, fmt.Errorf("event not found")
+	}
+	return event, nil
 }
