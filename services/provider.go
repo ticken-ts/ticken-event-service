@@ -34,7 +34,10 @@ func NewProvider(db infra.Db, tickenConfig *utils.TickenConfig) (Provider, error
 
 	provider.userManager = NewUserManager()
 
-	provider.organizationManager = NewOrganizationManager()
+	provider.organizationManager = NewOrganizationManager(
+		repoProvider.GetEventRepository(),
+		repoProvider.GetOrganizationRepository(),
+	)
 
 	return provider, nil
 }
@@ -45,4 +48,8 @@ func (provider *provider) GetEventManager() EventManager {
 
 func (provider *provider) GetUserManager() UserManager {
 	return provider.userManager
+}
+
+func (provider *provider) GetOrgManager() OrganizationManager {
+	return provider.organizationManager
 }
