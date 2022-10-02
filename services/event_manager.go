@@ -36,8 +36,6 @@ func (eventManager *eventManager) AddEvent(EventID string, OrganizerID string, P
 }
 
 func (eventManager *eventManager) GetEvent(eventId string, userId string) (*models.Event, error) {
-	println("getting event with id:", eventId)
-
 	org := eventManager.organizationRepository.FindUserOrganization(userId)
 	if org == nil {
 		return nil, fmt.Errorf(errors.UserOrgNotFound)
@@ -56,5 +54,16 @@ func (eventManager *eventManager) GetEvent(eventId string, userId string) (*mode
 }
 
 func (eventManager *eventManager) GetUserEvents(userId string) ([]*models.Event, error) {
-	return nil, nil
+
+	org := eventManager.organizationRepository.FindUserOrganization(userId)
+	if org == nil {
+		return nil, fmt.Errorf(errors.UserOrgNotFound)
+	}
+
+	events := eventManager.eventRepository.FindOrgEvents(org.OrganizationID)
+	if events == nil {
+		return nil, fmt.Errorf(errors.EventNotFound)
+	}
+
+	return events, nil
 }

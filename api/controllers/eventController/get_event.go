@@ -1,8 +1,8 @@
 package eventController
 
 import (
-	"encoding/json"
 	"github.com/gin-gonic/gin"
+	"ticken-event-service/api/dto"
 	"ticken-event-service/api/errors"
 )
 
@@ -18,12 +18,5 @@ func (controller *EventController) GetEvent(ctx *gin.Context) {
 		return
 	}
 
-	res, err := json.Marshal(event)
-	if err != nil {
-		ctx.String(500, "error serializing event")
-		ctx.Abort()
-		return
-	}
-
-	ctx.Data(200, "application/json", res)
+	dto.SendEvent(ctx, event)
 }

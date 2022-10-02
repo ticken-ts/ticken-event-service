@@ -1,8 +1,8 @@
 package eventController
 
 import (
-	"encoding/json"
 	"github.com/gin-gonic/gin"
+	"ticken-event-service/api/dto"
 	"ticken-event-service/api/errors"
 )
 
@@ -17,6 +17,5 @@ func (controller *EventController) GetUserEvents(ctx *gin.Context) {
 		return
 	}
 
-	ser, err := json.Marshal(events)
-	ctx.Data(200, "application/json", ser)
+	dto.SendEvents(ctx, events)
 }
