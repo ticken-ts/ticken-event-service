@@ -2,6 +2,7 @@ package services
 
 import (
 	"fmt"
+	"ticken-event-service/api/errors"
 	"ticken-event-service/blockchain/pvtbc"
 	"ticken-event-service/models"
 	"ticken-event-service/repos"
@@ -39,17 +40,21 @@ func (eventManager *eventManager) GetEvent(eventId string, userId string) (*mode
 
 	org := eventManager.organizationRepository.FindUserOrganization(userId)
 	if org == nil {
-		return nil, fmt.Errorf("user organization not found")
+		return nil, fmt.Errorf(errors.UserOrgNotFound)
 	}
 
 	event := eventManager.eventRepository.FindEvent(eventId)
 	if event == nil {
-		return nil, fmt.Errorf("event not found")
+		return nil, fmt.Errorf(errors.EventNotFound)
 	}
 
 	if event.OrganizerID != org.OrganizationID {
-		return nil, fmt.Errorf("user organization does not own event")
+		return nil, fmt.Errorf(errors.OrgEventMismatch)
 	}
 
 	return event, nil
+}
+
+func (eventManager *eventManager) GetUserEvents(userId string) ([]*models.Event, error) {
+	return nil, nil
 }

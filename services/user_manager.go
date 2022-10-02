@@ -1,6 +1,9 @@
 package services
 
-import "fmt"
+import (
+	"fmt"
+	"ticken-event-service/api/errors"
+)
 
 type userManager struct {
 }
@@ -19,7 +22,7 @@ func NewUserManager() UserManager {
 func (man userManager) GetUserIdFromToken(token string) (string, error) {
 	userID, ok := hardcodedTokens[token]
 	if !ok {
-		return "", fmt.Errorf("invalid token")
+		return "", fmt.Errorf(errors.InvalidToken)
 	}
 	return userID, nil
 }

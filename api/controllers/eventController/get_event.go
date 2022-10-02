@@ -3,6 +3,7 @@ package eventController
 import (
 	"encoding/json"
 	"github.com/gin-gonic/gin"
+	"ticken-event-service/api/errors"
 )
 
 func (controller *EventController) GetEvent(ctx *gin.Context) {
@@ -11,7 +12,8 @@ func (controller *EventController) GetEvent(ctx *gin.Context) {
 
 	event, err := controller.serviceProvider.GetEventManager().GetEvent(eventId, userId)
 	if err != nil {
-		ctx.String(404, err.Error())
+		apiError := errors.GetApiError(err)
+		ctx.String(apiError.HttpCode, apiError.Message)
 		ctx.Abort()
 		return
 	}

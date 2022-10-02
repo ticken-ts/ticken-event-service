@@ -2,6 +2,7 @@ package middlewares
 
 import (
 	"github.com/gin-gonic/gin"
+	"ticken-event-service/api/errors"
 	"ticken-event-service/services"
 )
 
@@ -12,7 +13,8 @@ func GetUserMiddleware(services services.Provider) gin.HandlerFunc {
 
 		userId, err := services.GetUserManager().GetUserIdFromToken(token)
 		if err != nil {
-			ctx.String(401, err.Error())
+			apiError := errors.GetApiError(err)
+			ctx.String(apiError.HttpCode, apiError.Message)
 			ctx.Abort()
 		}
 
