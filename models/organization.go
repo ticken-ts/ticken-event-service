@@ -1,7 +1,6 @@
 package models
 
 import (
-	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -12,9 +11,9 @@ type Organization struct {
 	Users          []string           `json:"users" bson:"users"`
 }
 
-func NewOrganization(id string, events []string, peers []string, users []string) *Organization {
+func NewOrganization(id string, peers []string, users []string) *Organization {
 	return &Organization{
-		OrganizationID: uuid.NewString(),
+		OrganizationID: id,
 		Peers:          peers,
 		Users:          users,
 	}

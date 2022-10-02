@@ -29,3 +29,13 @@ func (manager organizationManager) GetUserOrganization(userId string) (*models.O
 	}
 	return org, nil
 }
+
+func (manager organizationManager) AddOrganization(id string, peers []string, users []string) (*models.Organization, error) {
+	newOrg := models.NewOrganization(id, peers, users)
+	err := manager.organizationRepository.AddOrganization(newOrg)
+	if err != nil {
+		return nil, err
+	}
+	return newOrg, nil
+
+}

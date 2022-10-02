@@ -20,4 +20,5 @@ type UserManager interface {
 
 type OrganizationManager interface {
 	GetUserOrganization(userId string) (*models.Organization, error)
+	AddOrganization(id string, peers []string, users []string) (*models.Organization, error)
 }

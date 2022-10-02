@@ -12,6 +12,7 @@ type EventRepository interface {
 
 type OrganizationRepository interface {
 	FindUserOrganization(userId string) *models.Organization
+	AddOrganization(org *models.Organization) error
 }
 
 type Provider interface {
