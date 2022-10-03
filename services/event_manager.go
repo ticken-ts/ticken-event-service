@@ -3,7 +3,6 @@ package services
 import (
 	"fmt"
 	"ticken-event-service/api/errors"
-	"ticken-event-service/blockchain/pvtbc"
 	"ticken-event-service/models"
 	"ticken-event-service/repos"
 )
@@ -11,18 +10,15 @@ import (
 type eventManager struct {
 	eventRepository        repos.EventRepository
 	organizationRepository repos.OrganizationRepository
-	pvtbcConnector         pvtbc.TickenConnector
 }
 
 func NewEventManager(
 	eventRepository repos.EventRepository,
 	organizationRepository repos.OrganizationRepository,
-	pvtbcConnector pvtbc.TickenConnector,
 ) EventManager {
 	newEventMan := new(eventManager)
 	newEventMan.eventRepository = eventRepository
 	newEventMan.organizationRepository = organizationRepository
-	newEventMan.pvtbcConnector = pvtbcConnector
 	return newEventMan
 }
 

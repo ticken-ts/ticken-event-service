@@ -1,7 +1,6 @@
 package services
 
 import (
-	"ticken-event-service/blockchain/pvtbc"
 	"ticken-event-service/infra"
 	"ticken-event-service/repos"
 	"ticken-event-service/utils"
@@ -21,15 +20,9 @@ func NewProvider(db infra.Db, tickenConfig *utils.TickenConfig) (Provider, error
 		return nil, err
 	}
 
-	pvtbcTickenConnector, err := pvtbc.NewConnector()
-	if err != nil {
-		return nil, err
-	}
-
 	provider.eventManager = NewEventManager(
 		repoProvider.GetEventRepository(),
 		repoProvider.GetOrganizationRepository(),
-		pvtbcTickenConnector,
 	)
 
 	provider.userManager = NewUserManager()
