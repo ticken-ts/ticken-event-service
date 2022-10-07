@@ -1,6 +1,7 @@
 package mongoDBRepos
 
 import (
+	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -87,4 +88,35 @@ func (r *EventMongoDBRepository) FindOrgEvents(orgID string) []*models.Event {
 		foundEvents = append(foundEvents, event)
 	}
 	return foundEvents
+}
+
+func (r *EventMongoDBRepository) UpdateEvent(EventID string, OrganizerID string, PvtBCChannel string, Sections []models.Section) *models.Event {
+	findContext, cancel := r.generateOpSubcontext()
+	defer cancel()
+
+	updateOptions := new(options.FindOneAndUpdateOptions)
+	updateOptions.SetReturnDocument(options.After)
+
+	fmt.Printf("event sections %s", Sections)
+
+	events := r.getCollection()
+	result := events.FindOneAndUpdate(
+		findContext,
+		bson.M{"event_id": EventID},
+		bson.M{
+			"$set": bson.M{
+				"organizer_id":   OrganizerID,
+				"pvt_bc_channel": PvtBCChannel,
+				"sections":       Sections,
+			},
+		},
+		updateOptions,
+	)
+
+	updatedEvent := new(models.Event)
+	err := result.Decode(updatedEvent)
+	if err == nil {
+		return nil
+	}
+	return updatedEvent
 }

@@ -63,3 +63,7 @@ func (eventManager *eventManager) GetUserEvents(userId string) ([]*models.Event,
 
 	return events, nil
 }
+
+func (eventManager *eventManager) UpdateEvent(EventID string, OrganizerID string, PvtBCChannel string, Sections []models.Section) (*models.Event, error) {
+	return eventManager.eventRepository.UpdateEvent(EventID, OrganizerID, PvtBCChannel, Sections), nil
+}
