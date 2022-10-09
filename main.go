@@ -17,11 +17,7 @@ func main() {
 		panic(err)
 	}
 
-	db := builder.BuildDb()
-	router := builder.BuildRouter()
-	pvtbcListener := builder.BuildPvtbcListener()
-
-	tickenEventServer := app.New(router, db, pvtbcListener, tickenConfig)
+	tickenEventServer := app.New(builder, tickenConfig)
 	if tickenConfig.IsDev() {
 		tickenEventServer.Populate()
 	}
