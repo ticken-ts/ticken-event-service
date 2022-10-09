@@ -4,9 +4,9 @@ import (
 	"ticken-event-service/api"
 	"ticken-event-service/api/controllers/eventController"
 	"ticken-event-service/api/controllers/organizationController"
+	"ticken-event-service/api/middlewares"
 	"ticken-event-service/infra"
 	"ticken-event-service/listeners"
-	"ticken-event-service/middlewares"
 	"ticken-event-service/services"
 	"ticken-event-service/utils"
 )
@@ -38,15 +38,15 @@ func New(router infra.Router, db infra.Db, tickenConfig *utils.TickenConfig) *Ti
 	}
 
 	var appMiddlewares = []api.Middleware{
-		middlewares.GetUserMiddleware(serviceProvider),
+		middlewares.NewAuthMiddleware(serviceProvider),
+	}
+
+	for _, middleware := range appMiddlewares {
+		middleware.Setup(router)
 	}
 
 	for _, listener := range appListeners {
 		listener.Listen()
-	}
-
-	for _, middleware := range appMiddlewares {
-		router.Use(middleware)
 	}
 
 	for _, controller := range controllers {

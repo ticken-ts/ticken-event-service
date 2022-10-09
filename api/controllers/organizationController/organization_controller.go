@@ -2,7 +2,6 @@ package organizationController
 
 import (
 	"github.com/go-playground/validator/v10"
-	"github.com/google/uuid"
 	"ticken-event-service/infra"
 	"ticken-event-service/services"
 )
@@ -11,9 +10,6 @@ type OrganizationController struct {
 	validator       *validator.Validate
 	serviceProvider services.Provider
 }
-
-// TODO -> test only until user management is complete
-var owner = uuid.New().String()
 
 func NewOrganizationController(serviceProvider services.Provider) *OrganizationController {
 	controller := new(OrganizationController)
