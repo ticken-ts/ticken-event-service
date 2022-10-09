@@ -1,6 +1,7 @@
 package app
 
 import (
+	pvtbc "github.com/ticken-ts/ticken-pvtbc-connector"
 	"ticken-event-service/api"
 	"ticken-event-service/api/controllers/eventController"
 	"ticken-event-service/api/controllers/organizationController"
@@ -16,20 +17,18 @@ type TickenEventApp struct {
 	serviceProvider services.Provider
 }
 
-func New(router infra.Router, db infra.Db, tickenConfig *utils.TickenConfig) *TickenEventApp {
+func New(router infra.Router, db infra.Db, pvtbcListener *pvtbc.Listener, tickenConfig *utils.TickenConfig) *TickenEventApp {
 	tickenEventApp := new(TickenEventApp)
 
 	// this provider is going to provide all services
 	// needed by the controllers to execute it operations
 	serviceProvider, _ := services.NewProvider(db, tickenConfig)
 
-	listenerBuilder, _ := listeners.NewBuilder(tickenConfig)
-
 	tickenEventApp.router = router
 	tickenEventApp.serviceProvider = serviceProvider
 
 	var appListeners = []listeners.Listener{
-		listenerBuilder.BuildEventListener(serviceProvider),
+		listeners.NewEventListener(serviceProvider, pvtbcListener, "ticken-channel"),
 	}
 
 	var controllers = []api.Controller{

@@ -3,7 +3,7 @@ package listeners
 import (
 	"github.com/go-playground/validator/v10"
 	pvtbc "github.com/ticken-ts/ticken-pvtbc-connector"
-	chain_models "github.com/ticken-ts/ticken-pvtbc-connector/chain-models"
+	chainmodels "github.com/ticken-ts/ticken-pvtbc-connector/chain-models"
 	"ticken-event-service/models"
 	"ticken-event-service/services"
 )
@@ -24,8 +24,7 @@ func NewEventListener(serviceProvider services.Provider, pvtbcListener *pvtbc.Li
 }
 
 func (listener *EventListener) Listen() {
-
-	callback1 := func(event *chain_models.Event) {
+	callback1 := func(event *chainmodels.Event) {
 		_, err := listener.serviceProvider.GetEventManager().AddEvent(
 			event.EventID,
 			event.OrganizationID,
@@ -36,7 +35,7 @@ func (listener *EventListener) Listen() {
 		}
 	}
 
-	callback2 := func(event *chain_models.Event) {
+	callback2 := func(event *chainmodels.Event) {
 		newSections := make([]models.Section, len(event.Sections))
 		for i, section := range event.Sections {
 			newSections[i] = models.Section{

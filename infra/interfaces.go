@@ -1,6 +1,8 @@
 package infra
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/gin-gonic/gin"
+)
 
 type Db interface {
 	Connect(connString string) error
