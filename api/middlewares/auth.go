@@ -13,8 +13,8 @@ import (
 	"time"
 )
 
-var ClientID = "ticken.ticket.service"
-var IdentityIssuer = "http://localhost:8080/realms/attendants"
+var ClientID = "ticken.event.service"
+var IdentityIssuer = "http://localhost:8080/realms/organizers"
 
 type AuthMiddleware struct {
 	validator       *validator.Validate
