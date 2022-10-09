@@ -8,7 +8,7 @@ require (
 	github.com/go-playground/validator/v10 v10.11.1
 	github.com/google/uuid v1.3.0
 	github.com/spf13/viper v1.13.0
-	github.com/ticken-ts/ticken-pvtbc-connector v0.2.7
+	github.com/ticken-ts/ticken-pvtbc-connector v0.2.11
 	go.mongodb.org/mongo-driver v1.10.3
 )
 
