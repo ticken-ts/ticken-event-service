@@ -18,3 +18,5 @@
 tmp/build-errors.log
 
 tmp
+
+.netrc
