@@ -2,25 +2,31 @@ package main
 
 import (
 	"ticken-event-service/app"
+	"ticken-event-service/config"
+	"ticken-event-service/env"
 	"ticken-event-service/infra"
-	"ticken-event-service/utils"
 )
 
 func main() {
-	tickenConfig, err := utils.LoadConfig(".")
+	tickenEnv, err := env.Load()
 	if err != nil {
 		panic(err)
 	}
 
-	builder, err := infra.NewBuilder(tickenConfig)
+	tickenConfig, err := config.Load(".")
 	if err != nil {
 		panic(err)
 	}
 
-	tickenEventServer := app.New(builder, tickenConfig)
-	if tickenConfig.IsDev() {
-		tickenEventServer.Populate()
+	infraBuilder, err := infra.NewBuilder(tickenConfig)
+	if err != nil {
+		panic(err)
 	}
 
-	tickenEventServer.Start()
+	tickenTicketServer := app.New(infraBuilder, tickenConfig)
+	if tickenEnv.IsDev() {
+		tickenTicketServer.Populate()
+	}
+
+	tickenTicketServer.Start()
 }

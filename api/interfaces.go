@@ -1,13 +1,13 @@
 package api
 
 import (
-	"ticken-event-service/infra"
+	"github.com/gin-gonic/gin"
 )
 
 type Controller interface {
-	Setup(router infra.Router)
+	Setup(router gin.IRouter)
 }
 
 type Middleware interface {
-	Setup(router infra.Router)
+	Setup(router gin.IRouter)
 }

@@ -1,9 +1,9 @@
 package services
 
 import (
+	"ticken-event-service/config"
 	"ticken-event-service/infra"
 	"ticken-event-service/repos"
-	"ticken-event-service/utils"
 )
 
 type provider struct {
@@ -12,10 +12,10 @@ type provider struct {
 	organizationManager OrganizationManager
 }
 
-func NewProvider(db infra.Db, tickenConfig *utils.TickenConfig) (Provider, error) {
+func NewProvider(db infra.Db, tickenConfig *config.Config) (Provider, error) {
 	provider := new(provider)
 
-	repoProvider, err := repos.NewProvider(db, tickenConfig)
+	repoProvider, err := repos.NewProvider(db, &tickenConfig.Database)
 	if err != nil {
 		return nil, err
 	}

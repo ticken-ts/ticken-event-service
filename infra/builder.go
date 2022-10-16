@@ -1,25 +1,21 @@
 package infra
 
-// TODO
-// * Handle more than one service type using config file
-// * Log errors. This include passing a logger
-
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	pvtbc "github.com/ticken-ts/ticken-pvtbc-connector"
 	"github.com/ticken-ts/ticken-pvtbc-connector/fabric/peerconnector"
+	"ticken-event-service/config"
 	"ticken-event-service/infra/db"
-	"ticken-event-service/utils"
 )
 
 type Builder struct {
-	tickenConfig *utils.TickenConfig
+	tickenConfig *config.Config
 }
 
 var pc *peerconnector.PeerConnector = nil
 
-func NewBuilder(tickenConfig *utils.TickenConfig) (*Builder, error) {
+func NewBuilder(tickenConfig *config.Config) (*Builder, error) {
 	if tickenConfig == nil {
 		return nil, fmt.Errorf("configuration is mandatory")
 	}
@@ -30,17 +26,30 @@ func NewBuilder(tickenConfig *utils.TickenConfig) (*Builder, error) {
 	return builder, nil
 }
 
-func (builder *Builder) BuildDb() Db {
-	switch builder.tickenConfig.Config.Database.Driver {
-	case utils.MongoDriver:
-		return buildMongoDb(builder.tickenConfig.Env.MongoUri)
+func (builder *Builder) BuildDb(connString string) Db {
+	var tickenDb Db = nil
+
+	switch builder.tickenConfig.Database.Driver {
+	case config.MongoDriver:
+		tickenDb = db.NewMongoDb()
 	default:
-		panic(fmt.Errorf("database driver %s not implemented", builder.tickenConfig.Config.Database.Driver))
+		panic(fmt.Errorf("database driver %s not implemented", builder.tickenConfig.Database.Driver))
 	}
+
+	err := tickenDb.Connect(connString)
+	if err != nil {
+		panic(err)
+	}
+
+	return tickenDb
+}
+
+func (builder *Builder) BuildEngine() *gin.Engine {
+	return gin.Default()
 }
 
 func (builder *Builder) BuildPvtbcCaller() *pvtbc.Caller {
-	caller, err := pvtbc.NewCaller(buildPeerConnector(builder.tickenConfig.Config.Pvtbc))
+	caller, err := pvtbc.NewCaller(buildPeerConnector(builder.tickenConfig.Pvtbc))
 	if err != nil {
 		panic(err)
 	}
@@ -48,27 +57,14 @@ func (builder *Builder) BuildPvtbcCaller() *pvtbc.Caller {
 }
 
 func (builder *Builder) BuildPvtbcListener() *pvtbc.Listener {
-	listener, err := pvtbc.NewListener(buildPeerConnector(builder.tickenConfig.Config.Pvtbc))
+	listener, err := pvtbc.NewListener(buildPeerConnector(builder.tickenConfig.Pvtbc))
 	if err != nil {
 		panic(err)
 	}
 	return listener
 }
 
-func (builder *Builder) BuildRouter() Router {
-	return gin.Default()
-}
-
-func buildMongoDb(uri string) Db {
-	mongoDb := db.NewMongoDb()
-	err := mongoDb.Connect(uri)
-	if err != nil {
-		panic(err)
-	}
-	return mongoDb
-}
-
-func buildPeerConnector(config utils.PvtbcConfig) *peerconnector.PeerConnector {
+func buildPeerConnector(config config.PvtbcConfig) *peerconnector.PeerConnector {
 	if pc != nil {
 		return pc
 	}

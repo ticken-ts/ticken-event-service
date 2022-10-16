@@ -1,8 +1,8 @@
 package organizationController
 
 import (
+	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	"ticken-event-service/infra"
 	"ticken-event-service/services"
 )
 
@@ -18,7 +18,7 @@ func NewOrganizationController(serviceProvider services.Provider) *OrganizationC
 	return controller
 }
 
-func (controller *OrganizationController) Setup(router infra.Router) {
+func (controller *OrganizationController) Setup(router gin.IRouter) {
 	router.GET("/org", controller.GetMyOrganization)
 	//router.PUT("/events/:eventID/tickets/:ticketID/sign", controller.SignTicket) // <- Es REST LCTM
 }

@@ -1,9 +1,9 @@
 package eventController
 
 import (
+	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
-	"ticken-event-service/infra"
 	"ticken-event-service/services"
 )
 
@@ -22,7 +22,7 @@ func NewEventController(serviceProvider services.Provider) *EventController {
 	return controller
 }
 
-func (controller *EventController) Setup(router infra.Router) {
+func (controller *EventController) Setup(router gin.IRouter) {
 	router.GET("/events/:eventId", controller.GetEvent)
 	router.GET("/events", controller.GetUserEvents)
 	//router.PUT("/events/:eventID/tickets/:ticketID/sign", controller.SignTicket) // <- Es REST LCTM

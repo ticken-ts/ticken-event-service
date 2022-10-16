@@ -2,6 +2,7 @@ package infra
 
 import (
 	"github.com/gin-gonic/gin"
+	pvtbc "github.com/ticken-ts/ticken-pvtbc-connector"
 )
 
 type Db interface {
@@ -15,7 +16,9 @@ type Db interface {
 	GetClient() interface{}
 }
 
-type Router interface {
-	gin.IRouter
-	Run(addresses ...string) (err error)
+type IBuilder interface {
+	BuildDb(connString string) Db
+	BuildEngine() *gin.Engine
+	BuildPvtbcCaller() *pvtbc.Caller
+	BuildPvtbcListener() *pvtbc.Listener
 }

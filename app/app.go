@@ -1,33 +1,35 @@
 package app
 
 import (
+	"github.com/gin-gonic/gin"
 	"ticken-event-service/api"
 	"ticken-event-service/api/controllers/eventController"
 	"ticken-event-service/api/controllers/organizationController"
 	"ticken-event-service/api/middlewares"
+	"ticken-event-service/config"
+	"ticken-event-service/env"
 	"ticken-event-service/infra"
 	"ticken-event-service/listeners"
 	"ticken-event-service/services"
-	"ticken-event-service/utils"
 )
 
 type TickenEventApp struct {
-	router          infra.Router
+	engine          *gin.Engine
 	serviceProvider services.Provider
 }
 
-func New(builder *infra.Builder, tickenConfig *utils.TickenConfig) *TickenEventApp {
+func New(builder infra.IBuilder, tickenConfig *config.Config) *TickenEventApp {
 	tickenEventApp := new(TickenEventApp)
 
-	db := builder.BuildDb()
-	router := builder.BuildRouter()
+	db := builder.BuildDb(env.TickenEnv.ConnString)
+	engine := builder.BuildEngine()
 	pvtbcListener := builder.BuildPvtbcListener()
 
 	// this provider is going to provide all services
 	// needed by the controllers to execute it operations
 	serviceProvider, _ := services.NewProvider(db, tickenConfig)
 
-	tickenEventApp.router = router
+	tickenEventApp.engine = engine
 	tickenEventApp.serviceProvider = serviceProvider
 
 	var appListeners = []listeners.Listener{
@@ -44,7 +46,7 @@ func New(builder *infra.Builder, tickenConfig *utils.TickenConfig) *TickenEventA
 	}
 
 	for _, middleware := range appMiddlewares {
-		middleware.Setup(router)
+		middleware.Setup(engine)
 	}
 
 	for _, listener := range appListeners {
@@ -52,14 +54,14 @@ func New(builder *infra.Builder, tickenConfig *utils.TickenConfig) *TickenEventA
 	}
 
 	for _, controller := range controllers {
-		controller.Setup(router)
+		controller.Setup(engine)
 	}
 
 	return tickenEventApp
 }
 
 func (tickenEventApp *TickenEventApp) Start() {
-	err := tickenEventApp.router.Run("localhost:8080")
+	err := tickenEventApp.engine.Run("localhost:8080")
 	if err != nil {
 		panic(err)
 	}

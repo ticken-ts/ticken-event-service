@@ -7,7 +7,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"net/http"
-	"ticken-event-service/infra"
 	"ticken-event-service/services"
 	"ticken-event-service/utils"
 	"time"
@@ -55,7 +54,7 @@ func initOIDCProvider(oidcClientCtx context.Context, issuer string) *oidc.Provid
 	return provider
 }
 
-func (middleware *AuthMiddleware) Setup(router infra.Router) {
+func (middleware *AuthMiddleware) Setup(router gin.IRouter) {
 	router.Use(middleware.isJWTAuthorized())
 }
 
