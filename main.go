@@ -26,6 +26,7 @@ func main() {
 	tickenTicketServer := app.New(infraBuilder, tickenConfig)
 	if tickenEnv.IsDev() {
 		tickenTicketServer.Populate()
+		tickenTicketServer.EmitFakeJWT()
 	}
 
 	tickenTicketServer.Start()

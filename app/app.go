@@ -1,7 +1,10 @@
 package app
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
+
+	"github.com/golang-jwt/jwt"
 	"ticken-event-service/api"
 	"ticken-event-service/api/controllers/eventController"
 	"ticken-event-service/api/controllers/organizationController"
@@ -51,7 +54,7 @@ func New(builder infra.IBuilder, tickenConfig *config.Config) *TickenEventApp {
 	}
 
 	var appMiddlewares = []api.Middleware{
-		middlewares.NewAuthMiddleware(serviceProvider),
+		middlewares.NewAuthMiddleware(serviceProvider, &tickenConfig.Server),
 	}
 
 	for _, middleware := range appMiddlewares {
@@ -85,4 +88,18 @@ func (tickenEventApp *TickenEventApp) Populate() {
 	if err != nil {
 		return // HANDLER DUPLICATES
 	}
+}
+
+func (tickenEventApp *TickenEventApp) EmitFakeJWT() {
+	fakeJWT := jwt.NewWithClaims(jwt.SigningMethodES256, jwt.MapClaims{
+		"sub":   "290c641a-55a1-40f5-acc3-d4ebe3626fdd",
+		"email": "user@ticken.com",
+	})
+
+	signedJWT, err := fakeJWT.SigningString()
+	if err != nil {
+		panic(fmt.Errorf("error generation fake JWT: %s", err.Error()))
+	}
+
+	fmt.Printf("DEV JWT: %s \n", signedJWT)
 }
