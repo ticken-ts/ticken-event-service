@@ -3,7 +3,6 @@ package eventController
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	"github.com/google/uuid"
 	"ticken-event-service/services"
 )
 
@@ -11,9 +10,6 @@ type EventController struct {
 	validator       *validator.Validate
 	serviceProvider services.IProvider
 }
-
-// TODO -> test only until user management is complete
-var owner = uuid.New().String()
 
 func NewEventController(serviceProvider services.IProvider) *EventController {
 	controller := new(EventController)
