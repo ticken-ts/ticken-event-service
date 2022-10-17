@@ -2,7 +2,7 @@ package services
 
 import "ticken-event-service/models"
 
-type Provider interface {
+type IProvider interface {
 	GetEventManager() EventManager
 	GetUserManager() UserManager
 	GetOrgManager() OrganizationManager

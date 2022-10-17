@@ -8,10 +8,10 @@ import (
 
 type OrganizationController struct {
 	validator       *validator.Validate
-	serviceProvider services.Provider
+	serviceProvider services.IProvider
 }
 
-func NewOrganizationController(serviceProvider services.Provider) *OrganizationController {
+func NewOrganizationController(serviceProvider services.IProvider) *OrganizationController {
 	controller := new(OrganizationController)
 	controller.validator = validator.New()
 	controller.serviceProvider = serviceProvider

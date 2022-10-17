@@ -17,12 +17,12 @@ var IdentityIssuer = "http://localhost:8080/realms/organizers"
 
 type AuthMiddleware struct {
 	validator       *validator.Validate
-	serviceProvider services.Provider
+	serviceProvider services.IProvider
 	oidcClientCtx   context.Context
 	oidcProvider    *oidc.Provider
 }
 
-func NewAuthMiddleware(serviceProvider services.Provider) *AuthMiddleware {
+func NewAuthMiddleware(serviceProvider services.IProvider) *AuthMiddleware {
 	middleware := new(AuthMiddleware)
 	middleware.validator = validator.New()
 	middleware.serviceProvider = serviceProvider

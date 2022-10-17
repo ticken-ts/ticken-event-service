@@ -16,12 +16,12 @@ type OrganizationRepository interface {
 	AddOrganization(org *models.Organization) error
 }
 
-type Provider interface {
+type IProvider interface {
 	GetEventRepository() EventRepository
 	GetOrganizationRepository() OrganizationRepository
 }
 
-type Factory interface {
+type IFactory interface {
 	BuildEventRepository() any
 	BuildOrganizationRepository() any
 }

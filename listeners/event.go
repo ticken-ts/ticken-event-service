@@ -11,12 +11,12 @@ import (
 
 type EventListener struct {
 	validator       *validator.Validate
-	serviceProvider services.Provider
+	serviceProvider services.IProvider
 	pvtbcListener   *pvtbc.Listener
 	channel         string
 }
 
-func NewEventListener(serviceProvider services.Provider, pvtbcListener *pvtbc.Listener, channel string) *EventListener {
+func NewEventListener(serviceProvider services.IProvider, pvtbcListener *pvtbc.Listener, channel string) *EventListener {
 	newEventListener := new(EventListener)
 	newEventListener.pvtbcListener = pvtbcListener
 	newEventListener.serviceProvider = serviceProvider

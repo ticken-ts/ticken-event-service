@@ -9,13 +9,13 @@ import (
 
 type EventController struct {
 	validator       *validator.Validate
-	serviceProvider services.Provider
+	serviceProvider services.IProvider
 }
 
 // TODO -> test only until user management is complete
 var owner = uuid.New().String()
 
-func NewEventController(serviceProvider services.Provider) *EventController {
+func NewEventController(serviceProvider services.IProvider) *EventController {
 	controller := new(EventController)
 	controller.validator = validator.New()
 	controller.serviceProvider = serviceProvider

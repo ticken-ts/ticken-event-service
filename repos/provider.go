@@ -8,18 +8,17 @@ import (
 )
 
 type provider struct {
-	reposFactory           Factory
+	reposFactory           IFactory
 	eventRepository        EventRepository
 	organizationRepository OrganizationRepository
 }
 
-func NewProvider(db infra.Db, dbConfig *config.DatabaseConfig) (Provider, error) {
+func NewProvider(db infra.Db, dbConfig *config.DatabaseConfig) (IProvider, error) {
 	provider := new(provider)
 
 	switch dbConfig.Driver {
 	case config.MongoDriver:
 		provider.reposFactory = mongoDBRepos.NewFactory(db, dbConfig)
-
 	default:
 		return nil, fmt.Errorf("database driver %s not implemented", dbConfig.Driver)
 	}

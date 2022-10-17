@@ -1,8 +1,6 @@
 package services
 
 import (
-	"ticken-event-service/config"
-	"ticken-event-service/infra"
 	"ticken-event-service/repos"
 )
 
@@ -12,25 +10,15 @@ type provider struct {
 	organizationManager OrganizationManager
 }
 
-func NewProvider(db infra.Db, tickenConfig *config.Config) (Provider, error) {
+func NewProvider(repoProvider repos.IProvider) (IProvider, error) {
 	provider := new(provider)
 
-	repoProvider, err := repos.NewProvider(db, &tickenConfig.Database)
-	if err != nil {
-		return nil, err
-	}
-
-	provider.eventManager = NewEventManager(
-		repoProvider.GetEventRepository(),
-		repoProvider.GetOrganizationRepository(),
-	)
+	eventRepo := repoProvider.GetEventRepository()
+	organizationRepo := repoProvider.GetOrganizationRepository()
 
 	provider.userManager = NewUserManager()
-
-	provider.organizationManager = NewOrganizationManager(
-		repoProvider.GetEventRepository(),
-		repoProvider.GetOrganizationRepository(),
-	)
+	provider.eventManager = NewEventManager(eventRepo, organizationRepo)
+	provider.organizationManager = NewOrganizationManager(eventRepo, organizationRepo)
 
 	return provider, nil
 }

@@ -10,12 +10,15 @@ import (
 	"ticken-event-service/env"
 	"ticken-event-service/infra"
 	"ticken-event-service/listeners"
+	"ticken-event-service/repos"
 	"ticken-event-service/services"
 )
 
 type TickenEventApp struct {
 	engine          *gin.Engine
-	serviceProvider services.Provider
+	config          *config.Config
+	repoProvider    repos.IProvider
+	serviceProvider services.IProvider
 }
 
 func New(builder infra.IBuilder, tickenConfig *config.Config) *TickenEventApp {
@@ -25,20 +28,26 @@ func New(builder infra.IBuilder, tickenConfig *config.Config) *TickenEventApp {
 	engine := builder.BuildEngine()
 	pvtbcListener := builder.BuildPvtbcListener()
 
-	// this provider is going to provide all services
-	// needed by the controllers to execute it operations
-	serviceProvider, _ := services.NewProvider(db, tickenConfig)
+	repoProvider, err := repos.NewProvider(db, &tickenConfig.Database)
+	if err != nil {
+		panic(err)
+	}
+
+	serviceProvider, err := services.NewProvider(repoProvider)
+	if err != nil {
+		panic(err)
+	}
 
 	tickenEventApp.engine = engine
+	tickenEventApp.repoProvider = repoProvider
 	tickenEventApp.serviceProvider = serviceProvider
 
 	var appListeners = []listeners.Listener{
 		listeners.NewEventListener(serviceProvider, pvtbcListener, "ticken-channel"),
 	}
 
-	var controllers = []api.Controller{
-		eventController.NewEventController(serviceProvider),
-		organizationController.NewOrganizationController(serviceProvider),
+	for _, listener := range appListeners {
+		listener.Listen()
 	}
 
 	var appMiddlewares = []api.Middleware{
@@ -49,8 +58,9 @@ func New(builder infra.IBuilder, tickenConfig *config.Config) *TickenEventApp {
 		middleware.Setup(engine)
 	}
 
-	for _, listener := range appListeners {
-		listener.Listen()
+	var controllers = []api.Controller{
+		eventController.NewEventController(serviceProvider),
+		organizationController.NewOrganizationController(serviceProvider),
 	}
 
 	for _, controller := range controllers {
