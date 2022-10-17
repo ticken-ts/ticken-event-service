@@ -74,7 +74,8 @@ func New(builder infra.IBuilder, tickenConfig *config.Config) *TickenEventApp {
 }
 
 func (tickenEventApp *TickenEventApp) Start() {
-	err := tickenEventApp.engine.Run("localhost:8080")
+	url := tickenEventApp.config.Server.GetServerURL()
+	err := tickenEventApp.engine.Run(url)
 	if err != nil {
 		panic(err)
 	}
