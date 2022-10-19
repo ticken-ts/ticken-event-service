@@ -6,6 +6,7 @@ import (
 	"github.com/golang-jwt/jwt"
 	"ticken-event-service/api"
 	"ticken-event-service/api/controllers/eventController"
+	"ticken-event-service/api/controllers/healthController"
 	"ticken-event-service/api/controllers/organizationController"
 	"ticken-event-service/api/middlewares"
 	"ticken-event-service/config"
@@ -61,8 +62,9 @@ func New(builder infra.IBuilder, tickenConfig *config.Config) *TickenEventApp {
 	}
 
 	var controllers = []api.Controller{
-		eventController.NewEventController(serviceProvider),
-		organizationController.NewOrganizationController(serviceProvider),
+		eventController.New(serviceProvider),
+		healthController.New(serviceProvider),
+		organizationController.New(serviceProvider),
 	}
 
 	for _, controller := range controllers {

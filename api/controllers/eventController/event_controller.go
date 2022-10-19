@@ -11,7 +11,7 @@ type EventController struct {
 	serviceProvider services.IProvider
 }
 
-func NewEventController(serviceProvider services.IProvider) *EventController {
+func New(serviceProvider services.IProvider) *EventController {
 	controller := new(EventController)
 	controller.validator = validator.New()
 	controller.serviceProvider = serviceProvider
@@ -21,5 +21,4 @@ func NewEventController(serviceProvider services.IProvider) *EventController {
 func (controller *EventController) Setup(router gin.IRouter) {
 	router.GET("/events/:eventId", controller.GetEvent)
 	router.GET("/events", controller.GetUserEvents)
-	//router.PUT("/events/:eventID/tickets/:ticketID/sign", controller.SignTicket) // <- Es REST LCTM
 }

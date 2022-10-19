@@ -11,7 +11,7 @@ type OrganizationController struct {
 	serviceProvider services.IProvider
 }
 
-func NewOrganizationController(serviceProvider services.IProvider) *OrganizationController {
+func New(serviceProvider services.IProvider) *OrganizationController {
 	controller := new(OrganizationController)
 	controller.validator = validator.New()
 	controller.serviceProvider = serviceProvider
