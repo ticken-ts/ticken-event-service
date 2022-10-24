@@ -6,6 +6,7 @@ import (
 	pvtbc "github.com/ticken-ts/ticken-pvtbc-connector"
 	"github.com/ticken-ts/ticken-pvtbc-connector/fabric/peerconnector"
 	"ticken-event-service/config"
+	"ticken-event-service/infra/bus"
 	"ticken-event-service/infra/db"
 )
 
@@ -42,6 +43,24 @@ func (builder *Builder) BuildDb(connString string) Db {
 	}
 
 	return tickenDb
+}
+
+func (builder *Builder) BuildBusPublisher(connString string) BusPublisher {
+	var tickenBus BusPublisher = nil
+
+	switch builder.tickenConfig.Bus.Driver {
+	case config.RabbitMQDriver:
+		tickenBus = bus.NewRabbitMQPublisher()
+	default:
+		panic(fmt.Errorf("bus driver %s not implemented", builder.tickenConfig.Bus.Driver))
+	}
+
+	err := tickenBus.Connect(connString, builder.tickenConfig.Bus.Exchange)
+	if err != nil {
+		panic(err)
+	}
+
+	return tickenBus
 }
 
 func (builder *Builder) BuildEngine() *gin.Engine {

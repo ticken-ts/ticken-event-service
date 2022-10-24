@@ -9,6 +9,7 @@ import (
 	"ticken-event-service/api/controllers/healthController"
 	"ticken-event-service/api/controllers/organizationController"
 	"ticken-event-service/api/middlewares"
+	"ticken-event-service/async"
 	"ticken-event-service/config"
 	"ticken-event-service/env"
 	"ticken-event-service/infra"
@@ -27,16 +28,22 @@ type TickenEventApp struct {
 func New(builder infra.IBuilder, tickenConfig *config.Config) *TickenEventApp {
 	tickenEventApp := new(TickenEventApp)
 
-	db := builder.BuildDb(env.TickenEnv.ConnString)
+	db := builder.BuildDb(env.TickenEnv.DbConnString)
 	engine := builder.BuildEngine()
 	pvtbcListener := builder.BuildPvtbcListener()
+	busPublisher := builder.BuildBusPublisher(env.TickenEnv.BusConnString)
+
+	publisher, err := async.NewPublisher(busPublisher)
+	if err != nil {
+		panic(err)
+	}
 
 	repoProvider, err := repos.NewProvider(db, &tickenConfig.Database)
 	if err != nil {
 		panic(err)
 	}
 
-	serviceProvider, err := services.NewProvider(repoProvider)
+	serviceProvider, err := services.NewProvider(repoProvider, publisher)
 	if err != nil {
 		panic(err)
 	}
