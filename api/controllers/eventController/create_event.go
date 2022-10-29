@@ -10,7 +10,7 @@ import (
 )
 
 type createEventPayload struct {
-	Name string `json:"section"`
+	Name string `json:"name"`
 	Date string `json:"date"`
 }
 

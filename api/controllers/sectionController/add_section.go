@@ -9,7 +9,7 @@ import (
 )
 
 type createSectionPayload struct {
-	Name         string `json:"section"`
+	Name         string `json:"name"`
 	TotalTickets int    `json:"total_tickets"`
 }
 
