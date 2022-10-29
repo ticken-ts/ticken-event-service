@@ -7,6 +7,7 @@ import (
 	"github.com/ticken-ts/ticken-pvtbc-connector/fabric/peerconnector"
 	"ticken-event-service/api/errors"
 	"ticken-event-service/async"
+	"ticken-event-service/log"
 	"ticken-event-service/models"
 	"ticken-event-service/repos"
 	"time"
@@ -42,19 +43,54 @@ func (eventManager *eventManager) CreateEvent(creator string, name string, date 
 		return nil, err
 	}
 
-	err = atomicPvtbcCaller.TickenEventCaller.CreateAsync(event.EventID, event.Name, event.Date.Format(time.RFC3339))
+	err = atomicPvtbcCaller.TickenEventCaller.CreateAsync(event.EventID, event.Name, event.Date)
 	if err != nil {
 		return nil, err
 	}
 
-	_ = eventManager.eventRepo.AddEvent(event)
+	err = eventManager.eventRepo.AddEvent(event)
 	if err != nil {
 		// todo -> see what to do here
 		// we cant fail if we couldn't save the event
 		// because the tx is already submitted
+		log.TickenLogger.Error().Err(err)
 	}
 
 	return event, nil
+}
+
+func (eventManager *eventManager) AddSection(creator string, eventID string, name string, totalTickets int) (*models.Section, error) {
+	section := models.NewSection(name, eventID, totalTickets)
+
+	membership := eventManager.userManager.GetUserMembership(creator)
+	atomicPvtbcCaller, err := buildAtomicPvtbcCaller(membership)
+	if err != nil {
+		return nil, err
+	}
+
+	err = atomicPvtbcCaller.TickenEventCaller.AddSectionAsync(section.EventID, section.Name, section.TotalTickets)
+	if err != nil {
+		return nil, err
+	}
+
+	event := eventManager.eventRepo.FindEvent(eventID)
+	if event == nil {
+		// todo - how to handle this?
+		// this case is more complicated. we should let pass
+		// adding a section without the event? we should had maybe
+		// some way to try to sync here with the on chain event
+		return section, nil
+	}
+
+	err = event.AssociateSection(section)
+	if err != nil {
+		// todo -> see what to do here
+		// we cant fail if we couldn't save the event
+		// because the tx is already submitted
+		log.TickenLogger.Error().Err(err)
+	}
+
+	return section, nil
 }
 
 func (eventManager *eventManager) SyncOnChainEvent(onChainEvent *chain_models.Event, channelListened string) (*models.Event, error) {
@@ -75,9 +111,9 @@ func (eventManager *eventManager) SyncOnChainEvent(onChainEvent *chain_models.Ev
 		storedEvent = newEvent
 	}
 
-	storedEvent.OnChain = true
-	storedEvent.PvtBCChannel = channelListened
-	storedEvent.OrganizationID = onChainEvent.OrganizationID
+	// now that we listened the event, we flagged it.
+	// from this moment, this event is valid in our model
+	storedEvent.SetOnChain(channelListened, onChainEvent.OrganizationID)
 
 	updatedEvent := eventManager.eventRepo.UpdateEvent(storedEvent)
 

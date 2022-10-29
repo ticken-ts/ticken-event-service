@@ -13,8 +13,10 @@ type IProvider interface {
 
 type EventManager interface {
 	CreateEvent(creator string, name string, date time.Time) (*models.Event, error)
+	AddSection(creator string, eventID string, name string, totalTickets int) (*models.Section, error)
+
 	SyncOnChainEvent(onChainEvent *chain_models.Event, channelListened string) (*models.Event, error)
-	SyncOnChainSection(section *chain_models.Section) (*models.Event, error)
+	SyncOnChainSection(onChainSection *chain_models.Section) (*models.Event, error)
 
 	GetEvent(eventId string, userId string) (*models.Event, error)
 	GetUserEvents(userId string) ([]*models.Event, error)

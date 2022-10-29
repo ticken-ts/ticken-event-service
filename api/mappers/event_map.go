@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func MapEventToCreatedTicketDTO(event *models.Event) *dto.CreatedEventDTO {
+func MapEventToCreatedEventDTO(event *models.Event) *dto.CreatedEventDTO {
 	return &dto.CreatedEventDTO{
 		EventID: event.EventID,
 		Name:    event.Name,

@@ -8,8 +8,8 @@ import (
 
 type CreatedEventDTO struct {
 	EventID string `json:"event_id"`
-	Name    string `json:"name" `
-	Date    string `json:"date" `
+	Name    string `json:"name"`
+	Date    string `json:"date"`
 	OnChain bool   `json:"on_chain"`
 }
 
