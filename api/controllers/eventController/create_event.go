@@ -17,8 +17,7 @@ type createEventPayload struct {
 func (controller *EventController) CreateEvent(c *gin.Context) {
 	var payload createEventPayload
 
-	// TODO! use this to submit the event in behaviour of user
-	_ = c.MustGet("jwt").(*oidc.IDToken).Subject
+	userID := c.MustGet("jwt").(*oidc.IDToken).Subject
 
 	err := c.BindJSON(&payload)
 	if err != nil {
@@ -42,7 +41,7 @@ func (controller *EventController) CreateEvent(c *gin.Context) {
 
 	eventManager := controller.serviceProvider.GetEventManager()
 
-	event, err := eventManager.CreateEvent(payload.Name, parsedDate)
+	event, err := eventManager.CreateEvent(userID, payload.Name, parsedDate)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, utils.HttpResponse{Message: err.Error()})
 		c.Abort()

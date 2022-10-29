@@ -116,7 +116,7 @@ func (r *EventMongoDBRepository) UpdateEvent(event *models.Event) *models.Event 
 
 	updatedEvent := new(models.Event)
 	err := result.Decode(updatedEvent)
-	if err == nil {
+	if err != nil {
 		return nil
 	}
 	return updatedEvent

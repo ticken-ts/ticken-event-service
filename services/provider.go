@@ -8,6 +8,7 @@ import (
 type provider struct {
 	eventManager        EventManager
 	organizationManager OrganizationManager
+	userManager         *UserManager
 }
 
 func NewProvider(repoProvider repos.IProvider, publisher *async.Publisher) (IProvider, error) {
@@ -16,7 +17,8 @@ func NewProvider(repoProvider repos.IProvider, publisher *async.Publisher) (IPro
 	eventRepo := repoProvider.GetEventRepository()
 	organizationRepo := repoProvider.GetOrganizationRepository()
 
-	provider.eventManager = NewEventManager(eventRepo, organizationRepo, publisher)
+	provider.userManager = NewUserManager()
+	provider.eventManager = NewEventManager(eventRepo, organizationRepo, publisher, provider.userManager)
 	provider.organizationManager = NewOrganizationManager(eventRepo, organizationRepo)
 
 	return provider, nil

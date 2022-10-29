@@ -4,6 +4,7 @@ import (
 	"fmt"
 	pvtbc "github.com/ticken-ts/ticken-pvtbc-connector"
 	chain_models "github.com/ticken-ts/ticken-pvtbc-connector/chain-models"
+	"github.com/ticken-ts/ticken-pvtbc-connector/fabric/peerconnector"
 	"ticken-event-service/api/errors"
 	"ticken-event-service/async"
 	"ticken-event-service/models"
@@ -15,28 +16,33 @@ type eventManager struct {
 	publisher        *async.Publisher
 	eventRepo        repos.EventRepository
 	organizationRepo repos.OrganizationRepository
-	pvtbcConnector   *pvtbc.Caller
+	userManager      *UserManager
 }
 
 func NewEventManager(
 	eventRepo repos.EventRepository,
 	organizationRepo repos.OrganizationRepository,
 	publisher *async.Publisher,
-	pvtbcConnector *pvtbc.Caller,
+	userManager *UserManager,
 ) EventManager {
 	return &eventManager{
 		publisher:        publisher,
 		eventRepo:        eventRepo,
 		organizationRepo: organizationRepo,
-		pvtbcConnector:   pvtbcConnector,
+		userManager:      userManager,
 	}
 }
 
-func (eventManager *eventManager) CreateEvent(name string, date time.Time) (*models.Event, error) {
+func (eventManager *eventManager) CreateEvent(creator string, name string, date time.Time) (*models.Event, error) {
 	event := models.NewEvent(name, date)
 
-	// TODO -> here we need to create a new peer connection using user certificates
-	err := eventManager.pvtbcConnector.TickenEventCaller.CreateAsync(event.EventID, event.Name, event.Date.Format(time.RFC3339))
+	membership := eventManager.userManager.GetUserMembership(creator)
+	atomicPvtbcCaller, err := buildAtomicPvtbcCaller(membership)
+	if err != nil {
+		return nil, err
+	}
+
+	err = atomicPvtbcCaller.TickenEventCaller.CreateAsync(event.EventID, event.Name, event.Date.Format(time.RFC3339))
 	if err != nil {
 		return nil, err
 	}
@@ -83,7 +89,7 @@ func (eventManager *eventManager) SyncOnChainEvent(onChainEvent *chain_models.Ev
 	return updatedEvent, nil
 }
 
-func (eventManager *eventManager) SyncOnChanSection(onChainSection *chain_models.Section) (*models.Event, error) {
+func (eventManager *eventManager) SyncOnChainSection(onChainSection *chain_models.Section) (*models.Event, error) {
 	storedEvent := eventManager.eventRepo.FindEvent(onChainSection.EventID)
 	if storedEvent == nil {
 		return nil, fmt.Errorf("event %s not founf", onChainSection.EventID)
@@ -139,4 +145,29 @@ func (eventManager *eventManager) GetUserEvents(userId string) ([]*models.Event,
 	}
 
 	return events, nil
+}
+
+// buildAtomicPvtbcCaller creates a pvtbc caller without
+// caching the grpc connection. This is useful when performing
+// a transaction during a request using the user certificates
+func buildAtomicPvtbcCaller(membership *UserMembership) (*pvtbc.Caller, error) {
+	pc := peerconnector.NewWithRawCredentials(
+		membership.MspID,
+		[]byte(membership.Certificate),
+		[]byte(membership.PrivateKey),
+	)
+
+	err := pc.ConnectWithRawTlsCert(membership.PeerEndpoint, membership.GatewayPeer, []byte(membership.TLSCertificate))
+	if err != nil {
+		return nil, err
+	}
+
+	pvtbcCaller, err := pvtbc.NewCaller(pc)
+	if err != nil {
+		return nil, err
+	}
+
+	_ = pvtbcCaller.SetChannel("ticken-channel")
+
+	return pvtbcCaller, nil
 }

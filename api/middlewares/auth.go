@@ -80,7 +80,6 @@ func (middleware *AuthMiddleware) Setup(router gin.IRouter) {
 }
 
 func isFreeURI(uri string) bool {
-	println("checking uri")
 	return uri == "/healthz"
 }
 
@@ -142,7 +141,7 @@ func parseAndVerifyTestJWT(jwt string) (*oidc.IDToken, error) {
 
 func getTestJWTPayload(jwt string) ([]byte, error) {
 	parts := strings.Split(jwt, ".")
-	if len(parts) < 3 {
+	if len(parts) < 2 {
 		return nil, fmt.Errorf("test jwt malformed, expected 3 parts got %d", len(parts))
 	}
 

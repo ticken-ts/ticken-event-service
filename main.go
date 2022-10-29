@@ -18,19 +18,19 @@ func main() {
 
 	tickenConfig, err := config.Load(tickenEnv.ConfigFilePath, tickenEnv.ConfigFileName)
 	if err != nil {
-		panic(err)
+		log.TickenLogger.Panic().Err(err)
 	}
 
 	infraBuilder, err := infra.NewBuilder(tickenConfig)
 	if err != nil {
-		panic(err)
+		log.TickenLogger.Panic().Err(err)
 	}
 
-	tickenTicketServer := app.New(infraBuilder, tickenConfig)
+	tickenEventService := app.New(infraBuilder, tickenConfig)
 	if tickenEnv.IsDev() {
-		tickenTicketServer.Populate()
-		tickenTicketServer.EmitFakeJWT()
+		tickenEventService.Populate()
+		tickenEventService.EmitFakeJWT()
 	}
 
-	tickenTicketServer.Start()
+	tickenEventService.Start()
 }

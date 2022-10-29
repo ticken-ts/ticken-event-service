@@ -81,7 +81,7 @@ func (listener *EventListener) handleSectionAddition(eventNotification *cclisten
 		return
 	}
 
-	_, err = eventManager.SyncOnChanSection(&onChainSection)
+	_, err = eventManager.SyncOnChainSection(&onChainSection)
 	if err != nil {
 		log.TickenLogger.Error().Err(err)
 		return
