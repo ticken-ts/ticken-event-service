@@ -8,7 +8,7 @@ type EventRepository interface {
 	AddEvent(event *models.Event) error
 	FindEvent(eventID string) *models.Event
 	FindOrgEvents(orgID string) []*models.Event
-	UpdateEvent(EventID string, OrganizerID string, PvtBCChannel string, Sections []models.Section) *models.Event
+	UpdateEvent(event *models.Event) *models.Event
 }
 
 type OrganizationRepository interface {

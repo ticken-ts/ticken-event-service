@@ -80,12 +80,13 @@ func (middleware *AuthMiddleware) Setup(router gin.IRouter) {
 }
 
 func isFreeURI(uri string) bool {
+	println("checking uri")
 	return uri == "/healthz"
 }
 
 func (middleware *AuthMiddleware) isJWTAuthorized() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		if isFreeURI(c.FullPath()) {
+		if isFreeURI(c.Request.URL.Path) {
 			return
 		}
 

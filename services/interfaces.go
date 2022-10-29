@@ -1,6 +1,10 @@
 package services
 
-import "ticken-event-service/models"
+import (
+	chain_models "github.com/ticken-ts/ticken-pvtbc-connector/chain-models"
+	"ticken-event-service/models"
+	"time"
+)
 
 type IProvider interface {
 	GetEventManager() EventManager
@@ -8,10 +12,12 @@ type IProvider interface {
 }
 
 type EventManager interface {
-	AddEvent(EventID string, OrganizerID string, PvtBCChannel string) (*models.Event, error)
+	CreateEvent(name string, date time.Time) (*models.Event, error)
+	SyncOnChainEvent(onChainEvent *chain_models.Event, channelListened string) (*models.Event, error)
+	SyncOnChanSection(section *chain_models.Section) (*models.Event, error)
+
 	GetEvent(eventId string, userId string) (*models.Event, error)
 	GetUserEvents(userId string) ([]*models.Event, error)
-	UpdateEvent(EventID string, OrganizerID string, PvtBCChannel string, Sections []models.Section) (*models.Event, error)
 }
 
 type OrganizationManager interface {

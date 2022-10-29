@@ -21,4 +21,5 @@ func New(serviceProvider services.IProvider) *EventController {
 func (controller *EventController) Setup(router gin.IRouter) {
 	router.GET("/events/:eventId", controller.GetEvent)
 	router.GET("/events", controller.GetUserEvents)
+	router.POST("/events", controller.CreateEvent)
 }

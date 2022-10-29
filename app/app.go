@@ -91,13 +91,7 @@ func (tickenEventApp *TickenEventApp) Start() {
 }
 
 func (tickenEventApp *TickenEventApp) Populate() {
-	eventManager := tickenEventApp.serviceProvider.GetEventManager()
-	orgManager := tickenEventApp.serviceProvider.GetOrgManager()
-	_, err := orgManager.AddOrganization("organizer", []string{}, []string{"aishd98y8954j5k4m"})
-	_, err = eventManager.AddEvent("test-event-id", "organizer", "ticken-test-channel")
-	if err != nil {
-		return // HANDLER DUPLICATES
-	}
+
 }
 
 func (tickenEventApp *TickenEventApp) EmitFakeJWT() {

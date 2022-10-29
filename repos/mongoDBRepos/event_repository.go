@@ -1,11 +1,11 @@
 package mongoDBRepos
 
 import (
-	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"ticken-event-service/models"
+	"time"
 )
 
 const EventCollectionName = "events"
@@ -90,24 +90,25 @@ func (r *EventMongoDBRepository) FindOrgEvents(orgID string) []*models.Event {
 	return foundEvents
 }
 
-func (r *EventMongoDBRepository) UpdateEvent(EventID string, OrganizerID string, PvtBCChannel string, Sections []models.Section) *models.Event {
+func (r *EventMongoDBRepository) UpdateEvent(event *models.Event) *models.Event {
 	findContext, cancel := r.generateOpSubcontext()
 	defer cancel()
 
 	updateOptions := new(options.FindOneAndUpdateOptions)
 	updateOptions.SetReturnDocument(options.After)
 
-	fmt.Printf("event sections %s", Sections)
-
 	events := r.getCollection()
 	result := events.FindOneAndUpdate(
 		findContext,
-		bson.M{"event_id": EventID},
+		bson.M{"event_id": event.EventID},
 		bson.M{
 			"$set": bson.M{
-				"organizer_id":   OrganizerID,
-				"pvt_bc_channel": PvtBCChannel,
-				"sections":       Sections,
+				"name":            event.Name,
+				"date":            event.Date.Format(time.RFC3339),
+				"organization_id": event.OrganizationID,
+				"pvt_bc_channel":  event.PvtBCChannel,
+				"sections":        event.Sections,
+				"on_chain":        event.OnChain,
 			},
 		},
 		updateOptions,

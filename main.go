@@ -5,6 +5,7 @@ import (
 	"ticken-event-service/config"
 	"ticken-event-service/env"
 	"ticken-event-service/infra"
+	"ticken-event-service/log"
 )
 
 func main() {
@@ -12,6 +13,8 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	log.InitGlobalLogger()
 
 	tickenConfig, err := config.Load(tickenEnv.ConfigFilePath, tickenEnv.ConfigFileName)
 	if err != nil {

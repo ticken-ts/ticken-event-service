@@ -48,7 +48,7 @@ func (processor *EventPublisher) PublishNewEvent(event *models.Event) error {
 func mapToDTO(event *models.Event) *eventDTO {
 	return &eventDTO{
 		EventID:      event.EventID,
-		OrganizerID:  event.OrganizerID,
+		OrganizerID:  event.OrganizationID,
 		PvtBCChannel: event.PvtBCChannel,
 	}
 }

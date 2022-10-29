@@ -6,6 +6,13 @@ import (
 	"ticken-event-service/models"
 )
 
+type CreatedEventDTO struct {
+	EventID string `json:"event_id"`
+	Name    string `json:"name" `
+	Date    string `json:"date" `
+	OnChain bool   `json:"on_chain"`
+}
+
 func SendEvent(ctx *gin.Context, event *models.Event) {
 
 	res, err := json.Marshal(event)
