@@ -9,6 +9,7 @@ import (
 	"ticken-event-service/env"
 	"ticken-event-service/infra/bus"
 	"ticken-event-service/infra/db"
+	"ticken-event-service/log"
 )
 
 type Builder struct {
@@ -66,29 +67,62 @@ func (builder *Builder) BuildPvtbcListener() *pvtbc.Listener {
 	return listener
 }
 
-func (builder *Builder) BuildBusPublisher(connString string) BusPublisher {
-	var busPublisher BusPublisher = nil
+func (builder *Builder) BuildBusSubscriber(connString string) BusSubscriber {
+	var tickenBus BusSubscriber = nil
 
-	switch builder.tickenConfig.Bus.Driver {
-	case config.RabbitMQDriver:
-		busPublisher = bus.NewRabbitMQPublisher()
-	default:
-		panic(fmt.Errorf("bus driver %s not implemented", builder.tickenConfig.Bus.Driver))
-	}
-
-	// if we are on dev, we are running each service separately.
-	// So there is no need to use a real. For this case, we are going
-	// to use a dev bus that mock all calls
+	driverToUse := builder.tickenConfig.Bus.Driver
 	if env.TickenEnv.IsDev() {
-		busPublisher = bus.NewTickenDevBusPublisher()
+		driverToUse = config.DevBusDriver
 	}
 
-	err := busPublisher.Connect(connString, builder.tickenConfig.Bus.Exchange)
+	switch driverToUse {
+	case config.DevBusDriver:
+		log.TickenLogger.Info().Msg("using bus publisher: " + config.DevBusDriver)
+		tickenBus = bus.NewTickenDevBusSubscriber()
+	case config.RabbitMQDriver:
+		log.TickenLogger.Info().Msg("using bus subscriber: " + config.RabbitMQDriver)
+		tickenBus = bus.NewRabbitMQSubscriber()
+	default:
+		err := fmt.Errorf("bus driver %s not implemented", builder.tickenConfig.Bus.Driver)
+		log.TickenLogger.Panic().Err(err)
+	}
+
+	err := tickenBus.Connect(connString, builder.tickenConfig.Bus.Exchange)
 	if err != nil {
-		panic(err)
+		log.TickenLogger.Panic().Err(err)
+	}
+	log.TickenLogger.Info().Msg("bus subscriber connection established")
+
+	return tickenBus
+}
+
+func (builder *Builder) BuildBusPublisher(connString string) BusPublisher {
+	var tickenBus BusPublisher = nil
+
+	driverToUse := builder.tickenConfig.Bus.Driver
+	if env.TickenEnv.IsDev() {
+		driverToUse = config.DevBusDriver
 	}
 
-	return busPublisher
+	switch driverToUse {
+	case config.DevBusDriver:
+		log.TickenLogger.Info().Msg("using bus publisher: " + config.DevBusDriver)
+		tickenBus = bus.NewTickenDevBusPublisher()
+	case config.RabbitMQDriver:
+		log.TickenLogger.Info().Msg("using bus publisher: " + config.RabbitMQDriver)
+		tickenBus = bus.NewRabbitMQPublisher()
+	default:
+		err := fmt.Errorf("bus driver %s not implemented", builder.tickenConfig.Bus.Driver)
+		log.TickenLogger.Panic().Err(err)
+	}
+
+	err := tickenBus.Connect(connString, builder.tickenConfig.Bus.Exchange)
+	if err != nil {
+		log.TickenLogger.Panic().Err(err)
+	}
+	log.TickenLogger.Info().Msg("bus publisher connection established")
+
+	return tickenBus
 }
 
 func buildPeerConnector(config config.PvtbcConfig) *peerconnector.PeerConnector {

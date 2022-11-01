@@ -18,6 +18,12 @@ type Db interface {
 	GetClient() interface{}
 }
 
+type BusSubscriber interface {
+	Connect(connString string, exchangeName string) error
+	IsConnected() bool
+	Listen(handler func([]byte)) error
+}
+
 type BusPublisher interface {
 	Connect(connString string, exchangeName string) error
 	IsConnected() bool

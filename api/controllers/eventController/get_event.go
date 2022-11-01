@@ -19,7 +19,7 @@ func (controller *EventController) GetEvent(c *gin.Context) {
 		return
 	}
 
-	eventDTO := mappers.MapEventToCreatedEventDTO(event)
+	eventDTO := mappers.MapEventToEventDTO(event)
 
 	c.JSON(http.StatusOK, utils.HttpResponse{Data: eventDTO})
 }

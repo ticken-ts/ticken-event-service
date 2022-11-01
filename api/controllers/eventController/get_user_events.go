@@ -3,8 +3,9 @@ package eventController
 import (
 	"github.com/coreos/go-oidc"
 	"github.com/gin-gonic/gin"
-	"ticken-event-service/api/dto"
-	"ticken-event-service/api/errors"
+	"net/http"
+	"ticken-event-service/api/mappers"
+	"ticken-event-service/utils"
 )
 
 func (controller *EventController) GetUserEvents(ctx *gin.Context) {
@@ -12,11 +13,12 @@ func (controller *EventController) GetUserEvents(ctx *gin.Context) {
 
 	events, err := controller.serviceProvider.GetEventManager().GetOrganizationEvents(userID)
 	if err != nil {
-		apiError := errors.GetApiError(err)
-		ctx.String(apiError.HttpCode, apiError.Message)
+		ctx.JSON(http.StatusBadRequest, utils.HttpResponse{Message: err.Error()})
 		ctx.Abort()
 		return
 	}
 
-	dto.SendEvents(ctx, events)
+	eventsDTO := mappers.MapEventListToEventListDTO(events)
+
+	ctx.JSON(http.StatusOK, utils.HttpResponse{Data: eventsDTO})
 }
