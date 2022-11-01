@@ -10,7 +10,7 @@ import (
 func (controller *EventController) GetUserEvents(ctx *gin.Context) {
 	userID := ctx.MustGet("jwt").(*oidc.IDToken).Subject
 
-	events, err := controller.serviceProvider.GetEventManager().GetUserEvents(userID)
+	events, err := controller.serviceProvider.GetEventManager().GetOrganizationEvents(userID)
 	if err != nil {
 		apiError := errors.GetApiError(err)
 		ctx.String(apiError.HttpCode, apiError.Message)

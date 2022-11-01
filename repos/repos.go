@@ -11,17 +11,10 @@ type EventRepository interface {
 	UpdateEvent(event *models.Event) *models.Event
 }
 
-type OrganizationRepository interface {
-	FindUserOrganization(userId string) *models.Organization
-	AddOrganization(org *models.Organization) error
-}
-
 type IProvider interface {
 	GetEventRepository() EventRepository
-	GetOrganizationRepository() OrganizationRepository
 }
 
 type IFactory interface {
 	BuildEventRepository() any
-	BuildOrganizationRepository() any
 }

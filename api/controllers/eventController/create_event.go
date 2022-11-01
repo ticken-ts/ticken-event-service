@@ -50,5 +50,5 @@ func (controller *EventController) CreateEvent(c *gin.Context) {
 
 	eventDTO := mappers.MapEventToCreatedEventDTO(event)
 
-	c.JSON(http.StatusOK, utils.HttpResponse{Data: eventDTO})
+	c.JSON(http.StatusCreated, utils.HttpResponse{Data: eventDTO})
 }

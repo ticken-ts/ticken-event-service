@@ -7,7 +7,6 @@ import (
 	"ticken-event-service/api"
 	"ticken-event-service/api/controllers/eventController"
 	"ticken-event-service/api/controllers/healthController"
-	"ticken-event-service/api/controllers/organizationController"
 	"ticken-event-service/api/controllers/sectionController"
 	"ticken-event-service/api/middlewares"
 	"ticken-event-service/async"
@@ -17,6 +16,7 @@ import (
 	"ticken-event-service/listeners"
 	"ticken-event-service/repos"
 	"ticken-event-service/services"
+	"ticken-event-service/sync"
 )
 
 type TickenEventApp struct {
@@ -44,7 +44,7 @@ func New(builder infra.IBuilder, tickenConfig *config.Config) *TickenEventApp {
 		panic(err)
 	}
 
-	serviceProvider, err := services.NewProvider(repoProvider, publisher)
+	serviceProvider, err := services.NewProvider(repoProvider, publisher, sync.NewUserServiceClient())
 	if err != nil {
 		panic(err)
 	}
@@ -74,7 +74,6 @@ func New(builder infra.IBuilder, tickenConfig *config.Config) *TickenEventApp {
 		eventController.New(serviceProvider),
 		sectionController.New(serviceProvider),
 		healthController.New(serviceProvider),
-		organizationController.New(serviceProvider),
 	}
 
 	for _, controller := range controllers {

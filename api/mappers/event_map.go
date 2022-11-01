@@ -6,8 +6,8 @@ import (
 	"time"
 )
 
-func MapEventToCreatedEventDTO(event *models.Event) *dto.CreatedEventDTO {
-	return &dto.CreatedEventDTO{
+func MapEventToCreatedEventDTO(event *models.Event) *dto.EventDTO {
+	return &dto.EventDTO{
 		EventID: event.EventID,
 		Name:    event.Name,
 		Date:    event.Date.Format(time.RFC3339),

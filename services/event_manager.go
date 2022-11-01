@@ -5,39 +5,32 @@ import (
 	pvtbc "github.com/ticken-ts/ticken-pvtbc-connector"
 	chain_models "github.com/ticken-ts/ticken-pvtbc-connector/chain-models"
 	"github.com/ticken-ts/ticken-pvtbc-connector/fabric/peerconnector"
-	"ticken-event-service/api/errors"
 	"ticken-event-service/async"
 	"ticken-event-service/log"
 	"ticken-event-service/models"
 	"ticken-event-service/repos"
+	"ticken-event-service/sync"
 	"time"
 )
 
 type eventManager struct {
-	publisher        *async.Publisher
-	eventRepo        repos.EventRepository
-	organizationRepo repos.OrganizationRepository
-	userManager      *UserManager
+	publisher         *async.Publisher
+	eventRepo         repos.EventRepository
+	userServiceClient *sync.UserServiceClient
 }
 
-func NewEventManager(
-	eventRepo repos.EventRepository,
-	organizationRepo repos.OrganizationRepository,
-	publisher *async.Publisher,
-	userManager *UserManager,
-) EventManager {
+func NewEventManager(eventRepo repos.EventRepository, publisher *async.Publisher, userServiceClient *sync.UserServiceClient) EventManager {
 	return &eventManager{
-		publisher:        publisher,
-		eventRepo:        eventRepo,
-		organizationRepo: organizationRepo,
-		userManager:      userManager,
+		publisher:         publisher,
+		eventRepo:         eventRepo,
+		userServiceClient: userServiceClient,
 	}
 }
 
 func (eventManager *eventManager) CreateEvent(creator string, name string, date time.Time) (*models.Event, error) {
 	event := models.NewEvent(name, date)
 
-	membership := eventManager.userManager.GetUserMembership(creator)
+	membership := eventManager.userServiceClient.GetUserMembership(creator)
 	atomicPvtbcCaller, err := buildAtomicPvtbcCaller(membership)
 	if err != nil {
 		return nil, err
@@ -62,7 +55,7 @@ func (eventManager *eventManager) CreateEvent(creator string, name string, date 
 func (eventManager *eventManager) AddSection(creator string, eventID string, name string, totalTickets int) (*models.Section, error) {
 	section := models.NewSection(name, eventID, totalTickets)
 
-	membership := eventManager.userManager.GetUserMembership(creator)
+	membership := eventManager.userServiceClient.GetUserMembership(creator)
 	atomicPvtbcCaller, err := buildAtomicPvtbcCaller(membership)
 	if err != nil {
 		return nil, err
@@ -150,43 +143,31 @@ func (eventManager *eventManager) SyncOnChainSection(onChainSection *chain_model
 	return updatedEvent, nil
 }
 
-func (eventManager *eventManager) GetEvent(eventId string, userId string) (*models.Event, error) {
-	org := eventManager.organizationRepo.FindUserOrganization(userId)
-	if org == nil {
-		return nil, fmt.Errorf(errors.UserOrgNotFound)
-	}
-
-	event := eventManager.eventRepo.FindEvent(eventId)
+func (eventManager *eventManager) GetEvent(eventID string, requesterID string) (*models.Event, error) {
+	event := eventManager.eventRepo.FindEvent(eventID)
 	if event == nil {
-		return nil, fmt.Errorf(errors.EventNotFound)
+		return nil, fmt.Errorf("event %s not found", eventID)
 	}
 
-	if event.OrganizationID != org.OrganizationID {
-		return nil, fmt.Errorf(errors.OrgEventMismatch)
+	requesterInfo := eventManager.userServiceClient.GetUserInfo(requesterID)
+
+	if !event.IsFromOrganization(requesterInfo.OrganizationID) {
+		return nil, fmt.Errorf("user %s doest not belongs to the event organization", requesterID)
 	}
 
 	return event, nil
 }
 
-func (eventManager *eventManager) GetUserEvents(userId string) ([]*models.Event, error) {
-
-	org := eventManager.organizationRepo.FindUserOrganization(userId)
-	if org == nil {
-		return nil, fmt.Errorf(errors.UserOrgNotFound)
-	}
-
-	events := eventManager.eventRepo.FindOrgEvents(org.OrganizationID)
-	if events == nil {
-		return nil, fmt.Errorf(errors.EventNotFound)
-	}
-
+func (eventManager *eventManager) GetOrganizationEvents(requesterID string) ([]*models.Event, error) {
+	requesterInfo := eventManager.userServiceClient.GetUserInfo(requesterID)
+	events := eventManager.eventRepo.FindOrgEvents(requesterInfo.OrganizationID)
 	return events, nil
 }
 
 // buildAtomicPvtbcCaller creates a pvtbc caller without
 // caching the grpc connection. This is useful when performing
 // a transaction during a request using the user certificates
-func buildAtomicPvtbcCaller(membership *UserMembership) (*pvtbc.Caller, error) {
+func buildAtomicPvtbcCaller(membership *sync.UserMembership) (*pvtbc.Caller, error) {
 	pc := peerconnector.NewWithRawCredentials(
 		membership.MspID,
 		[]byte(membership.Certificate),

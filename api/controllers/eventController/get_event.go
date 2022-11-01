@@ -3,21 +3,23 @@ package eventController
 import (
 	"github.com/coreos/go-oidc"
 	"github.com/gin-gonic/gin"
-	"ticken-event-service/api/dto"
-	"ticken-event-service/api/errors"
+	"net/http"
+	"ticken-event-service/api/mappers"
+	"ticken-event-service/utils"
 )
 
-func (controller *EventController) GetEvent(ctx *gin.Context) {
-	userID := ctx.MustGet("jwt").(*oidc.IDToken).Subject
-	eventId := ctx.Param("eventId")
+func (controller *EventController) GetEvent(c *gin.Context) {
+	userID := c.MustGet("jwt").(*oidc.IDToken).Subject
+	eventId := c.Param("eventId")
 
 	event, err := controller.serviceProvider.GetEventManager().GetEvent(eventId, userID)
 	if err != nil {
-		apiError := errors.GetApiError(err)
-		ctx.String(apiError.HttpCode, apiError.Message)
-		ctx.Abort()
+		c.JSON(http.StatusBadRequest, utils.HttpResponse{Message: err.Error()})
+		c.Abort()
 		return
 	}
 
-	dto.SendEvent(ctx, event)
+	eventDTO := mappers.MapEventToCreatedEventDTO(event)
+
+	c.JSON(http.StatusOK, utils.HttpResponse{Data: eventDTO})
 }

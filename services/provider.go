@@ -3,31 +3,22 @@ package services
 import (
 	"ticken-event-service/async"
 	"ticken-event-service/repos"
+	"ticken-event-service/sync"
 )
 
 type provider struct {
-	eventManager        EventManager
-	organizationManager OrganizationManager
-	userManager         *UserManager
+	eventManager EventManager
 }
 
-func NewProvider(repoProvider repos.IProvider, publisher *async.Publisher) (IProvider, error) {
+func NewProvider(repoProvider repos.IProvider, publisher *async.Publisher, userServiceClient *sync.UserServiceClient) (IProvider, error) {
 	provider := new(provider)
 
 	eventRepo := repoProvider.GetEventRepository()
-	organizationRepo := repoProvider.GetOrganizationRepository()
-
-	provider.userManager = NewUserManager()
-	provider.eventManager = NewEventManager(eventRepo, organizationRepo, publisher, provider.userManager)
-	provider.organizationManager = NewOrganizationManager(eventRepo, organizationRepo)
+	provider.eventManager = NewEventManager(eventRepo, publisher, userServiceClient)
 
 	return provider, nil
 }
 
 func (provider *provider) GetEventManager() EventManager {
 	return provider.eventManager
-}
-
-func (provider *provider) GetOrgManager() OrganizationManager {
-	return provider.organizationManager
 }

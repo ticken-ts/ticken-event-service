@@ -68,3 +68,7 @@ func (event *Event) AssociateSection(section *Section) error {
 	event.Sections = append(event.Sections, section)
 	return nil
 }
+
+func (event *Event) IsFromOrganization(organizationID string) bool {
+	return event.OrganizationID == organizationID
+}
