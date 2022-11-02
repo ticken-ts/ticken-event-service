@@ -7,18 +7,26 @@ import (
 )
 
 type provider struct {
-	eventManager EventManager
+	eventManager        IEventManager
+	organizationManager IOrganizationManager
 }
 
 func NewProvider(repoProvider repos.IProvider, publisher *async.Publisher, userServiceClient *sync.UserServiceClient) (IProvider, error) {
 	provider := new(provider)
 
 	eventRepo := repoProvider.GetEventRepository()
+	organizerRepo := repoProvider.GetOrganizerRepository()
+
 	provider.eventManager = NewEventManager(eventRepo, publisher, userServiceClient)
+	provider.organizationManager = NewOrganizationManager(organizerRepo)
 
 	return provider, nil
 }
 
-func (provider *provider) GetEventManager() EventManager {
+func (provider *provider) GetEventManager() IEventManager {
 	return provider.eventManager
+}
+
+func (provider *provider) GetOrganizationManager() IOrganizationManager {
+	return provider.organizationManager
 }

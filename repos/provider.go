@@ -7,13 +7,14 @@ import (
 	"ticken-event-service/repos/mongoDBRepos"
 )
 
-type provider struct {
-	reposFactory    IFactory
-	eventRepository EventRepository
+type Provider struct {
+	reposFactory        IFactory
+	eventRepository     EventRepository
+	organizerRepository OrganizerRepository
 }
 
 func NewProvider(db infra.Db, dbConfig *config.DatabaseConfig) (IProvider, error) {
-	provider := new(provider)
+	provider := new(Provider)
 
 	switch dbConfig.Driver {
 	case config.MongoDriver:
@@ -25,9 +26,16 @@ func NewProvider(db infra.Db, dbConfig *config.DatabaseConfig) (IProvider, error
 	return provider, nil
 }
 
-func (provider *provider) GetEventRepository() EventRepository {
+func (provider *Provider) GetEventRepository() EventRepository {
 	if provider.eventRepository == nil {
 		provider.eventRepository = provider.reposFactory.BuildEventRepository().(EventRepository)
 	}
 	return provider.eventRepository
+}
+
+func (provider *Provider) GetOrganizerRepository() OrganizerRepository {
+	if provider.organizerRepository == nil {
+		provider.organizerRepository = provider.reposFactory.BuildOrganizerRepository().(OrganizerRepository)
+	}
+	return provider.organizerRepository
 }

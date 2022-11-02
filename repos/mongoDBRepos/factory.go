@@ -21,3 +21,7 @@ func NewFactory(db infra.Db, dbConfig *config.DatabaseConfig) *Factory {
 func (factory *Factory) BuildEventRepository() any {
 	return NewEventRepository(factory.dbClient, factory.dbName)
 }
+
+func (factory *Factory) BuildOrganizerRepository() any {
+	return NewOrganizerRepository(factory.dbClient, factory.dbName)
+}

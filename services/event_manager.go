@@ -13,21 +13,21 @@ import (
 	"time"
 )
 
-type eventManager struct {
+type EventManager struct {
 	publisher         *async.Publisher
 	eventRepo         repos.EventRepository
 	userServiceClient *sync.UserServiceClient
 }
 
-func NewEventManager(eventRepo repos.EventRepository, publisher *async.Publisher, userServiceClient *sync.UserServiceClient) EventManager {
-	return &eventManager{
+func NewEventManager(eventRepo repos.EventRepository, publisher *async.Publisher, userServiceClient *sync.UserServiceClient) IEventManager {
+	return &EventManager{
 		publisher:         publisher,
 		eventRepo:         eventRepo,
 		userServiceClient: userServiceClient,
 	}
 }
 
-func (eventManager *eventManager) CreateEvent(creator string, name string, date time.Time) (*models.Event, error) {
+func (eventManager *EventManager) CreateEvent(creator string, name string, date time.Time) (*models.Event, error) {
 	event := models.NewEvent(name, date)
 
 	membership := eventManager.userServiceClient.GetUserMembership(creator)
@@ -52,7 +52,7 @@ func (eventManager *eventManager) CreateEvent(creator string, name string, date 
 	return event, nil
 }
 
-func (eventManager *eventManager) AddSection(creator string, eventID string, name string, totalTickets int) (*models.Section, error) {
+func (eventManager *EventManager) AddSection(creator string, eventID string, name string, totalTickets int) (*models.Section, error) {
 	section := models.NewSection(name, eventID, totalTickets)
 
 	membership := eventManager.userServiceClient.GetUserMembership(creator)
@@ -86,7 +86,7 @@ func (eventManager *eventManager) AddSection(creator string, eventID string, nam
 	return section, nil
 }
 
-func (eventManager *eventManager) SyncOnChainEvent(onChainEvent *chain_models.Event, channelListened string) (*models.Event, error) {
+func (eventManager *EventManager) SyncOnChainEvent(onChainEvent *chain_models.Event, channelListened string) (*models.Event, error) {
 	storedEvent := eventManager.eventRepo.FindEvent(onChainEvent.EventID)
 
 	// if the event was never seen before, in other words,
@@ -118,7 +118,7 @@ func (eventManager *eventManager) SyncOnChainEvent(onChainEvent *chain_models.Ev
 	return updatedEvent, nil
 }
 
-func (eventManager *eventManager) SyncOnChainSection(onChainSection *chain_models.Section) (*models.Event, error) {
+func (eventManager *EventManager) SyncOnChainSection(onChainSection *chain_models.Section) (*models.Event, error) {
 	storedEvent := eventManager.eventRepo.FindEvent(onChainSection.EventID)
 	if storedEvent == nil {
 		return nil, fmt.Errorf("event %s not founf", onChainSection.EventID)
@@ -143,7 +143,7 @@ func (eventManager *eventManager) SyncOnChainSection(onChainSection *chain_model
 	return updatedEvent, nil
 }
 
-func (eventManager *eventManager) GetEvent(eventID string, requesterID string) (*models.Event, error) {
+func (eventManager *EventManager) GetEvent(eventID string, requesterID string) (*models.Event, error) {
 	event := eventManager.eventRepo.FindEvent(eventID)
 	if event == nil {
 		return nil, fmt.Errorf("event %s not found", eventID)
@@ -158,7 +158,7 @@ func (eventManager *eventManager) GetEvent(eventID string, requesterID string) (
 	return event, nil
 }
 
-func (eventManager *eventManager) GetOrganizationEvents(requesterID string) ([]*models.Event, error) {
+func (eventManager *EventManager) GetOrganizationEvents(requesterID string) ([]*models.Event, error) {
 	requesterInfo := eventManager.userServiceClient.GetUserInfo(requesterID)
 	events := eventManager.eventRepo.FindOrgEvents(requesterInfo.OrganizationID)
 	return events, nil

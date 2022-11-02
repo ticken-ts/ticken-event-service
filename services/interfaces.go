@@ -7,10 +7,11 @@ import (
 )
 
 type IProvider interface {
-	GetEventManager() EventManager
+	GetEventManager() IEventManager
+	GetOrganizationManager() IOrganizationManager
 }
 
-type EventManager interface {
+type IEventManager interface {
 	CreateEvent(creator string, name string, date time.Time) (*models.Event, error)
 	AddSection(creator string, eventID string, name string, totalTickets int) (*models.Section, error)
 
@@ -19,4 +20,8 @@ type EventManager interface {
 
 	GetEvent(eventID string, requester string) (*models.Event, error)
 	GetOrganizationEvents(requester string) ([]*models.Event, error)
+}
+
+type IOrganizationManager interface {
+	RegisterOrganizer(organizerID string, name string, email string) (*models.Organizer, error)
 }
