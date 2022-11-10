@@ -49,13 +49,61 @@ you can start this service
 
 **Running without Docker**
 
-To run this server without docker install the following dependencies:
+- Start private blockchain with start-pvtbc.sh from ticken-dev
+```bash
+$ bash ../ticken-dev/dev-services/start-pvtbc.sh
+```
+- Create the `config.json` file based on `config.example.json` and paste the full path to the certificates and private key from an Organization 1 user in the `pvtbc` section:
+```json
+{
+    "msp_id": "Org1MSP",
+    "peer_endpoint": "localhost:7051",
+    "gateway_peer": "peer0.org1.example.com",
+    "certificate_path": "<<PATH_TO_PROJECT>>/ticken-dev/test-pvtbc/test-network/organizations/peerOrganizations/org1.example.com/users/User1@org1.example.com/msp/signcerts/User1@org1.example.com-cert.pem",
+    "private_key_path": "<<PATH_TO_PROJECT>>/ticken-dev/test-pvtbc/test-network/organizations/peerOrganizations/org1.example.com/users/User1@org1.example.com/msp/keystore/priv_sk",
+    "tls_certificate_path": "<<PATH_TO_PROJECT>>/ticken-dev/test-pvtbc/test-network/organizations/peerOrganizations/org1.example.com/users/User1@org1.example.com/tls/ca.crt"
+}
+```
+- Launch a mongodb instance using the script from `ticken-dev`
+```bash
+$ bash ../ticken-dev/dev-services/start-mongo.sh
+```
+- Create `.env` file and paste the mongodb url
+```bash
+ENV="dev"
+CONFIG_FILE_PATH="."
+CONFIG_FILE_NAME="config"
+DB_CONN_STRING="mongodb://admin:admin@localhost:27017/?authSource=admin" # <---- paste here
+BUS_CONN_STRING="." # doesn't matter for dev environment
+```
+
+- Copy the certificates and private key from Organization 2's User to `./sync/user_service_client.go`
+```golang
+// <<PATH_TO_PROJECT>>/ticken-dev/test-pvtbc/test-network/organizations/peerOrganizations/org2.example.com/users/User1@org2.example.com/msp/signcerts/User1@org2.example.com-cert.pem
+const Certificate = "-----BEGIN CERTIFICATE-----\nMIICKjCCAdCgAwIBAgIQNpXmL8..."
+
+// <<PATH_TO_PROJECT>>/ticken-dev/test-pvtbc/test-network/organizations/peerOrganizations/org2.example.com/users/User1@org2.example.com/msp/keystore/priv_sk
+const PrivateKey = "-----BEGIN PRIVATE KEY-----\nMIGHAgEAMBMGByqGSM49AgEGCCq..."
+
+// <<PATH_TO_PROJECT>>/ticken-dev/test-pvtbc/test-network/organizations/peerOrganizations/org2.example.com/users/User1@org2.example.com/tls/ca.crt
+const TLSCertificated = "-----BEGIN CERTIFICATE-----\nMIICWDCCAf6gAwIBAgIRAL..."
+```
+
+- Build
+```bash
+$ go build
+```
+
+- Run
+```bash
+$ ./ticken-event-service
+```
 
 **Running Docker**
 
 ## Running tests
 
-**Running especific package**
+**Running specific package**
 
 Use the following commnad to run the test in specific package
 ```
