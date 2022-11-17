@@ -14,10 +14,10 @@ import (
 	"ticken-event-service/config"
 	"ticken-event-service/env"
 	"ticken-event-service/infra"
-	"ticken-event-service/listeners"
 	"ticken-event-service/repos"
 	"ticken-event-service/services"
 	"ticken-event-service/sync"
+	"ticken-event-service/utils"
 )
 
 type TickenEventApp struct {
@@ -32,7 +32,7 @@ func New(builder infra.IBuilder, tickenConfig *config.Config) *TickenEventApp {
 
 	db := builder.BuildDb(env.TickenEnv.DbConnString)
 	engine := builder.BuildEngine()
-	pvtbcListener := builder.BuildPvtbcListener()
+	//pvtbcListener := builder.BuildPvtbcListener()
 	busPublisher := builder.BuildBusPublisher(env.TickenEnv.BusConnString)
 
 	publisher, err := async.NewPublisher(busPublisher)
@@ -55,16 +55,17 @@ func New(builder infra.IBuilder, tickenConfig *config.Config) *TickenEventApp {
 	tickenEventApp.repoProvider = repoProvider
 	tickenEventApp.serviceProvider = serviceProvider
 
-	var appListeners = []listeners.Listener{
-		listeners.NewEventListener(serviceProvider, pvtbcListener, "ticken-channel"),
-	}
+	/*
+		var appListeners = []listeners.Listener{
+			listeners.NewEventListener(serviceProvider, pvtbcListener, "ticken-channel"),
+		}
 
-	for _, listener := range appListeners {
-		listener.Listen()
-	}
+		for _, listener := range appListeners {
+			listener.Listen()
+		}*/
 
 	var appMiddlewares = []api.Middleware{
-		middlewares.NewAuthMiddleware(serviceProvider, &tickenConfig.Server),
+		middlewares.NewAuthMiddleware(serviceProvider, &tickenConfig.Server, &tickenConfig.Dev),
 	}
 
 	for _, middleware := range appMiddlewares {
@@ -94,16 +95,21 @@ func (tickenEventApp *TickenEventApp) Start() {
 }
 
 func (tickenEventApp *TickenEventApp) Populate() {
-
 }
 
 func (tickenEventApp *TickenEventApp) EmitFakeJWT() {
-	fakeJWT := jwt.NewWithClaims(jwt.SigningMethodES256, jwt.MapClaims{
+	rsaPrivKey, err := utils.LoadRSA(tickenEventApp.config.Dev.JWTPrivateKey, tickenEventApp.config.Dev.JWTPublicKey)
+	if err != nil {
+		panic(err)
+	}
+
+	fakeJWT := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
 		"sub":   "290c641a-55a1-40f5-acc3-d4ebe3626fdd",
 		"email": "user@ticken.com",
 	})
 
-	signedJWT, err := fakeJWT.SigningString()
+	signedJWT, err := fakeJWT.SignedString(rsaPrivKey)
+
 	if err != nil {
 		panic(fmt.Errorf("error generation fake JWT: %s", err.Error()))
 	}

@@ -1,10 +1,10 @@
 package sectionController
 
 import (
-	"github.com/coreos/go-oidc"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"ticken-event-service/api/mappers"
+	"ticken-event-service/api/security"
 	"ticken-event-service/utils"
 )
 
@@ -17,7 +17,7 @@ func (controller *SectionController) AddSection(c *gin.Context) {
 	var payload createSectionPayload
 
 	eventID := c.Param("eventID")
-	userID := c.MustGet("jwt").(*oidc.IDToken).Subject
+	userID := c.MustGet("jwt").(*security.JWT).Subject
 
 	err := c.BindJSON(&payload)
 	if err != nil {

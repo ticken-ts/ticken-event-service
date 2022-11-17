@@ -9,6 +9,10 @@ type Config struct {
 	Pvtbc    PvtbcConfig    `mapstructure:"pvtbc"`
 	Server   ServerConfig   `mapstructure:"server"`
 	Bus      BusConfig      `mapstructure:"bus"`
+
+	// this field is going to be
+	// loaded only during dev or test env
+	Dev DevConfig `mapstructure:"dev"`
 }
 
 func Load(path string, filename string) (*Config, error) {

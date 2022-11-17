@@ -6,15 +6,15 @@ import (
 	"ticken-event-service/repos"
 )
 
-type OrganizatioManager struct {
+type OrganizationManager struct {
 	organizerRepos repos.OrganizerRepository
 }
 
-func NewOrganizationManager(organizerRepo repos.OrganizerRepository) *OrganizatioManager {
-	return &OrganizatioManager{organizerRepos: organizerRepo}
+func NewOrganizationManager(organizerRepo repos.OrganizerRepository) *OrganizationManager {
+	return &OrganizationManager{organizerRepos: organizerRepo}
 }
 
-func (organizationManager *OrganizatioManager) RegisterOrganizer(organizerID string, username string, email string) (*models.Organizer, error) {
+func (organizationManager *OrganizationManager) RegisterOrganizer(organizerID string, username string, email string) (*models.Organizer, error) {
 	orgWithSameID := organizationManager.organizerRepos.FindOrganizer(organizerID)
 	if orgWithSameID != nil {
 		return nil, fmt.Errorf("organizer %s already registerd", organizerID)
@@ -33,4 +33,8 @@ func (organizationManager *OrganizatioManager) RegisterOrganizer(organizerID str
 	}
 
 	return organizer, nil
+}
+
+func (organizationManager *OrganizationManager) RegisterOrganization(name string, organizerID string) {
+
 }
