@@ -77,7 +77,7 @@ DB_CONN_STRING="mongodb://admin:admin@localhost:27017/?authSource=admin" # <----
 BUS_CONN_STRING="." # doesn't matter for dev environment
 ```
 
-- Copy the certificates and private key from Organization 2's User to `./sync/user_service_client.go`
+- Copy the certificates and private key from Organization 2's User and set peerEndpoint in `./sync/user_service_client.go`
 ```golang
 // <<PATH_TO_PROJECT>>/ticken-dev/test-pvtbc/test-network/organizations/peerOrganizations/org2.example.com/users/User1@org2.example.com/msp/signcerts/User1@org2.example.com-cert.pem
 const Certificate = "-----BEGIN CERTIFICATE-----\nMIICKjCCAdCgAwIBAgIQNpXmL8..."
@@ -87,6 +87,19 @@ const PrivateKey = "-----BEGIN PRIVATE KEY-----\nMIGHAgEAMBMGByqGSM49AgEGCCq..."
 
 // <<PATH_TO_PROJECT>>/ticken-dev/test-pvtbc/test-network/organizations/peerOrganizations/org2.example.com/users/User1@org2.example.com/tls/ca.crt
 const TLSCertificated = "-----BEGIN CERTIFICATE-----\nMIICWDCCAf6gAwIBAgIRAL..."
+```
+
+```golang
+func (usc *UserServiceClient) GetUserMembership(userID string) *UserMembership {
+	return &UserMembership{
+		MspID:          "Org2MSP",
+		PeerEndpoint:   "localhost:9051", // <--- set this
+		GatewayPeer:    "peer0.org2.example.com",
+		Certificate:    Certificate,
+		PrivateKey:     PrivateKey,
+		TLSCertificate: TLSCertificated,
+	}
+}
 ```
 
 - Build
