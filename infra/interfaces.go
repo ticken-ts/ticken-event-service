@@ -18,6 +18,11 @@ type Db interface {
 	GetClient() interface{}
 }
 
+type HSM interface {
+	Store(data []byte) (string, error)
+	Retrieve(key string) ([]byte, error)
+}
+
 type BusSubscriber interface {
 	Connect(connString string, exchangeName string) error
 	IsConnected() bool
@@ -32,8 +37,9 @@ type BusPublisher interface {
 
 type IBuilder interface {
 	BuildDb(connString string) Db
+	BuildHSM(encrytionKey string) HSM
 	BuildEngine() *gin.Engine
 	BuildPvtbcCaller() *pvtbc.Caller
 	BuildPvtbcListener() *pvtbc.Listener
 	BuildBusPublisher(connString string) BusPublisher
-}
+}w

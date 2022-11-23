@@ -67,7 +67,7 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/stretchr/testify v1.8.0 // indirect
 	github.com/subosito/gotenv v1.4.1 // indirect
-	github.com/ticken-ts/ticken-pvtbc-adminlib v0.1.15 // indirect
+	github.com/ticken-ts/ticken-pvtbc-adminlib v0.1.16 // indirect
 	github.com/ugorji/go/codec v1.2.7 // indirect
 	github.com/weppos/publicsuffix-go v0.5.0 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect

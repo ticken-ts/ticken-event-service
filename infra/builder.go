@@ -9,6 +9,7 @@ import (
 	"ticken-event-service/env"
 	"ticken-event-service/infra/bus"
 	"ticken-event-service/infra/db"
+	"ticken-event-service/infra/hsm"
 	"ticken-event-service/log"
 )
 
@@ -45,6 +46,14 @@ func (builder *Builder) BuildDb(connString string) Db {
 	}
 
 	return tickenDb
+}
+
+func (builder *Builder) BuildHsm(encryptingKey string) HSM {
+	localFileSystemHSM, err := hsm.NewLocalFileSystemHSM(encryptingKey)
+	if err != nil {
+		panic(err)
+	}
+	return localFileSystemHSM
 }
 
 func (builder *Builder) BuildEngine() *gin.Engine {

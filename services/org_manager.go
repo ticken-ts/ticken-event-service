@@ -4,16 +4,18 @@ import (
 	"fmt"
 	pvtbcadmin "github.com/ticken-ts/ticken-pvtbc-adminlib"
 	"os"
+	"ticken-event-service/infra"
 	"ticken-event-service/models"
 	"ticken-event-service/repos"
 )
 
 type OrgManager struct {
+	hsm            infra.HSM
 	organizerRepos repos.OrganizerRepository
 }
 
-func NewOrgManager(organizerRepo repos.OrganizerRepository) *OrgManager {
-	return &OrgManager{organizerRepos: organizerRepo}
+func NewOrgManager(organizerRepo repos.OrganizerRepository, hsm infra.HSM) *OrgManager {
+	return &OrgManager{organizerRepos: organizerRepo, hsm: hsm}
 }
 
 func (organizationManager *OrgManager) RegisterOrganizer(organizerID string, username string, email string) (*models.Organizer, error) {

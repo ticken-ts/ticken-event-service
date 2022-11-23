@@ -33,6 +33,7 @@ func New(builder infra.IBuilder, tickenConfig *config.Config) *TickenEventApp {
 	tickenEventApp := new(TickenEventApp)
 
 	db := builder.BuildDb(env.TickenEnv.DbConnString)
+	hsm := builder.BuildHSM(env.TickenEnv.HSMEncryptionKey)
 	engine := builder.BuildEngine()
 	pvtbcListener := builder.BuildPvtbcListener()
 	busPublisher := builder.BuildBusPublisher(env.TickenEnv.BusConnString)
@@ -47,7 +48,7 @@ func New(builder infra.IBuilder, tickenConfig *config.Config) *TickenEventApp {
 		panic(err)
 	}
 
-	serviceProvider, err := services.NewProvider(repoProvider, publisher, sync.NewUserServiceClient())
+	serviceProvider, err := services.NewProvider(repoProvider, publisher, sync.NewUserServiceClient(), hsm)
 	if err != nil {
 		panic(err)
 	}
