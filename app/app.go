@@ -7,6 +7,7 @@ import (
 	"ticken-event-service/api"
 	"ticken-event-service/api/controllers/eventController"
 	"ticken-event-service/api/controllers/healthController"
+	"ticken-event-service/api/controllers/organizationController"
 	"ticken-event-service/api/controllers/organizerController"
 	"ticken-event-service/api/controllers/sectionController"
 	"ticken-event-service/api/middlewares"
@@ -14,6 +15,7 @@ import (
 	"ticken-event-service/config"
 	"ticken-event-service/env"
 	"ticken-event-service/infra"
+	"ticken-event-service/listeners"
 	"ticken-event-service/repos"
 	"ticken-event-service/services"
 	"ticken-event-service/sync"
@@ -32,7 +34,7 @@ func New(builder infra.IBuilder, tickenConfig *config.Config) *TickenEventApp {
 
 	db := builder.BuildDb(env.TickenEnv.DbConnString)
 	engine := builder.BuildEngine()
-	//pvtbcListener := builder.BuildPvtbcListener()
+	pvtbcListener := builder.BuildPvtbcListener()
 	busPublisher := builder.BuildBusPublisher(env.TickenEnv.BusConnString)
 
 	publisher, err := async.NewPublisher(busPublisher)
@@ -55,14 +57,13 @@ func New(builder infra.IBuilder, tickenConfig *config.Config) *TickenEventApp {
 	tickenEventApp.repoProvider = repoProvider
 	tickenEventApp.serviceProvider = serviceProvider
 
-	/*
-		var appListeners = []listeners.Listener{
-			listeners.NewEventListener(serviceProvider, pvtbcListener, "ticken-channel"),
-		}
+	var appListeners = []listeners.Listener{
+		listeners.NewEventListener(serviceProvider, pvtbcListener, "ticken-channel"),
+	}
 
-		for _, listener := range appListeners {
-			listener.Listen()
-		}*/
+	for _, listener := range appListeners {
+		listener.Listen()
+	}
 
 	var appMiddlewares = []api.Middleware{
 		middlewares.NewAuthMiddleware(serviceProvider, &tickenConfig.Server, &tickenConfig.Dev),
@@ -77,6 +78,7 @@ func New(builder infra.IBuilder, tickenConfig *config.Config) *TickenEventApp {
 		sectionController.New(serviceProvider),
 		healthController.New(serviceProvider),
 		organizerController.New(serviceProvider),
+		organizationController.New(serviceProvider),
 	}
 
 	for _, controller := range controllers {
@@ -104,8 +106,9 @@ func (tickenEventApp *TickenEventApp) EmitFakeJWT() {
 	}
 
 	fakeJWT := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
-		"sub":   "290c641a-55a1-40f5-acc3-d4ebe3626fdd",
-		"email": "user@ticken.com",
+		"sub":                "290c641a-55a1-40f5-acc3-d4ebe3626fdd",
+		"email":              "joey.tribbiani@ticken.com",
+		"preferred_username": "joey",
 	})
 
 	signedJWT, err := fakeJWT.SignedString(rsaPrivKey)

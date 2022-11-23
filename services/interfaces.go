@@ -8,7 +8,7 @@ import (
 
 type IProvider interface {
 	GetEventManager() IEventManager
-	GetOrganizationManager() IOrganizationManager
+	GetOrgManager() IOrgManager
 }
 
 type IEventManager interface {
@@ -22,6 +22,7 @@ type IEventManager interface {
 	GetOrganizationEvents(requester string) ([]*models.Event, error)
 }
 
-type IOrganizationManager interface {
-	RegisterOrganizer(organizerID string, name string, email string) (*models.Organizer, error)
+type IOrgManager interface {
+	RegisterOrganizer(organizerID string, username string, email string) (*models.Organizer, error)
+	RegisterOrganization(name string, organizerID string, username string) (*models.Organization, error)
 }

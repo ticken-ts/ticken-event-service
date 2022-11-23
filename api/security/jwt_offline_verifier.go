@@ -20,11 +20,17 @@ func (jwtVerifier *JWTOfflineVerifier) Verify(rawJWT string) (*JWT, error) {
 		return &jwtVerifier.key.PublicKey, nil
 	}
 
-	claims := new(jwt.StandardClaims)
+	claims := new(Claims)
 	_, err := jwt.ParseWithClaims(rawJWT, claims, keyFunc)
 	if err != nil {
 		return nil, err
 	}
 
-	return &JWT{Subject: claims.Subject}, err
+	token := &JWT{
+		Subject:  claims.Subject,
+		Email:    claims.Email,
+		Username: claims.PreferredUsername,
+	}
+
+	return token, nil
 }

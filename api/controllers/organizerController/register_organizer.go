@@ -10,11 +10,10 @@ import (
 
 func (controller *OrganizerController) RegisterOrganizer(c *gin.Context) {
 	jwt := c.MustGet("jwt").(*security.JWT)
-	userID := jwt.Subject
 
-	organizerManager := controller.serviceProvider.GetOrganizationManager()
+	organizerManager := controller.serviceProvider.GetOrgManager()
 
-	organizer, err := organizerManager.RegisterOrganizer(userID, "email", "username")
+	organizer, err := organizerManager.RegisterOrganizer(jwt.Subject, jwt.Email, jwt.Username)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, utils.HttpResponse{Message: err.Error()})
 		c.Abort()

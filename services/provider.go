@@ -8,7 +8,7 @@ import (
 
 type provider struct {
 	eventManager        IEventManager
-	organizationManager IOrganizationManager
+	organizationManager IOrgManager
 }
 
 func NewProvider(repoProvider repos.IProvider, publisher *async.Publisher, userServiceClient *sync.UserServiceClient) (IProvider, error) {
@@ -18,7 +18,7 @@ func NewProvider(repoProvider repos.IProvider, publisher *async.Publisher, userS
 	organizerRepo := repoProvider.GetOrganizerRepository()
 
 	provider.eventManager = NewEventManager(eventRepo, publisher, userServiceClient)
-	provider.organizationManager = NewOrganizationManager(organizerRepo)
+	provider.organizationManager = NewOrgManager(organizerRepo)
 
 	return provider, nil
 }
@@ -27,6 +27,6 @@ func (provider *provider) GetEventManager() IEventManager {
 	return provider.eventManager
 }
 
-func (provider *provider) GetOrganizationManager() IOrganizationManager {
+func (provider *provider) GetOrgManager() IOrgManager {
 	return provider.organizationManager
 }

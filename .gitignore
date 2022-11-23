@@ -23,5 +23,5 @@ config.json
 .netrc
 .env
 
-ticken-event-service
+# ticken-event-service
 tmp

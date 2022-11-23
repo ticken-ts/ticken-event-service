@@ -48,7 +48,20 @@ func (jwtVerifier *JWTOnlineVerifier) Verify(rawJWT string) (*JWT, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &JWT{Subject: jwt.Subject}, nil
+
+	claims := new(Claims)
+	err = jwt.Claims(claims)
+	if err != nil {
+		return nil, err
+	}
+
+	token := &JWT{
+		Subject:  jwt.Subject,
+		Email:    claims.Email,
+		Username: claims.PreferredUsername,
+	}
+
+	return token, nil
 }
 
 func initOIDCClientContext() context.Context {
