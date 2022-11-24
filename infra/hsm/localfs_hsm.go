@@ -10,8 +10,6 @@ import (
 	"io"
 	"os"
 	"path"
-	"path/filepath"
-	"runtime"
 	"strconv"
 	"time"
 )
@@ -19,13 +17,16 @@ import (
 const KeyStoreFolder = ".keystore"
 
 type LocalFileSystemHSM struct {
-	gcm cipher.AEAD
+	gcm       cipher.AEAD
+	storePath string
 }
 
-func NewLocalFileSystemHSM(encryptionKey string) (*LocalFileSystemHSM, error) {
+func NewLocalFileSystemHSM(encryptionKey string, storePath string) (*LocalFileSystemHSM, error) {
 	hsm := new(LocalFileSystemHSM)
 
-	err := os.MkdirAll(KeyStoreFolder, os.ModePerm)
+	keyStorePath := path.Join(storePath, KeyStoreFolder)
+
+	err := os.MkdirAll(keyStorePath, os.ModePerm)
 	if err != nil {
 		return nil, fmt.Errorf("unable to init keystore folder: %s", err.Error())
 	}
@@ -45,6 +46,7 @@ func NewLocalFileSystemHSM(encryptionKey string) (*LocalFileSystemHSM, error) {
 	}
 
 	hsm.gcm = gcm
+	hsm.storePath = keyStorePath
 
 	return hsm, nil
 }
@@ -69,7 +71,7 @@ func (hsm *LocalFileSystemHSM) Store(data []byte) (string, error) {
 
 	key := genKey()
 
-	err := os.WriteFile(path.Join(KeyStoreFolder, key), encryptedData, os.ModePerm)
+	err := os.WriteFile(path.Join(hsm.storePath, key), encryptedData, os.ModePerm)
 	if err != nil {
 		return "", fmt.Errorf("error during storing encrypted data: %s", err.Error())
 	}
@@ -78,7 +80,7 @@ func (hsm *LocalFileSystemHSM) Store(data []byte) (string, error) {
 }
 
 func (hsm *LocalFileSystemHSM) Retrieve(key string) ([]byte, error) {
-	encryptedData, err := os.ReadFile(path.Join(root(), KeyStoreFolder, key))
+	encryptedData, err := os.ReadFile(path.Join(hsm.storePath, key))
 	if err != nil {
 		return nil, fmt.Errorf("key %s is not stored", key)
 	}
@@ -102,9 +104,4 @@ func genKey() string {
 	unixTimestamp := time.Now().Unix()
 	sum := sha256.Sum256([]byte(strconv.FormatInt(unixTimestamp, 10)))
 	return hex.EncodeToString(sum[:])
-}
-
-func root() string {
-	_, b, _, _ := runtime.Caller(0)
-	return filepath.Dir(b)
 }

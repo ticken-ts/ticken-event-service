@@ -11,6 +11,7 @@ import (
 	"ticken-event-service/infra/db"
 	"ticken-event-service/infra/hsm"
 	"ticken-event-service/log"
+	"ticken-event-service/utils"
 )
 
 type Builder struct {
@@ -49,7 +50,12 @@ func (builder *Builder) BuildDb(connString string) Db {
 }
 
 func (builder *Builder) BuildHsm(encryptingKey string) HSM {
-	localFileSystemHSM, err := hsm.NewLocalFileSystemHSM(encryptingKey)
+	rootPath, err := utils.GetServiceRootPath()
+	if err != nil {
+		panic(err)
+	}
+
+	localFileSystemHSM, err := hsm.NewLocalFileSystemHSM(encryptingKey, rootPath)
 	if err != nil {
 		panic(err)
 	}
