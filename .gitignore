@@ -16,6 +16,9 @@
 .DS_Store
 tmp/build-errors.log
 
+# keystore
+.keystore
+
 # config
 config.json
 
