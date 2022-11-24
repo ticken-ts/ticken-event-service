@@ -11,11 +11,13 @@ import (
 	"ticken-event-service/api/controllers/organizerController"
 	"ticken-event-service/api/controllers/sectionController"
 	"ticken-event-service/api/middlewares"
+	"ticken-event-service/api/security"
 	"ticken-event-service/async"
 	"ticken-event-service/config"
 	"ticken-event-service/env"
 	"ticken-event-service/infra"
 	"ticken-event-service/listeners"
+	"ticken-event-service/models"
 	"ticken-event-service/repos"
 	"ticken-event-service/services"
 	"ticken-event-service/sync"
@@ -98,6 +100,25 @@ func (tickenEventApp *TickenEventApp) Start() {
 }
 
 func (tickenEventApp *TickenEventApp) Populate() {
+	organizerRepo := tickenEventApp.repoProvider.GetOrganizerRepository()
+
+	testOrganizerID := "290c641a-55a1-40f5-acc3-d4ebe3626fdd"
+
+	testOrganizer := models.NewOrganizer(
+		testOrganizerID,
+		"joey",
+		"joey.tribbiani@ticken.com",
+	)
+
+	testOrganizerStored := organizerRepo.FindOrganizer(testOrganizerID)
+	if testOrganizerStored != nil {
+		return
+	}
+
+	err := organizerRepo.AddOrganizer(testOrganizer)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func (tickenEventApp *TickenEventApp) EmitFakeJWT() {
@@ -106,10 +127,10 @@ func (tickenEventApp *TickenEventApp) EmitFakeJWT() {
 		panic(err)
 	}
 
-	fakeJWT := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
-		"sub":                "290c641a-55a1-40f5-acc3-d4ebe3626fdd",
-		"email":              "joey.tribbiani@ticken.com",
-		"preferred_username": "joey",
+	fakeJWT := jwt.NewWithClaims(jwt.SigningMethodRS256, &security.Claims{
+		Subject:           "290c641a-55a1-40f5-acc3-d4ebe3626fdd",
+		Email:             "joey.tribbiani@ticken.com",
+		PreferredUsername: "joey",
 	})
 
 	signedJWT, err := fakeJWT.SignedString(rsaPrivKey)

@@ -49,7 +49,7 @@ func (builder *Builder) BuildDb(connString string) Db {
 	return tickenDb
 }
 
-func (builder *Builder) BuildHsm(encryptingKey string) HSM {
+func (builder *Builder) BuildHSM(encryptingKey string) HSM {
 	rootPath, err := utils.GetServiceRootPath()
 	if err != nil {
 		panic(err)

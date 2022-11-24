@@ -17,9 +17,10 @@ func NewProvider(repoProvider repos.IProvider, publisher *async.Publisher, userS
 
 	eventRepo := repoProvider.GetEventRepository()
 	organizerRepo := repoProvider.GetOrganizerRepository()
+	organizationRepo := repoProvider.GetOrganizationRepository()
 
 	provider.eventManager = NewEventManager(eventRepo, publisher, userServiceClient)
-	provider.organizationManager = NewOrgManager(organizerRepo, hsm)
+	provider.organizationManager = NewOrgManager(hsm, organizerRepo, organizationRepo)
 
 	return provider, nil
 }

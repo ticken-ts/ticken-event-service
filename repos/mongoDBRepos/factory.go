@@ -25,3 +25,7 @@ func (factory *Factory) BuildEventRepository() any {
 func (factory *Factory) BuildOrganizerRepository() any {
 	return NewOrganizerRepository(factory.dbClient, factory.dbName)
 }
+
+func (factory *Factory) BuildOrganizationRepository() any {
+	return NewOrganizationRepository(factory.dbClient, factory.dbName)
+}

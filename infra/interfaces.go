@@ -37,9 +37,9 @@ type BusPublisher interface {
 
 type IBuilder interface {
 	BuildDb(connString string) Db
-	BuildHSM(encrytionKey string) HSM
+	BuildHSM(encryptionKey string) HSM
 	BuildEngine() *gin.Engine
 	BuildPvtbcCaller() *pvtbc.Caller
 	BuildPvtbcListener() *pvtbc.Listener
 	BuildBusPublisher(connString string) BusPublisher
-}w
+}

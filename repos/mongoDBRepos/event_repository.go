@@ -15,7 +15,6 @@ type EventMongoDBRepository struct {
 }
 
 func NewEventRepository(dbClient *mongo.Client, dbName string) *EventMongoDBRepository {
-
 	return &EventMongoDBRepository{
 		baseRepository{
 			dbClient:       dbClient,

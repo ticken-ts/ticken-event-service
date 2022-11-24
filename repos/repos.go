@@ -17,12 +17,19 @@ type OrganizerRepository interface {
 	FindOrganizerByUsername(username string) *models.Organizer
 }
 
+type OrganizationRepository interface {
+	AddOrganization(organization *models.Organization) error
+	FindOrganization(organizationID string) *models.Organization
+}
+
 type IProvider interface {
 	GetEventRepository() EventRepository
 	GetOrganizerRepository() OrganizerRepository
+	GetOrganizationRepository() OrganizationRepository
 }
 
 type IFactory interface {
 	BuildEventRepository() any
 	BuildOrganizerRepository() any
+	BuildOrganizationRepository() any
 }
