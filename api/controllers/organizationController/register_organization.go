@@ -23,7 +23,7 @@ func (controller *OrganizationController) RegisterOrganization(c *gin.Context) {
 		return
 	}
 
-	organizationManager := controller.serviceProvider.GetOrgManager()
+	organizationManager := controller.serviceProvider.GetOrganizationManager()
 
 	organization, err := organizationManager.RegisterOrganization(payload.Name, jwt.Subject, jwt.Username)
 	if err != nil {

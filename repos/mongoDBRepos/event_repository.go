@@ -69,12 +69,12 @@ func (r *EventMongoDBRepository) FindEvent(eventID string) *models.Event {
 	return &foundEvent
 }
 
-func (r *EventMongoDBRepository) FindOrgEvents(orgID string) []*models.Event {
+func (r *EventMongoDBRepository) FindOrganizationEvents(organizationID string) []*models.Event {
 	findContext, cancel := r.generateOpSubcontext()
 	defer cancel()
 
 	events := r.getCollection()
-	result, err := events.Find(findContext, bson.M{"organizer_id": orgID})
+	result, err := events.Find(findContext, bson.M{"organization_id": organizationID})
 
 	if err != nil {
 		return nil

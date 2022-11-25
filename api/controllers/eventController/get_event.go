@@ -10,9 +10,9 @@ import (
 
 func (controller *EventController) GetEvent(c *gin.Context) {
 	userID := c.MustGet("jwt").(*security.JWT).Subject
-	eventId := c.Param("eventId")
+	eventID := c.Param("eventID")
 
-	event, err := controller.serviceProvider.GetEventManager().GetEvent(eventId, userID)
+	event, err := controller.serviceProvider.GetEventManager().GetEvent(eventID, userID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, utils.HttpResponse{Message: err.Error()})
 		c.Abort()

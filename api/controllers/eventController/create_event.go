@@ -17,6 +17,7 @@ type createEventPayload struct {
 func (controller *EventController) CreateEvent(c *gin.Context) {
 	var payload createEventPayload
 
+	organizationID := c.Param("organizationID")
 	userID := c.MustGet("jwt").(*security.JWT).Subject
 
 	err := c.BindJSON(&payload)
@@ -41,7 +42,7 @@ func (controller *EventController) CreateEvent(c *gin.Context) {
 
 	eventManager := controller.serviceProvider.GetEventManager()
 
-	event, err := eventManager.CreateEvent(userID, payload.Name, parsedDate)
+	event, err := eventManager.CreateEvent(userID, organizationID, payload.Name, parsedDate)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, utils.HttpResponse{Message: err.Error()})
 		c.Abort()

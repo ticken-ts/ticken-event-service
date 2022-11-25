@@ -3,13 +3,10 @@ package models
 import (
 	"fmt"
 	"github.com/google/uuid"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"time"
 )
 
 type Event struct {
-	mongoID primitive.ObjectID `bson:"_id"`
-
 	EventID        string     `json:"event_id" bson:"event_id"`
 	Name           string     `json:"name" bson:"name"`
 	Date           time.Time  `json:"date" bson:"date"`

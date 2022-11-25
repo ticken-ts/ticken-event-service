@@ -17,6 +17,7 @@ func (controller *SectionController) AddSection(c *gin.Context) {
 	var payload createSectionPayload
 
 	eventID := c.Param("eventID")
+	organizationID := c.Param("organizationID")
 	userID := c.MustGet("jwt").(*security.JWT).Subject
 
 	err := c.BindJSON(&payload)
@@ -33,7 +34,7 @@ func (controller *SectionController) AddSection(c *gin.Context) {
 
 	eventManager := controller.serviceProvider.GetEventManager()
 
-	section, err := eventManager.AddSection(userID, eventID, payload.Name, payload.TotalTickets)
+	section, err := eventManager.AddSection(userID, organizationID, eventID, payload.Name, payload.TotalTickets)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, utils.HttpResponse{Message: err.Error()})
 		c.Abort()

@@ -8,10 +8,11 @@ import (
 	"ticken-event-service/utils"
 )
 
-func (controller *EventController) GetUserEvents(c *gin.Context) {
+func (controller *EventController) GetOrganizationEvents(c *gin.Context) {
 	userID := c.MustGet("jwt").(*security.JWT).Subject
+	organizationID := c.Param("organizationID")
 
-	events, err := controller.serviceProvider.GetEventManager().GetOrganizationEvents(userID)
+	events, err := controller.serviceProvider.GetEventManager().GetOrganizationEvents(userID, organizationID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, utils.HttpResponse{Message: err.Error()})
 		c.Abort()

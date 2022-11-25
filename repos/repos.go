@@ -7,8 +7,8 @@ import (
 type EventRepository interface {
 	AddEvent(event *models.Event) error
 	FindEvent(eventID string) *models.Event
-	FindOrgEvents(orgID string) []*models.Event
 	UpdateEvent(event *models.Event) *models.Event
+	FindOrganizationEvents(orgID string) []*models.Event
 }
 
 type OrganizerRepository interface {
@@ -20,6 +20,7 @@ type OrganizerRepository interface {
 type OrganizationRepository interface {
 	AddOrganization(organization *models.Organization) error
 	FindOrganization(organizationID string) *models.Organization
+	FindOrganizationByMspID(mspID string) *models.Organization
 }
 
 type IProvider interface {

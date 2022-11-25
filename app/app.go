@@ -20,7 +20,6 @@ import (
 	"ticken-event-service/models"
 	"ticken-event-service/repos"
 	"ticken-event-service/services"
-	"ticken-event-service/sync"
 	"ticken-event-service/utils"
 )
 
@@ -50,7 +49,7 @@ func New(builder infra.IBuilder, tickenConfig *config.Config) *TickenEventApp {
 		panic(err)
 	}
 
-	serviceProvider, err := services.NewProvider(repoProvider, publisher, sync.NewUserServiceClient(), hsm)
+	serviceProvider, err := services.NewProvider(repoProvider, publisher, hsm)
 	if err != nil {
 		panic(err)
 	}
