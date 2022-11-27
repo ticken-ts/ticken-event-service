@@ -13,6 +13,7 @@ type Organization struct {
 	OrgCA          *Certificate          `bson:"org_ca"`
 	TlsCA          *Certificate          `bson:"tls_ca"`
 	Members        []*OrganizationMember `bson:"members"`
+	Peers          []*OrganizationPeer   `bson:"peers"`
 }
 
 type OrganizationMember struct {
@@ -21,6 +22,12 @@ type OrganizationMember struct {
 	Username    string       `bson:"username"`
 	OrgCert     *Certificate `bson:"org_cert"`
 	TlsCert     *Certificate `bson:"tls_cert"`
+}
+
+type OrganizationPeer struct {
+	Host    string       `bson:"host"`
+	OrgCert *Certificate `bson:"org_cert"`
+	TlsCert *Certificate `bson:"tls_cert"`
 }
 
 type Certificate struct {
@@ -77,6 +84,17 @@ func (organization *Organization) AddAdminMember(organizer *Organizer, orgCert *
 	}
 
 	organization.Members = append(organization.Members, newMember)
+	return nil
+}
+
+func (organization *Organization) AddPeer(hostName string, orgCert *Certificate, tlsCert *Certificate) error {
+	newPeer := &OrganizationPeer{
+		Host:    hostName,
+		OrgCert: orgCert,
+		TlsCert: tlsCert,
+	}
+
+	organization.Peers = append(organization.Peers, newPeer)
 	return nil
 }
 

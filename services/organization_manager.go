@@ -47,13 +47,25 @@ func (organizationManager *OrganizationManager) RegisterOrganization(name string
 		return nil, err
 	}
 
-	cryptoMaterial, err := adm.AddOrganizationToChannel(models.GenerateMspID(name), admin.Username, "ticken-channel", newOrgTemplate)
+	peerHost := "peer0." + name
+
+	cryptoMaterial, err := adm.AddOrganizationToChannel(
+		models.GenerateMspID(name),
+		admin.Username,
+		peerHost,
+		"ticken-channel",
+		newOrgTemplate,
+	)
 	if err != nil {
 		return nil, err
 	}
 
 	orgCaPrivStoreKey, _ := organizationManager.hsm.Store(cryptoMaterial.OrgCA.GetPrivPEMEncodedBytes())
 	tlsCaPrivStoreKey, _ := organizationManager.hsm.Store(cryptoMaterial.TlsCA.GetPrivPEMEncodedBytes())
+
+	peerOrgCertPrivStoreKey, _ := organizationManager.hsm.Store(cryptoMaterial.PeerOrgCert.GetPrivPEMEncodedBytes())
+	peerTlsCertPrivStoreKey, _ := organizationManager.hsm.Store(cryptoMaterial.PeerTlsCert.GetPrivPEMEncodedBytes())
+
 	adminOrgCertPrivStoreKey, _ := organizationManager.hsm.Store(cryptoMaterial.AdminOrgCert.GetPrivPEMEncodedBytes())
 	adminTlsCertPrivStoreKey, _ := organizationManager.hsm.Store(cryptoMaterial.AdminTlsCert.GetPrivPEMEncodedBytes())
 
@@ -61,6 +73,12 @@ func (organizationManager *OrganizationManager) RegisterOrganization(name string
 		name,
 		models.NewCertificate(cryptoMaterial.OrgCA.GetCertPEMEncodedBytes(), orgCaPrivStoreKey),
 		models.NewCertificate(cryptoMaterial.TlsCA.GetCertPEMEncodedBytes(), tlsCaPrivStoreKey),
+	)
+
+	err = newOrganization.AddPeer(
+		peerHost,
+		models.NewCertificate(cryptoMaterial.PeerTlsCert.GetCertPEMEncodedBytes(), peerOrgCertPrivStoreKey),
+		models.NewCertificate(cryptoMaterial.PeerTlsCert.GetCertPEMEncodedBytes(), peerTlsCertPrivStoreKey),
 	)
 
 	err = newOrganization.AddAdminMember(

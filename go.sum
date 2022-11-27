@@ -353,6 +353,10 @@ github.com/ticken-ts/ticken-pvtbc-adminlib v0.1.15 h1:Fod4OqNY/O5yOyQN+spEgdGrJM
 github.com/ticken-ts/ticken-pvtbc-adminlib v0.1.15/go.mod h1:r62q/g80zluoyGexqDaLTVNbuZ5OyqnO6XKrngalSUE=
 github.com/ticken-ts/ticken-pvtbc-adminlib v0.1.16 h1:fDitk20/NYHJm0InLZFXnxGdz/bGVXBUygYDw+GN+l4=
 github.com/ticken-ts/ticken-pvtbc-adminlib v0.1.16/go.mod h1:r62q/g80zluoyGexqDaLTVNbuZ5OyqnO6XKrngalSUE=
+github.com/ticken-ts/ticken-pvtbc-adminlib v0.1.17 h1:Y2yKphuQtYtHrU8sjDITlhtULdIiBr3fRQMon03ASLY=
+github.com/ticken-ts/ticken-pvtbc-adminlib v0.1.17/go.mod h1:r62q/g80zluoyGexqDaLTVNbuZ5OyqnO6XKrngalSUE=
+github.com/ticken-ts/ticken-pvtbc-adminlib v0.1.18 h1:NhDbWlYFcdLvldFhf5Vy1RkcgMpbNIWKGfdRVaIxZJA=
+github.com/ticken-ts/ticken-pvtbc-adminlib v0.1.18/go.mod h1:r62q/g80zluoyGexqDaLTVNbuZ5OyqnO6XKrngalSUE=
 github.com/ticken-ts/ticken-pvtbc-connector v0.2.17 h1:fOWGejxGoLaAo8WMYb5nPxw+W+eCcDDAfOuzU50K2es=
 github.com/ticken-ts/ticken-pvtbc-connector v0.2.17/go.mod h1:iMdwcHgXPBUaGj1WYRHJomvpPSQ31QFS7/kVSBjUmiY=
 github.com/ticken-ts/ticken-pvtbc-connector v0.2.18 h1:bDSHXWjHQOld56mBNn34UpgDOteQN26qgZvhilUNpqo=

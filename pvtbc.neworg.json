@@ -150,6 +150,18 @@
 		}
 	},
 	"values": {
+		"AnchorPeers": {
+			"mod_policy": "Admins",
+			"value": {
+				"anchor_peers": [
+					{
+						"host": "{PEER_HOST}",
+						"port": 7051
+					}
+				]
+			},
+			"version": "0"
+		},
 		"MSP": {
 			"mod_policy": "Admins",
 			"value": {
