@@ -9,6 +9,7 @@ import (
 	"ticken-event-service/infra"
 	"ticken-event-service/models"
 	"ticken-event-service/repos"
+	"ticken-event-service/utils"
 )
 
 type OrganizationManager struct {
@@ -147,4 +148,37 @@ func (organizationManager *OrganizationManager) GetPvtbcConnection(organizerID s
 	_ = pvtbcCaller.SetChannel(channel)
 
 	return pvtbcCaller, nil
+}
+
+func (organizationManager *OrganizationManager) GetOrganizationCryptoZipped(organizerID string, organizationID string) ([]byte, error) {
+	organizer := organizationManager.organizerRepo.FindOrganizer(organizerID)
+	if organizer == nil {
+		return nil, fmt.Errorf("could not find organizer with ID %s", organizerID)
+	}
+
+	organization := organizationManager.organizationRepo.FindOrganization(organizationID)
+	if organization == nil {
+		return nil, fmt.Errorf("could not find organization with ID %s", organizationID)
+	}
+
+	if !organization.HasMember(organizer.Username) {
+		return nil, fmt.Errorf("organizer %s doesnt belong to organization %s", organizer.Username, organization.MspID)
+	}
+
+	peerFiles := make(map[string][]byte)
+	for _, peer := range organization.Peers {
+		peerOrgCertPriv, _ := organizationManager.hsm.Retrieve(peer.OrgCert.PrivKeyStorageKey)
+		peerTlsCertPriv, _ := organizationManager.hsm.Retrieve(peer.TlsCert.PrivKeyStorageKey)
+
+		peerFiles[peer.Host+"/msp/cacerts/"+"ca.pem"] = organization.OrgCA.Content
+		peerFiles[peer.Host+"/msp/keystore/"+"priv_key"] = peerOrgCertPriv
+		peerFiles[peer.Host+"/msp/signcerts/"+peer.Host+".pem"] = peer.OrgCert.Content
+		peerFiles[peer.Host+"/msp/cacerts/"+"tlsca.pem"] = organization.TlsCA.Content
+
+		peerFiles[peer.Host+"/tls/ca.crt"] = organization.TlsCA.Content
+		peerFiles[peer.Host+"/tls/server.crt"] = peer.TlsCert.Content
+		peerFiles[peer.Host+"/tls/server.key"] = peerTlsCertPriv
+	}
+
+	return utils.ZipFiles(peerFiles)
 }
