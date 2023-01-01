@@ -31,4 +31,5 @@ type IOrganizationManager interface {
 }
 
 type IOrganizerManager interface {
+	RegisterOrganizer(organizerID, firstname, lastname, username, email string) (*models.Organizer, error)
 }

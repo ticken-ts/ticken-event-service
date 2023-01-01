@@ -60,7 +60,7 @@ func (organization *Organization) AddRegularMember(organizer *Organizer, orgCert
 
 	newMember := &OrganizationMember{
 		IsAdmin:     false,
-		OrganizerID: organizer.OrganizerID,
+		OrganizerID: organizer.OrganizerID.String(),
 		Username:    organizer.Username,
 		OrgCert:     orgCert,
 		TlsCert:     tlsCert,
@@ -77,7 +77,7 @@ func (organization *Organization) AddAdminMember(organizer *Organizer, orgCert *
 
 	newMember := &OrganizationMember{
 		IsAdmin:     false,
-		OrganizerID: organizer.OrganizerID,
+		OrganizerID: organizer.OrganizerID.String(),
 		Username:    organizer.Username,
 		OrgCert:     orgCert,
 		TlsCert:     tlsCert,

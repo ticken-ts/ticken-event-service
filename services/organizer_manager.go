@@ -1,7 +1,10 @@
 package services
 
 import (
+	"github.com/google/uuid"
+	"ticken-event-service/exception"
 	"ticken-event-service/infra"
+	"ticken-event-service/models"
 	"ticken-event-service/repos"
 )
 
@@ -17,4 +20,19 @@ func NewOrganizerManager(hsm infra.HSM, organizerRepo repos.OrganizerRepository,
 		organizerRepo:    organizerRepo,
 		organizationRepo: organizationRepo,
 	}
+}
+
+func (organizerManager *OrganizerManager) RegisterOrganizer(organizerID, firstname, lastname, username, email string) (*models.Organizer, error) {
+	organizerUUID, err := uuid.Parse(organizerID)
+	if err != nil {
+		return nil, exception.WithMessage(err, "register organizer")
+	}
+
+	newOrganizer := models.NewOrganizer(organizerUUID, firstname, lastname, username, email)
+	err = organizerManager.organizerRepo.AddOrganizer(newOrganizer)
+	if err != nil {
+		return nil, exception.WithMessage(err, "register organizer")
+	}
+
+	return newOrganizer, nil
 }

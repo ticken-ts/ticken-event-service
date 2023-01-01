@@ -19,4 +19,5 @@ func New(serviceProvider services.IProvider) *OrganizerController {
 }
 
 func (controller *OrganizerController) Setup(router gin.IRouter) {
+	router.POST("/organizers", controller.CreateOrganizer)
 }

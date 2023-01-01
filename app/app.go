@@ -17,7 +17,6 @@ import (
 	"ticken-event-service/env"
 	"ticken-event-service/infra"
 	"ticken-event-service/listeners"
-	"ticken-event-service/models"
 	"ticken-event-service/repos"
 	"ticken-event-service/services"
 	"ticken-event-service/utils"
@@ -99,25 +98,6 @@ func (tickenEventApp *TickenEventApp) Start() {
 }
 
 func (tickenEventApp *TickenEventApp) Populate() {
-	organizerRepo := tickenEventApp.repoProvider.GetOrganizerRepository()
-
-	testOrganizerID := "290c641a-55a1-40f5-acc3-d4ebe3626fdd"
-
-	testOrganizer := models.NewOrganizer(
-		testOrganizerID,
-		"joey",
-		"joey.tribbiani@ticken.com",
-	)
-
-	testOrganizerStored := organizerRepo.FindOrganizer(testOrganizerID)
-	if testOrganizerStored != nil {
-		return
-	}
-
-	err := organizerRepo.AddOrganizer(testOrganizer)
-	if err != nil {
-		panic(err)
-	}
 }
 
 func (tickenEventApp *TickenEventApp) EmitFakeJWT() {
