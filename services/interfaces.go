@@ -25,8 +25,6 @@ type IEventManager interface {
 }
 
 type IOrganizationManager interface {
-	RegisterOrganization(name string, organizerID string) (*models.Organization, error)
-	GetOrganizationCryptoZipped(organizerID string, organizationID string) ([]byte, error)
 	GetPvtbcConnection(organizerID string, organizationID string) (*pvtbc.Caller, error)
 }
 

@@ -7,7 +7,6 @@ import (
 	"ticken-event-service/api"
 	"ticken-event-service/api/controllers/eventController"
 	"ticken-event-service/api/controllers/healthController"
-	"ticken-event-service/api/controllers/organizationController"
 	"ticken-event-service/api/controllers/organizerController"
 	"ticken-event-service/api/controllers/sectionController"
 	"ticken-event-service/api/middlewares"
@@ -79,7 +78,6 @@ func New(builder infra.IBuilder, tickenConfig *config.Config) *TickenEventApp {
 		sectionController.New(serviceProvider),
 		healthController.New(serviceProvider),
 		organizerController.New(serviceProvider),
-		organizationController.New(serviceProvider),
 	}
 
 	for _, controller := range controllers {
