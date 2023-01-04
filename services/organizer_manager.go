@@ -25,13 +25,13 @@ func NewOrganizerManager(hsm infra.HSM, organizerRepo repos.OrganizerRepository,
 func (organizerManager *OrganizerManager) RegisterOrganizer(organizerID, firstname, lastname, username, email string) (*models.Organizer, error) {
 	organizerUUID, err := uuid.Parse(organizerID)
 	if err != nil {
-		return nil, exception.WithMessage(err, "register organizer")
+		return nil, exception.FromError(err, "register organizer")
 	}
 
 	newOrganizer := models.NewOrganizer(organizerUUID, firstname, lastname, username, email)
 	err = organizerManager.organizerRepo.AddOrganizer(newOrganizer)
 	if err != nil {
-		return nil, exception.WithMessage(err, "register organizer")
+		return nil, exception.FromError(err, "register organizer")
 	}
 
 	return newOrganizer, nil

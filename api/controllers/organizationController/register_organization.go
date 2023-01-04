@@ -25,7 +25,7 @@ func (controller *OrganizationController) RegisterOrganization(c *gin.Context) {
 
 	organizationManager := controller.serviceProvider.GetOrganizationManager()
 
-	organization, err := organizationManager.RegisterOrganization(payload.Name, jwt.Subject, jwt.Username)
+	organization, err := organizationManager.RegisterOrganization(payload.Name, jwt.Subject)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, utils.HttpResponse{Message: err.Error()})
 		c.Abort()
