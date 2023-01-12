@@ -12,8 +12,13 @@ type provider struct {
 	organizationManager IOrganizationManager
 }
 
-func NewProvider(repoProvider repos.IProvider, publisher *async.Publisher, hsm infra.HSM) (IProvider, error) {
+func NewProvider(repoProvider repos.IProvider, busPublisher infra.BusPublisher, hsm infra.HSM) (IProvider, error) {
 	provider := new(provider)
+
+	publisher, err := async.NewPublisher(busPublisher)
+	if err != nil {
+		return nil, err
+	}
 
 	eventRepo := repoProvider.GetEventRepository()
 	organizerRepo := repoProvider.GetOrganizerRepository()

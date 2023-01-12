@@ -11,7 +11,6 @@ import (
 	"ticken-event-service/api/middlewares"
 	"ticken-event-service/api/security"
 	"ticken-event-service/app/fakes"
-	"ticken-event-service/async"
 	"ticken-event-service/config"
 	"ticken-event-service/env"
 	"ticken-event-service/infra"
@@ -43,17 +42,12 @@ func New(builder infra.IBuilder, tickenConfig *config.Config) *TickenEventApp {
 	pvtbcListener := builder.BuildPvtbcListener()
 	busPublisher := builder.BuildBusPublisher(env.TickenEnv.BusConnString)
 
-	publisher, err := async.NewPublisher(busPublisher)
-	if err != nil {
-		panic(err)
-	}
-
 	repoProvider, err := repos.NewProvider(db, &tickenConfig.Database)
 	if err != nil {
 		panic(err)
 	}
 
-	serviceProvider, err := services.NewProvider(repoProvider, publisher, hsm)
+	serviceProvider, err := services.NewProvider(repoProvider, busPublisher, hsm)
 	if err != nil {
 		panic(err)
 	}
