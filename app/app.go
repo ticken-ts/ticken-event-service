@@ -7,10 +7,10 @@ import (
 	"ticken-event-service/api"
 	"ticken-event-service/api/controllers/eventController"
 	"ticken-event-service/api/controllers/healthController"
-	"ticken-event-service/api/controllers/organizerController"
 	"ticken-event-service/api/controllers/sectionController"
 	"ticken-event-service/api/middlewares"
 	"ticken-event-service/api/security"
+	"ticken-event-service/app/fakes"
 	"ticken-event-service/async"
 	"ticken-event-service/config"
 	"ticken-event-service/env"
@@ -26,6 +26,12 @@ type TickenEventApp struct {
 	config          *config.Config
 	repoProvider    repos.IProvider
 	serviceProvider services.IProvider
+
+	// populators are intended to populate
+	// useful data. It can be testdata or
+	// data that should be present on the db
+	// before the service is available
+	populators []Populator
 }
 
 func New(builder infra.IBuilder, tickenConfig *config.Config) *TickenEventApp {
@@ -75,13 +81,17 @@ func New(builder infra.IBuilder, tickenConfig *config.Config) *TickenEventApp {
 
 	var controllers = []api.Controller{
 		eventController.New(serviceProvider),
-		sectionController.New(serviceProvider),
 		healthController.New(serviceProvider),
-		organizerController.New(serviceProvider),
+		sectionController.New(serviceProvider),
 	}
 
 	for _, controller := range controllers {
 		controller.Setup(engine)
+	}
+
+	tickenEventApp.populators = []Populator{
+		fakes.NewFakeUsersPopulator(repoProvider.GetOrganizerRepository(), tickenConfig.Dev.User),
+		fakes.NewFakeOrgsPopulator(hsm, tickenConfig.Dev.User, repoProvider.GetOrganizerRepository(), repoProvider.GetOrganizationRepository()),
 	}
 
 	return tickenEventApp
@@ -96,6 +106,13 @@ func (tickenEventApp *TickenEventApp) Start() {
 }
 
 func (tickenEventApp *TickenEventApp) Populate() {
+	for _, populator := range tickenEventApp.populators {
+		err := populator.Populate()
+		if err != nil {
+			panic(err)
+		}
+	}
+
 }
 
 func (tickenEventApp *TickenEventApp) EmitFakeJWT() {
@@ -105,9 +122,9 @@ func (tickenEventApp *TickenEventApp) EmitFakeJWT() {
 	}
 
 	fakeJWT := jwt.NewWithClaims(jwt.SigningMethodRS256, &security.Claims{
-		Subject:           "290c641a-55a1-40f5-acc3-d4ebe3626fdd",
-		Email:             "joey.tribbiani@ticken.com",
-		PreferredUsername: "joey",
+		Subject:           tickenEventApp.config.Dev.User.UserID,
+		Email:             tickenEventApp.config.Dev.User.Email,
+		PreferredUsername: tickenEventApp.config.Dev.User.Username,
 	})
 
 	signedJWT, err := fakeJWT.SignedString(rsaPrivKey)

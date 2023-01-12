@@ -7,7 +7,7 @@ import (
 
 func MapOrganizerToOrganizerDTO(organizer *models.Organizer) *dto.OrganizerDTO {
 	return &dto.OrganizerDTO{
-		OrganizerID: organizer.OrganizerID.String(),
+		OrganizerID: organizer.OrganizerID,
 		Firstname:   organizer.Firstname,
 		Lastname:    organizer.Lastname,
 		Username:    organizer.Username,

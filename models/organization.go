@@ -6,43 +6,54 @@ import (
 	"strings"
 )
 
-type Organization struct {
-	OrganizationID string                `bson:"organization_id"`
-	Name           string                `bson:"name"`
-	MspID          string                `bson:"msp_id"`
-	OrgCA          *Certificate          `bson:"org_ca"`
-	TlsCA          *Certificate          `bson:"tls_ca"`
-	Members        []*OrganizationMember `bson:"members"`
-	Peers          []*OrganizationPeer   `bson:"peers"`
-}
-
-type OrganizationMember struct {
-	IsAdmin     bool         `bson:"is_admin"`
-	OrganizerID string       `bson:"organizer_id"`
-	Username    string       `bson:"username"`
-	OrgCert     *Certificate `bson:"org_cert"`
-	TlsCert     *Certificate `bson:"tls_cert"`
-}
-
-type OrganizationPeer struct {
-	Host    string       `bson:"host"`
-	OrgCert *Certificate `bson:"org_cert"`
-	TlsCert *Certificate `bson:"tls_cert"`
-}
-
 type Certificate struct {
-	Content           []byte `bson:"content"`
+	Content []byte `bson:"content"`
+
+	// this property is optional, as some
+	// certificate may be only the value without
+	// the private key that was used to sign them
 	PrivKeyStorageKey string `bson:"private_key"`
 }
 
-func NewOrganization(name string, orgCA *Certificate, tlsCA *Certificate) *Organization {
+type Organization struct {
+	OrganizationID string `bson:"organization_id"`
+	Name           string `bson:"name"`
+	MspID          string `bson:"msp_id"`
+	Channel        string `bson:"channel"`
+
+	OrgCACert *Certificate `bson:"org_ca"`
+	TlsCACert *Certificate `bson:"tls_ca"`
+
+	Users []*OrganizationUser `bson:"users"`
+	Nodes []*OrganizationNode `bson:"nodes"`
+}
+
+type OrganizationUser struct {
+	OrganizerID string       `bson:"organizer_id"`
+	Username    string       `bson:"username"`
+	Role        string       `bson:"role"`
+	UserOrgCert *Certificate `bson:"org_cert"`
+}
+
+type OrganizationNode struct {
+	NodeName    string       `bson:"node_name"`
+	Address     string       `bson:"address"`
+	NodeOrgCert *Certificate `bson:"org_cert"`
+	NodeTlsCert *Certificate `bson:"tls_cert"`
+}
+
+func NewOrganization(name string, channel string, orgCACert *Certificate, tlsCACert *Certificate) *Organization {
 	return &Organization{
 		OrganizationID: uuid.New().String(),
 		Name:           name,
-		MspID:          GenerateMspID(name),
-		OrgCA:          orgCA,
-		TlsCA:          tlsCA,
-		Members:        make([]*OrganizationMember, 0),
+		Channel:        channel,
+		MspID:          generateMspID(name),
+
+		OrgCACert: orgCACert,
+		TlsCACert: tlsCACert,
+
+		Users: make([]*OrganizationUser, 0),
+		Nodes: make([]*OrganizationNode, 0),
 	}
 }
 
@@ -53,65 +64,69 @@ func NewCertificate(content []byte, privKeyStorageKey string) *Certificate {
 	}
 }
 
-func (organization *Organization) AddRegularMember(organizer *Organizer, orgCert *Certificate, tlsCert *Certificate) error {
-	if organization.HasMember(organizer.Username) {
-		return fmt.Errorf("%s already is part of the organization %s", organizer.Username, organization.MspID)
+func (organization *Organization) HasNodes() bool {
+	return len(organization.Nodes) > 0
+}
+
+func (organization *Organization) AddUser(organizer *Organizer, role string, userOrgCert *Certificate) error {
+	if organization.HasUser(organizer.Username) {
+		return fmt.Errorf("%s already is part of the organization %s", organizer.Username, organization.Name)
 	}
 
-	newMember := &OrganizationMember{
-		IsAdmin:     false,
-		OrganizerID: organizer.OrganizerID.String(),
+	newUser := &OrganizationUser{
+		Role:        role,
+		OrganizerID: organizer.OrganizerID,
 		Username:    organizer.Username,
-		OrgCert:     orgCert,
-		TlsCert:     tlsCert,
+		UserOrgCert: userOrgCert,
 	}
 
-	organization.Members = append(organization.Members, newMember)
+	organization.Users = append(organization.Users, newUser)
 	return nil
 }
 
-func (organization *Organization) AddAdminMember(organizer *Organizer, orgCert *Certificate, tlsCert *Certificate) error {
-	if organization.HasMember(organizer.Username) {
-		return fmt.Errorf("%s already is part of the organization %s", organizer.Username, organization.MspID)
+func (organization *Organization) AddNode(nodeName string, address string, nodeOrgCert *Certificate, nodeTlsCert *Certificate) error {
+	if organization.HasNode(nodeName) {
+		return fmt.Errorf("%s already is part of the organization %s", nodeName, organization.Nodes)
 	}
 
-	newMember := &OrganizationMember{
-		IsAdmin:     false,
-		OrganizerID: organizer.OrganizerID.String(),
-		Username:    organizer.Username,
-		OrgCert:     orgCert,
-		TlsCert:     tlsCert,
+	newNode := &OrganizationNode{
+		NodeName:    nodeName,
+		Address:     address,
+		NodeOrgCert: nodeOrgCert,
+		NodeTlsCert: nodeTlsCert,
 	}
 
-	organization.Members = append(organization.Members, newMember)
+	organization.Nodes = append(organization.Nodes, newNode)
 	return nil
 }
 
-func (organization *Organization) AddPeer(hostName string, orgCert *Certificate, tlsCert *Certificate) error {
-	newPeer := &OrganizationPeer{
-		Host:    hostName,
-		OrgCert: orgCert,
-		TlsCert: tlsCert,
-	}
-
-	organization.Peers = append(organization.Peers, newPeer)
-	return nil
+func (organization *Organization) HasUser(username string) bool {
+	return organization.GetUserByName(username) != nil
 }
 
-func (organization *Organization) HasMember(username string) bool {
-	return organization.GetMemberByUsername(username) != nil
+func (organization *Organization) HasNode(nodeName string) bool {
+	return organization.GetNodeByName(nodeName) != nil
 }
 
-func (organization *Organization) GetMemberByUsername(username string) *OrganizationMember {
-	for _, member := range organization.Members {
-		if member.Username == username {
-			return member
+func (organization *Organization) GetUserByName(username string) *OrganizationUser {
+	for _, orgUser := range organization.Users {
+		if orgUser.Username == username {
+			return orgUser
 		}
 	}
 	return nil
 }
 
-func GenerateMspID(orgName string) string {
+func (organization *Organization) GetNodeByName(nodeName string) *OrganizationNode {
+	for _, orgNode := range organization.Nodes {
+		if orgNode.NodeName == nodeName {
+			return orgNode
+		}
+	}
+	return nil
+}
+
+func generateMspID(orgName string) string {
 	orgNameWithoutSpaces := strings.ReplaceAll(orgName, " ", "-")
-	return strings.ToUpper(orgNameWithoutSpaces)
+	return strings.ToLower(orgNameWithoutSpaces) + "MSP"
 }

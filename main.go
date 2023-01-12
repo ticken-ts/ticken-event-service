@@ -27,8 +27,9 @@ func main() {
 	}
 
 	tickenEventService := app.New(infraBuilder, tickenConfig)
+	tickenEventService.Populate()
+
 	if tickenEnv.IsDev() {
-		tickenEventService.Populate()
 		tickenEventService.EmitFakeJWT()
 	}
 

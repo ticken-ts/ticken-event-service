@@ -33,18 +33,22 @@ func (organizationManager *OrganizationManager) GetPvtbcConnection(organizerID s
 		return nil, fmt.Errorf("could not find organization with ID %s", organizationID)
 	}
 
-	if !organization.HasMember(organizer.Username) {
+	if !organization.HasUser(organizer.Username) {
 		return nil, fmt.Errorf("organizer %s doesnt belong to organization %s", organizer.Username, organization.MspID)
 	}
 
-	orgMemberInfo := organization.GetMemberByUsername(organizer.Username)
+	if !organization.HasNodes() {
+		return nil, fmt.Errorf("organization doenst has any active nodes")
+	}
 
-	memberPrivBytes, err := organizationManager.hsm.Retrieve(orgMemberInfo.OrgCert.PrivKeyStorageKey)
+	orgUserInfo := organization.GetUserByName(organizer.Username)
+
+	memberPrivBytes, err := organizationManager.hsm.Retrieve(orgUserInfo.UserOrgCert.PrivKeyStorageKey)
 	if err != nil {
 		return nil, fmt.Errorf("could not get user private key from HSM: %s", err.Error())
 	}
 
-	orgMemberCert := string(orgMemberInfo.OrgCert.Content)
+	orgMemberCert := string(orgUserInfo.UserOrgCert.Content)
 	orgMemberPriv := string(memberPrivBytes)
 
 	pc := peerconnector.NewWithRawCredentials(
@@ -53,12 +57,14 @@ func (organizationManager *OrganizationManager) GetPvtbcConnection(organizerID s
 		[]byte(orgMemberPriv),
 	)
 
-	// todo - remove hardcode
-	const peerEndpoint = "localhost:9051"
-	const gatewayPeer = "peer0.org2.example.com"
-	const channel = "ticken-channel"
+	peerNode := organization.Nodes[0]
 
-	err = pc.ConnectWithRawTlsCert(peerEndpoint, gatewayPeer, orgMemberInfo.TlsCert.Content)
+	//fmt.Printf("using member cert: \n %s \n", orgMemberCert)
+	//fmt.Printf("using member priv: \n %s \n", orgMemberPriv)
+	//fmt.Printf("using  cert: \n %s \n", string(peerNode.NodeTlsCert.Content))
+	//fmt.Printf("connectin to %s peer", organization.Name+"-"+peerNode.NodeName+".localho.st")
+
+	err = pc.ConnectWithRawTlsCert(peerNode.Address, organization.Name+"-"+peerNode.NodeName+".localho.st", peerNode.NodeTlsCert.Content)
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +74,7 @@ func (organizationManager *OrganizationManager) GetPvtbcConnection(organizerID s
 		return nil, err
 	}
 
-	_ = pvtbcCaller.SetChannel(channel)
+	_ = pvtbcCaller.SetChannel(organization.Channel)
 
 	return pvtbcCaller, nil
 }

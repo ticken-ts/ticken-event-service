@@ -4,14 +4,11 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
-	"crypto/sha256"
-	"encoding/hex"
 	"fmt"
+	"github.com/google/uuid"
 	"io"
 	"os"
 	"path"
-	"strconv"
-	"time"
 )
 
 const KeyStoreFolder = ".keystore"
@@ -101,7 +98,8 @@ func (hsm *LocalFileSystemHSM) Retrieve(key string) ([]byte, error) {
 }
 
 func genKey() string {
-	unixTimestamp := time.Now().Unix()
-	sum := sha256.Sum256([]byte(strconv.FormatInt(unixTimestamp, 10)))
-	return hex.EncodeToString(sum[:])
+	//unixTimestamp := time.Now().Unix()
+	//sum := sha256.Sum256([]byte(strconv.FormatInt(unixTimestamp, 10)))
+	//return hex.EncodeToString(sum[:])
+	return uuid.New().String()
 }

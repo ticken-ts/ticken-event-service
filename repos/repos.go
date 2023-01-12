@@ -12,15 +12,19 @@ type EventRepository interface {
 }
 
 type OrganizerRepository interface {
+	AnyWithID(organizerID string) bool
 	AddOrganizer(organizer *models.Organizer) error
 	FindOrganizer(organizerID string) *models.Organizer
 	FindOrganizerByUsername(username string) *models.Organizer
 }
 
 type OrganizationRepository interface {
+	AnyWithName(name string) bool
+	AnyWithID(organizationID string) bool
 	AddOrganization(organization *models.Organization) error
 	FindOrganization(organizationID string) *models.Organization
-	FindOrganizationByMspID(mspID string) *models.Organization
+	FindByMSPID(mspID string) *models.Organization
+	FindByName(name string) *models.Organization
 }
 
 type IProvider interface {

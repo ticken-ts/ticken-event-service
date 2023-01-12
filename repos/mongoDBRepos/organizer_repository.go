@@ -84,3 +84,7 @@ func (r *OrganizerMongoDBRepository) FindOrganizerByUsername(username string) *m
 
 	return &foundOrganizer
 }
+
+func (r *OrganizerMongoDBRepository) AnyWithID(organizerID string) bool {
+	return r.FindOrganizer(organizerID) != nil
+}

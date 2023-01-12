@@ -68,7 +68,24 @@ func (r *OrganizationMongoDBRepository) FindOrganization(organizerID string) *mo
 	return &foundOrganization
 }
 
-func (r *OrganizationMongoDBRepository) FindOrganizationByMspID(mspID string) *models.Organization {
+func (r *OrganizationMongoDBRepository) FindByName(name string) *models.Organization {
+	findContext, cancel := r.generateOpSubcontext()
+	defer cancel()
+
+	organizers := r.getCollection()
+	result := organizers.FindOne(findContext, bson.M{"name": name})
+
+	var foundOrganization models.Organization
+	err := result.Decode(&foundOrganization)
+
+	if err != nil {
+		return nil
+	}
+
+	return &foundOrganization
+}
+
+func (r *OrganizationMongoDBRepository) FindByMSPID(mspID string) *models.Organization {
 	findContext, cancel := r.generateOpSubcontext()
 	defer cancel()
 
@@ -83,4 +100,12 @@ func (r *OrganizationMongoDBRepository) FindOrganizationByMspID(mspID string) *m
 	}
 
 	return &foundOrganization
+}
+
+func (r *OrganizationMongoDBRepository) AnyWithID(organizationID string) bool {
+	return r.FindOrganization(organizationID) != nil
+}
+
+func (r *OrganizationMongoDBRepository) AnyWithName(name string) bool {
+	return r.FindByName(name) != nil
 }
