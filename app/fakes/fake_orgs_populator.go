@@ -1,6 +1,7 @@
 package fakes
 
 import (
+	"github.com/google/uuid"
 	"io/ioutil"
 	"path"
 	"strconv"
@@ -43,7 +44,12 @@ func (populator *FakeOrgsPopulator) Populate() error {
 		return nil
 	}
 
-	organizer := populator.organizerRepo.FindOrganizer(populator.devUserInfo.UserID)
+	uuidDevUser, err := uuid.Parse(populator.devUserInfo.UserID)
+	if err != nil {
+		return err
+	}
+
+	organizer := populator.organizerRepo.FindOrganizer(uuidDevUser)
 	if organizer == nil {
 		return exception.WithMessage("dev user with id %s not found", populator.devUserInfo.UserID)
 	}

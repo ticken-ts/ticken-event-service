@@ -19,5 +19,5 @@ func New(serviceProvider services.IProvider) *SectionController {
 }
 
 func (controller *SectionController) Setup(router gin.IRouter) {
-	router.PUT("/events/:eventID/sections", controller.AddSection)
+	router.PUT("/organizations/:organizationID/events/:eventID/sections", controller.AddSection)
 }

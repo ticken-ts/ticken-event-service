@@ -7,7 +7,7 @@ import (
 
 func MapSectionToDTO(section *models.Section) *dto.SectionDTO {
 	return &dto.SectionDTO{
-		EventID:      section.EventID,
+		EventID:      section.EventID.String(),
 		Name:         section.Name,
 		TotalTickets: section.TotalTickets,
 		OnChain:      section.OnChain,

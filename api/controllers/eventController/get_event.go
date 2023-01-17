@@ -2,6 +2,7 @@ package eventController
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"net/http"
 	"ticken-event-service/api/mappers"
 	"ticken-event-service/api/security"
@@ -10,9 +11,24 @@ import (
 
 func (controller *EventController) GetEvent(c *gin.Context) {
 	userID := c.MustGet("jwt").(*security.JWT).Subject
-	eventID := c.Param("eventID")
 
-	event, err := controller.serviceProvider.GetEventManager().GetEvent(eventID, userID)
+	organizationID, err := uuid.Parse(c.Param("organizationID"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, utils.HttpResponse{Message: err.Error()})
+		c.Abort()
+		return
+	}
+
+	eventID, err := uuid.Parse(c.Param("eventID"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, utils.HttpResponse{Message: err.Error()})
+		c.Abort()
+		return
+	}
+
+	eventManager := controller.serviceProvider.GetEventManager()
+
+	event, err := eventManager.GetEvent(eventID, userID, organizationID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, utils.HttpResponse{Message: err.Error()})
 		c.Abort()

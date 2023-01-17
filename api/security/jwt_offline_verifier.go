@@ -3,6 +3,7 @@ package security
 import (
 	"crypto/rsa"
 	"github.com/golang-jwt/jwt"
+	"github.com/google/uuid"
 )
 
 type JWTOfflineVerifier struct {
@@ -26,8 +27,13 @@ func (jwtVerifier *JWTOfflineVerifier) Verify(rawJWT string) (*JWT, error) {
 		return nil, err
 	}
 
+	uuidSubject, err := uuid.Parse(claims.Subject)
+	if err != nil {
+		return nil, err
+	}
+
 	token := &JWT{
-		Subject:  claims.Subject,
+		Subject:  uuidSubject,
 		Email:    claims.Email,
 		Username: claims.PreferredUsername,
 	}

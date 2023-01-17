@@ -2,6 +2,7 @@ package sectionController
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"net/http"
 	"ticken-event-service/api/mappers"
 	"ticken-event-service/api/security"
@@ -9,19 +10,31 @@ import (
 )
 
 type createSectionPayload struct {
-	Name         string `json:"name"`
-	TotalTickets int    `json:"total_tickets"`
+	Name         string  `json:"name"`
+	TicketPrice  float64 `json:"ticket_price"`
+	TotalTickets int     `json:"total_tickets"`
 }
 
 func (controller *SectionController) AddSection(c *gin.Context) {
 	var payload createSectionPayload
 
-	eventID := c.Param("eventID")
-	organizationID := c.Param("organizationID")
 	userID := c.MustGet("jwt").(*security.JWT).Subject
 
-	err := c.BindJSON(&payload)
+	eventID, err := uuid.Parse(c.Param("eventID"))
 	if err != nil {
+		c.JSON(http.StatusBadRequest, utils.HttpResponse{Message: err.Error()})
+		c.Abort()
+		return
+	}
+
+	organizationID, err := uuid.Parse(c.Param("organizationID"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, utils.HttpResponse{Message: err.Error()})
+		c.Abort()
+		return
+	}
+
+	if err = c.BindJSON(&payload); err != nil {
 		c.JSON(http.StatusBadRequest, utils.HttpResponse{Message: err.Error()})
 		c.Abort()
 		return
@@ -34,7 +47,15 @@ func (controller *SectionController) AddSection(c *gin.Context) {
 
 	eventManager := controller.serviceProvider.GetEventManager()
 
-	section, err := eventManager.AddSection(userID, organizationID, eventID, payload.Name, payload.TotalTickets)
+	section, err := eventManager.AddSection(
+		userID,
+		organizationID,
+		eventID,
+		payload.Name,
+		payload.TotalTickets,
+		payload.TicketPrice,
+	)
+
 	if err != nil {
 		c.JSON(http.StatusBadRequest, utils.HttpResponse{Message: err.Error()})
 		c.Abort()

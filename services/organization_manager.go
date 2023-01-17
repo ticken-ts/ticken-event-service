@@ -2,6 +2,7 @@ package services
 
 import (
 	"fmt"
+	"github.com/google/uuid"
 	pvtbc "github.com/ticken-ts/ticken-pvtbc-connector"
 	"github.com/ticken-ts/ticken-pvtbc-connector/fabric/peerconnector"
 	"ticken-event-service/infra"
@@ -22,7 +23,7 @@ func NewOrganizationManager(hsm infra.HSM, organizerRepo repos.OrganizerReposito
 	}
 }
 
-func (organizationManager *OrganizationManager) GetPvtbcConnection(organizerID string, organizationID string) (*pvtbc.Caller, error) {
+func (organizationManager *OrganizationManager) GetPvtbcConnection(organizerID uuid.UUID, organizationID uuid.UUID) (*pvtbc.Caller, error) {
 	organizer := organizationManager.organizerRepo.FindOrganizer(organizerID)
 	if organizer == nil {
 		return nil, fmt.Errorf("could not find organizer with ID %s", organizerID)
@@ -34,7 +35,7 @@ func (organizationManager *OrganizationManager) GetPvtbcConnection(organizerID s
 	}
 
 	if !organization.HasUser(organizer.Username) {
-		return nil, fmt.Errorf("organizer %s doesnt belong to organization %s", organizer.Username, organization.MspID)
+		return nil, fmt.Errorf("organizer %s doesnt belong to organization %s", organizer.Username, organization.MSPID)
 	}
 
 	if !organization.HasNodes() {
@@ -52,7 +53,7 @@ func (organizationManager *OrganizationManager) GetPvtbcConnection(organizerID s
 	orgMemberPriv := string(memberPrivBytes)
 
 	pc := peerconnector.NewWithRawCredentials(
-		organization.MspID,
+		organization.MSPID,
 		[]byte(orgMemberCert),
 		[]byte(orgMemberPriv),
 	)

@@ -1,16 +1,20 @@
 package models
 
+import "github.com/google/uuid"
+
 type Section struct {
-	Name         string `json:"name" bson:"name"`
-	EventID      string `json:"event_id" bson:"event_id"`
-	TotalTickets int    `json:"total_tickets" bson:"total_tickets"`
-	OnChain      bool   `json:"on_chain" bson:"on_chain"`
+	Name         string    `bson:"name"`
+	EventID      uuid.UUID `bson:"event_id"`
+	TicketPrice  float64   `bson:"ticket_price"`
+	TotalTickets int       `bson:"total_tickets"`
+	OnChain      bool      `bson:"on_chain"`
 }
 
-func NewSection(name string, eventID string, totalTickets int) *Section {
+func NewSection(name string, eventID uuid.UUID, totalTickets int, ticketPrice float64) *Section {
 	return &Section{
-		Name:         name,
 		EventID:      eventID,
+		TicketPrice:  ticketPrice,
+		Name:         name,
 		TotalTickets: totalTickets,
 		OnChain:      false,
 	}

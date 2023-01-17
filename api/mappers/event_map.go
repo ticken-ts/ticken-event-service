@@ -8,7 +8,7 @@ import (
 
 func MapEventToEventDTO(event *models.Event) *dto.EventDTO {
 	return &dto.EventDTO{
-		EventID: event.EventID,
+		EventID: event.EventID.String(),
 		Name:    event.Name,
 		Date:    event.Date.Format(time.RFC3339),
 		OnChain: event.OnChain,

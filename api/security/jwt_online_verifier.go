@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"github.com/coreos/go-oidc"
+	"github.com/google/uuid"
 	"net/http"
 	"ticken-event-service/env"
 	"time"
@@ -55,8 +56,13 @@ func (jwtVerifier *JWTOnlineVerifier) Verify(rawJWT string) (*JWT, error) {
 		return nil, err
 	}
 
+	uuidSubject, err := uuid.Parse(claims.Subject)
+	if err != nil {
+		return nil, err
+	}
+
 	token := &JWT{
-		Subject:  jwt.Subject,
+		Subject:  uuidSubject,
 		Email:    claims.Email,
 		Username: claims.PreferredUsername,
 	}

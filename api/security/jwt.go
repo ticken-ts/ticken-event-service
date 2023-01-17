@@ -1,5 +1,7 @@
 package security
 
+import "github.com/google/uuid"
+
 // This struct is an abstraction over the different
 // libraries used for offline (dev/test) and online
 // jwt validation.
@@ -7,7 +9,7 @@ package security
 
 type JWT struct {
 	Email    string
-	Subject  string
+	Subject  uuid.UUID
 	Username string
 }
 

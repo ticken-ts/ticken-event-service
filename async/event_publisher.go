@@ -3,6 +3,7 @@ package async
 import (
 	"context"
 	"encoding/json"
+	"github.com/google/uuid"
 	"ticken-event-service/infra"
 	"ticken-event-service/infra/bus"
 	"ticken-event-service/models"
@@ -13,9 +14,9 @@ const (
 )
 
 type eventDTO struct {
-	EventID      string `json:"event_id"`
-	OrganizerID  string `json:"organizer_id"`
-	PvtBCChannel string `json:"pvt_bc_channel"`
+	EventID      uuid.UUID `json:"event_id"`
+	OrganizerID  uuid.UUID `json:"organizer_id"`
+	PvtBCChannel string    `json:"pvt_bc_channel"`
 }
 
 type EventPublisher struct {

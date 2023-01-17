@@ -1,6 +1,7 @@
 package mongoDBRepos
 
 import (
+	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -51,7 +52,7 @@ func (r *OrganizationMongoDBRepository) AddOrganization(organization *models.Org
 	return nil
 }
 
-func (r *OrganizationMongoDBRepository) FindOrganization(organizerID string) *models.Organization {
+func (r *OrganizationMongoDBRepository) FindOrganization(organizerID uuid.UUID) *models.Organization {
 	findContext, cancel := r.generateOpSubcontext()
 	defer cancel()
 
@@ -102,7 +103,7 @@ func (r *OrganizationMongoDBRepository) FindByMSPID(mspID string) *models.Organi
 	return &foundOrganization
 }
 
-func (r *OrganizationMongoDBRepository) AnyWithID(organizationID string) bool {
+func (r *OrganizationMongoDBRepository) AnyWithID(organizationID uuid.UUID) bool {
 	return r.FindOrganization(organizationID) != nil
 }
 

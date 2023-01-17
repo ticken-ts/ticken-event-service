@@ -1,40 +1,54 @@
 package models
 
 import (
-	"fmt"
 	"github.com/google/uuid"
+	"ticken-event-service/exception"
 	"time"
 )
 
 type Event struct {
-	EventID        string     `json:"event_id" bson:"event_id"`
-	Name           string     `json:"name" bson:"name"`
-	Date           time.Time  `json:"date" bson:"date"`
-	Sections       []*Section `json:"sections" bson:"sections"`
-	OrganizationID string     `json:"organization_id" bson:"organization_id"`
+	EventID  uuid.UUID  `bson:"event_id"`
+	Name     string     `bson:"name"`
+	Date     time.Time  `bson:"date"`
+	Sections []*Section `bson:"sections"`
 
-	OnChain      bool   `json:"on_chain" bson:"on_chain"`
-	PvtBCChannel string `json:"pvt_bc_channel" bson:"pvt_bc_channel"`
+	OrganizerID    uuid.UUID `bson:"organizer_id"`
+	OrganizationID uuid.UUID `bson:"organization_id"`
+
+	OnChain      bool   `bson:"on_chain"`
+	PvtBCChannel string `bson:"pvt_bc_channel"`
 }
 
-func NewEvent(name string, date time.Time) *Event {
-	return &Event{
-		EventID:  uuid.New().String(),
+func NewEvent(name string, date time.Time, organizer *Organizer, organization *Organization) (*Event, error) {
+	if !organization.HasUser(organizer.Username) {
+		return nil, exception.WithMessage("organizer %s doest not belong to organization %s",
+			organizer.Username, organization.Name)
+	}
+
+	event := &Event{
+		EventID:  uuid.New(),
 		Name:     name,
 		Date:     date,
 		Sections: make([]*Section, 0),
 
+		// this values will be validated from
+		// the values that the chaincode notify us
+		OrganizerID:    organizer.OrganizerID,
+		OrganizationID: organization.OrganizationID,
+
 		// on chain will become true when the
 		// transaction is committed and the
 		// listener updated the event state
-		OnChain: false,
+		OnChain:      false,
+		PvtBCChannel: "",
 	}
+
+	return event, nil
 }
 
-func (event *Event) SetOnChain(channel string, organizationID string) {
+func (event *Event) SetOnChain(channel string) {
 	event.OnChain = true
 	event.PvtBCChannel = channel
-	event.OrganizationID = organizationID
 }
 
 func (event *Event) GetSection(name string) *Section {
@@ -46,26 +60,27 @@ func (event *Event) GetSection(name string) *Section {
 	return nil
 }
 
-func (event *Event) AddSection(name string, totalTickets int) *Section {
-	newSection := NewSection(name, event.EventID, totalTickets)
+func (event *Event) AddSection(name string, totalTickets int, ticketPrice float64) *Section {
+	newSection := NewSection(name, event.EventID, totalTickets, ticketPrice)
 	event.Sections = append(event.Sections, newSection)
 	return newSection
 }
 
 func (event *Event) AssociateSection(section *Section) error {
 	if section.EventID != event.EventID {
-		return fmt.Errorf("section does not belongs to event")
+		return exception.WithMessage("section does not belongs to event")
 	}
 
 	sectionWithSameName := event.GetSection(section.Name)
 	if sectionWithSameName != nil {
-		return fmt.Errorf("section with name %s already exists in event %s", sectionWithSameName.Name, event.EventID)
+		return exception.WithMessage(
+			"section with name %s already exists in event %s", sectionWithSameName.Name, event.EventID)
 	}
 
 	event.Sections = append(event.Sections, section)
 	return nil
 }
 
-func (event *Event) IsFromOrganization(organizationID string) bool {
+func (event *Event) IsFromOrganization(organizationID uuid.UUID) bool {
 	return event.OrganizationID == organizationID
 }

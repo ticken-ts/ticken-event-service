@@ -25,25 +25,24 @@ func (populator *FakeUsersPopulator) Populate() error {
 		return nil
 	}
 
-	devUserUUID, err := uuid.Parse(populator.devUserInfo.UserID)
+	uuidDevUser, err := uuid.Parse(populator.devUserInfo.UserID)
 	if err != nil {
 		return err
 	}
 
-	if populator.organizerRepo.AnyWithID(devUserUUID.String()) {
+	if populator.organizerRepo.AnyWithID(uuidDevUser) {
 		return nil
 	}
 
 	devOrganizer := models.NewOrganizer(
-		devUserUUID,
+		uuidDevUser,
 		populator.devUserInfo.Firstname,
 		populator.devUserInfo.Lastname,
 		populator.devUserInfo.Username,
 		populator.devUserInfo.Email,
 	)
 
-	err = populator.organizerRepo.AddOrganizer(devOrganizer)
-	if err != nil {
+	if err := populator.organizerRepo.AddOrganizer(devOrganizer); err != nil {
 		return err
 	}
 

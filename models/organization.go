@@ -16,10 +16,10 @@ type Certificate struct {
 }
 
 type Organization struct {
-	OrganizationID string `bson:"organization_id"`
-	Name           string `bson:"name"`
-	MspID          string `bson:"msp_id"`
-	Channel        string `bson:"channel"`
+	OrganizationID uuid.UUID `bson:"organization_id"`
+	Name           string    `bson:"name"`
+	MSPID          string    `bson:"msp_id"`
+	Channel        string    `bson:"channel"`
 
 	OrgCACert *Certificate `bson:"org_ca"`
 	TlsCACert *Certificate `bson:"tls_ca"`
@@ -29,7 +29,7 @@ type Organization struct {
 }
 
 type OrganizationUser struct {
-	OrganizerID string       `bson:"organizer_id"`
+	OrganizerID uuid.UUID    `bson:"organizer_id"`
 	Username    string       `bson:"username"`
 	Role        string       `bson:"role"`
 	UserOrgCert *Certificate `bson:"org_cert"`
@@ -44,10 +44,10 @@ type OrganizationNode struct {
 
 func NewOrganization(name string, channel string, orgCACert *Certificate, tlsCACert *Certificate) *Organization {
 	return &Organization{
-		OrganizationID: uuid.New().String(),
+		OrganizationID: uuid.New(),
 		Name:           name,
 		Channel:        channel,
-		MspID:          generateMspID(name),
+		MSPID:          generateMspID(name),
 
 		OrgCACert: orgCACert,
 		TlsCACert: tlsCACert,

@@ -25,8 +25,8 @@ func NewProvider(repoProvider repos.IProvider, busPublisher infra.BusPublisher, 
 	organizationRepo := repoProvider.GetOrganizationRepository()
 
 	provider.organizationManager = NewOrganizationManager(hsm, organizerRepo, organizationRepo)
-	provider.eventManager = NewEventManager(eventRepo, publisher, provider.organizationManager)
 	provider.organizerManager = NewOrganizerManager(hsm, organizerRepo, organizationRepo)
+	provider.eventManager = NewEventManager(eventRepo, organizerRepo, organizationRepo, publisher, provider.organizationManager)
 
 	return provider, nil
 }

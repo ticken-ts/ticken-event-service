@@ -1,6 +1,7 @@
 package mongoDBRepos
 
 import (
+	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -52,7 +53,7 @@ func (r *EventMongoDBRepository) AddEvent(event *models.Event) error {
 	return nil
 }
 
-func (r *EventMongoDBRepository) FindEvent(eventID string) *models.Event {
+func (r *EventMongoDBRepository) FindEvent(eventID uuid.UUID) *models.Event {
 	findContext, cancel := r.generateOpSubcontext()
 	defer cancel()
 
@@ -69,7 +70,7 @@ func (r *EventMongoDBRepository) FindEvent(eventID string) *models.Event {
 	return &foundEvent
 }
 
-func (r *EventMongoDBRepository) FindOrganizationEvents(organizationID string) []*models.Event {
+func (r *EventMongoDBRepository) FindOrganizationEvents(organizationID uuid.UUID) []*models.Event {
 	findContext, cancel := r.generateOpSubcontext()
 	defer cancel()
 
