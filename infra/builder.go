@@ -18,7 +18,7 @@ type Builder struct {
 	tickenConfig *config.Config
 }
 
-var pc *peerconnector.PeerConnector = nil
+var pc peerconnector.PeerConnector = nil
 
 func NewBuilder(tickenConfig *config.Config) (*Builder, error) {
 	if tickenConfig == nil {
@@ -140,12 +140,17 @@ func (builder *Builder) BuildBusPublisher(connString string) BusPublisher {
 	return tickenBus
 }
 
-func buildPeerConnector(config config.PvtbcConfig) *peerconnector.PeerConnector {
+func buildPeerConnector(config config.PvtbcConfig) peerconnector.PeerConnector {
 	if pc != nil {
 		return pc
 	}
 
-	pc := peerconnector.New(config.MspID, config.CertificatePath, config.PrivateKeyPath)
+	var pc peerconnector.PeerConnector
+	if env.TickenEnv.IsDev() {
+		pc = peerconnector.NewDev(config.MspID, "admin")
+	} else {
+		pc = peerconnector.New(config.MspID, config.CertificatePath, config.PrivateKeyPath)
+	}
 
 	err := pc.Connect(config.PeerEndpoint, config.GatewayPeer, config.TLSCertificatePath)
 	if err != nil {

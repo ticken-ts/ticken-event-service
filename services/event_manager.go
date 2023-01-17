@@ -52,15 +52,6 @@ func (eventManager *EventManager) CreateEvent(organizerID, organizationID uuid.U
 		return nil, exception.FromError(err, "failed to create event")
 	}
 
-	atomicPvtbcCaller, err := eventManager.organizationManager.GetPvtbcConnection(organizerID, organizationID)
-	if err != nil {
-		return nil, err
-	}
-
-	if err = atomicPvtbcCaller.TickenEventCaller.CreateAsync(event.EventID, event.Name, event.Date); err != nil {
-		return nil, err
-	}
-
 	if err = eventManager.eventRepo.AddEvent(event); err != nil {
 		// todo -> see what to do here
 		// we cant fail if we couldn't save the event
@@ -68,20 +59,20 @@ func (eventManager *EventManager) CreateEvent(organizerID, organizationID uuid.U
 		log.TickenLogger.Error().Err(err)
 	}
 
-	return event, nil
-}
-
-func (eventManager *EventManager) AddSection(organizerID, organizationID, eventID uuid.UUID, name string, totalTickets int, ticketPrice float64) (*models.Section, error) {
-	section := models.NewSection(name, eventID, totalTickets, ticketPrice)
-
 	atomicPvtbcCaller, err := eventManager.organizationManager.GetPvtbcConnection(organizerID, organizationID)
 	if err != nil {
 		return nil, err
 	}
 
-	if err = atomicPvtbcCaller.TickenEventCaller.AddSectionAsync(section.EventID, section.Name, section.TotalTickets, section.TicketPrice); err != nil {
+	if err = atomicPvtbcCaller.TickenEventCaller.CreateEventAsync(event.EventID, event.Name, event.Date); err != nil {
 		return nil, err
 	}
+
+	return event, nil
+}
+
+func (eventManager *EventManager) AddSection(organizerID, organizationID, eventID uuid.UUID, name string, totalTickets int, ticketPrice float64) (*models.Section, error) {
+	section := models.NewSection(name, eventID, totalTickets, ticketPrice)
 
 	event := eventManager.eventRepo.FindEvent(eventID)
 	if event == nil {
@@ -92,11 +83,22 @@ func (eventManager *EventManager) AddSection(organizerID, organizationID, eventI
 		return section, nil
 	}
 
-	if err = event.AssociateSection(section); err != nil {
+	if err := event.AssociateSection(section); err != nil {
 		// todo -> see what to do here
 		// we cant fail if we couldn't save the event
 		// because the tx is already submitted
 		log.TickenLogger.Error().Err(err)
+	}
+
+	eventManager.eventRepo.UpdateEvent(event)
+
+	atomicPvtbcCaller, err := eventManager.organizationManager.GetPvtbcConnection(organizerID, organizationID)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = atomicPvtbcCaller.TickenEventCaller.AddSectionAsync(section.EventID, section.Name, section.TotalTickets, section.TicketPrice); err != nil {
+		return nil, err
 	}
 
 	return section, nil
@@ -110,12 +112,17 @@ func (eventManager *EventManager) SyncOnChainEvent(onChainEvent *chainmodels.Eve
 		return nil, exception.WithMessage("organization with MSP ID %s is not loaded", onChainEvent.MSPID)
 	}
 
+	organizer := eventManager.organizerRepo.FindOrganizerByUsername(onChainEvent.OrganizerUsername)
+	if organizer == nil {
+		return nil, exception.WithMessage("organizer with username %s is not loaded", onChainEvent.OrganizerUsername)
+	}
+
 	// if the event was never seen before, in other words,
 	// is not present on our database, we are going to assume
 	// that it was created directly from the blockchain.
 	// In this case, we are going to add the event when we listen it
 	if storedEvent == nil {
-		newEvent, _ := models.NewEvent(onChainEvent.Name, onChainEvent.Date, nil, nil)
+		newEvent, _ := models.NewEvent(onChainEvent.Name, onChainEvent.Date, organizer, organization)
 		newEvent.EventID = onChainEvent.EventID
 		err := eventManager.eventRepo.AddEvent(newEvent)
 		if err != nil {

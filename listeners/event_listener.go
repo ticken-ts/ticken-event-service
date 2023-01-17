@@ -6,7 +6,8 @@ import (
 	"github.com/go-playground/validator/v10"
 	pvtbc "github.com/ticken-ts/ticken-pvtbc-connector"
 	chainmodels "github.com/ticken-ts/ticken-pvtbc-connector/chain-models"
-	"github.com/ticken-ts/ticken-pvtbc-connector/fabric/cclisteners"
+	"github.com/ticken-ts/ticken-pvtbc-connector/fabric/ccclient"
+	"github.com/ticken-ts/ticken-pvtbc-connector/fabric/consts"
 	"ticken-event-service/log"
 	"ticken-event-service/services"
 )
@@ -34,16 +35,16 @@ func NewEventListener(serviceProvider services.IProvider, pvtbcListener *pvtbc.L
 }
 
 func (listener *EventListener) Listen() {
-	listener.pvtbcListener.Listen(context.Background(), listener.generalEventChaincodeCallback)
+	listener.pvtbcListener.ListenCCEvent(context.Background(), listener.generalEventChaincodeCallback)
 }
 
-func (listener *EventListener) generalEventChaincodeCallback(eventNotification *cclisteners.CCEventNotification) {
+func (listener *EventListener) generalEventChaincodeCallback(eventNotification *ccclient.CCNotification) {
 	switch eventNotification.Type {
 
-	case cclisteners.EventCreatedNotification:
+	case consts.EventCreatedNotification:
 		listener.handleEventCreation(eventNotification)
 
-	case cclisteners.SectionAddedNotification:
+	case consts.SectionAddedNotification:
 		listener.handleSectionAddition(eventNotification)
 
 	default:
@@ -51,8 +52,8 @@ func (listener *EventListener) generalEventChaincodeCallback(eventNotification *
 	}
 }
 
-func (listener *EventListener) handleEventCreation(eventNotification *cclisteners.CCEventNotification) {
-	log.TickenLogger.Info().Msgf("handling %s notification: %s", cclisteners.TickenEventChaincode, cclisteners.EventCreatedNotification)
+func (listener *EventListener) handleEventCreation(eventNotification *ccclient.CCNotification) {
+	log.TickenLogger.Info().Msgf("handling %s notification: %s", consts.TickenEventChaincode, consts.EventCreatedNotification)
 	eventManager := listener.serviceProvider.GetEventManager()
 
 	var onChainEvent chainmodels.Event
@@ -70,8 +71,8 @@ func (listener *EventListener) handleEventCreation(eventNotification *cclistener
 	log.TickenLogger.Info().Msgf("on chain event %s sync", onChainEvent.EventID)
 }
 
-func (listener *EventListener) handleSectionAddition(eventNotification *cclisteners.CCEventNotification) {
-	log.TickenLogger.Info().Msgf("handling %s notification: %s", cclisteners.TickenEventChaincode, cclisteners.SectionAddedNotification)
+func (listener *EventListener) handleSectionAddition(eventNotification *ccclient.CCNotification) {
+	log.TickenLogger.Info().Msgf("handling %s notification: %s", consts.TickenEventChaincode, consts.SectionAddedNotification)
 	eventManager := listener.serviceProvider.GetEventManager()
 
 	var onChainSection chainmodels.Section

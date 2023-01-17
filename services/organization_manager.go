@@ -5,6 +5,7 @@ import (
 	"github.com/google/uuid"
 	pvtbc "github.com/ticken-ts/ticken-pvtbc-connector"
 	"github.com/ticken-ts/ticken-pvtbc-connector/fabric/peerconnector"
+	"ticken-event-service/env"
 	"ticken-event-service/infra"
 	"ticken-event-service/repos"
 )
@@ -52,11 +53,14 @@ func (organizationManager *OrganizationManager) GetPvtbcConnection(organizerID u
 	orgMemberCert := string(orgUserInfo.UserOrgCert.Content)
 	orgMemberPriv := string(memberPrivBytes)
 
-	pc := peerconnector.NewWithRawCredentials(
-		organization.MSPID,
-		[]byte(orgMemberCert),
-		[]byte(orgMemberPriv),
-	)
+	var pc peerconnector.PeerConnector
+	if env.TickenEnv.IsDev() {
+		pc = peerconnector.NewDev(organization.MSPID, organizer.Username)
+	} else {
+		pc = peerconnector.NewWithRawCredentials(
+			organization.MSPID, []byte(orgMemberCert), []byte(orgMemberPriv),
+		)
+	}
 
 	peerNode := organization.Nodes[0]
 
