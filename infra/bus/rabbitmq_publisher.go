@@ -45,6 +45,7 @@ func (publisher *RabbitMQPublisher) Connect(connString string, exchangeName stri
 
 	publisher.conn = conn
 	publisher.channel = channel
+	publisher.exchangeName = exchangeName
 
 	return nil
 }
