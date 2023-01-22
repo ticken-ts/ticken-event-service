@@ -12,7 +12,7 @@ type provider struct {
 	organizationManager IOrganizationManager
 }
 
-func NewProvider(repoProvider repos.IProvider, busPublisher infra.BusPublisher, hsm infra.HSM) (IProvider, error) {
+func NewProvider(repoProvider repos.IProvider, busPublisher infra.BusPublisher, hsm infra.HSM, builder infra.IBuilder) (IProvider, error) {
 	provider := new(provider)
 
 	publisher, err := async.NewPublisher(busPublisher)
@@ -24,8 +24,7 @@ func NewProvider(repoProvider repos.IProvider, busPublisher infra.BusPublisher, 
 	organizerRepo := repoProvider.GetOrganizerRepository()
 	organizationRepo := repoProvider.GetOrganizationRepository()
 
-	provider.organizationManager = NewOrganizationManager(hsm, organizerRepo, organizationRepo)
-	provider.organizerManager = NewOrganizerManager(hsm, organizerRepo, organizationRepo)
+	provider.organizationManager = NewOrganizationManager(hsm, organizerRepo, organizationRepo, builder.BuildAtomicPvtbcCaller)
 	provider.eventManager = NewEventManager(eventRepo, organizerRepo, organizationRepo, publisher, provider.organizationManager)
 
 	return provider, nil
@@ -33,10 +32,6 @@ func NewProvider(repoProvider repos.IProvider, busPublisher infra.BusPublisher, 
 
 func (provider *provider) GetEventManager() IEventManager {
 	return provider.eventManager
-}
-
-func (provider *provider) GetOrganizerManager() IOrganizerManager {
-	return provider.organizerManager
 }
 
 func (provider *provider) GetOrganizationManager() IOrganizationManager {

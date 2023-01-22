@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	pvtbc "github.com/ticken-ts/ticken-pvtbc-connector"
 	"ticken-event-service/infra/bus"
+	"ticken-event-service/security/jwt"
 )
 
 type Db interface {
@@ -39,7 +40,11 @@ type IBuilder interface {
 	BuildDb(connString string) Db
 	BuildHSM(encryptionKey string) HSM
 	BuildEngine() *gin.Engine
+	BuildJWTVerifier() jwt.Verifier
 	BuildPvtbcCaller() *pvtbc.Caller
 	BuildPvtbcListener() *pvtbc.Listener
 	BuildBusPublisher(connString string) BusPublisher
+
+	// atomic buildings
+	BuildAtomicPvtbcCaller(mspID, user, peerAddr string, userCert, userPriv, tlsCert []byte) (*pvtbc.Caller, error)
 }

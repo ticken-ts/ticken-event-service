@@ -3,7 +3,6 @@ package services
 import (
 	"fmt"
 	"github.com/google/uuid"
-	chainmodels "github.com/ticken-ts/ticken-pvtbc-connector/chain-models"
 	"ticken-event-service/async"
 	"ticken-event-service/exception"
 	"ticken-event-service/log"
@@ -64,8 +63,16 @@ func (eventManager *EventManager) CreateEvent(organizerID, organizationID uuid.U
 		return nil, err
 	}
 
-	if err = atomicPvtbcCaller.TickenEventCaller.CreateEventAsync(event.EventID, event.Name, event.Date); err != nil {
+	_, err = atomicPvtbcCaller.TickenEventCaller.CreateEvent(event.EventID, event.Name, event.Date)
+	if err != nil {
 		return nil, err
+	}
+
+	event.SetOnChain(organization.Channel)
+
+	if err := eventManager.publisher.PublishNewEvent(event); err != nil {
+		// TODO -> how to handle
+		panic(err)
 	}
 
 	return event, nil
@@ -97,81 +104,14 @@ func (eventManager *EventManager) AddSection(organizerID, organizationID, eventI
 		return nil, err
 	}
 
-	if err = atomicPvtbcCaller.TickenEventCaller.AddSectionAsync(section.EventID, section.Name, section.TotalTickets, section.TicketPrice); err != nil {
-		return nil, err
-	}
-
-	return section, nil
-}
-
-func (eventManager *EventManager) SyncOnChainEvent(onChainEvent *chainmodels.Event, channelListened string) (*models.Event, error) {
-	storedEvent := eventManager.eventRepo.FindEvent(onChainEvent.EventID)
-
-	organization := eventManager.organizationRepo.FindByMSPID(onChainEvent.MSPID)
-	if organization == nil {
-		return nil, exception.WithMessage("organization with MSP ID %s is not loaded", onChainEvent.MSPID)
-	}
-
-	organizer := eventManager.organizerRepo.FindOrganizerByUsername(onChainEvent.OrganizerUsername)
-	if organizer == nil {
-		return nil, exception.WithMessage("organizer with username %s is not loaded", onChainEvent.OrganizerUsername)
-	}
-
-	// if the event was never seen before, in other words,
-	// is not present on our database, we are going to assume
-	// that it was created directly from the blockchain.
-	// In this case, we are going to add the event when we listen it
-	if storedEvent == nil {
-		newEvent, _ := models.NewEvent(onChainEvent.Name, onChainEvent.Date, organizer, organization)
-		newEvent.EventID = onChainEvent.EventID
-		err := eventManager.eventRepo.AddEvent(newEvent)
-		if err != nil {
-			return nil, err
-		}
-		storedEvent = newEvent
-	}
-
-	// now that we listened the event, we flagged it.
-	// from this moment, this event is valid in our model
-	storedEvent.SetOnChain(channelListened)
-
-	updatedEvent := eventManager.eventRepo.UpdateEvent(storedEvent)
-
-	err := eventManager.publisher.PublishNewEvent(updatedEvent)
+	_, err = atomicPvtbcCaller.TickenEventCaller.AddSection(section.EventID, section.Name, section.TotalTickets, section.TicketPrice)
 	if err != nil {
 		return nil, err
 	}
 
-	return updatedEvent, nil
-}
+	section.OnChain = true
 
-func (eventManager *EventManager) SyncOnChainSection(onChainSection *chainmodels.Section) (*models.Event, error) {
-	storedEvent := eventManager.eventRepo.FindEvent(onChainSection.EventID)
-	if storedEvent == nil {
-		return nil, fmt.Errorf("event %s not founf", onChainSection.EventID)
-	}
-
-	storedSection := storedEvent.GetSection(onChainSection.Name)
-
-	// if the section was never seen before, in other words,
-	// is not present on our database, we are going to assume
-	// that it was created directly from the blockchain.
-	// In this case, we are going to add the section to the event
-	// when we listen it from the blockchain
-	if storedSection == nil {
-		storedSection = storedEvent.AddSection(
-			onChainSection.Name,
-			onChainSection.TotalTickets,
-			onChainSection.TicketPrice,
-		)
-	}
-
-	storedSection.OnChain = true
-	updatedEvent := eventManager.eventRepo.UpdateEvent(storedEvent)
-
-	// TODO -> implement publishing via bus event updated
-
-	return updatedEvent, nil
+	return section, nil
 }
 
 func (eventManager *EventManager) GetEvent(eventID uuid.UUID, requesterID uuid.UUID, organizationID uuid.UUID) (*models.Event, error) {

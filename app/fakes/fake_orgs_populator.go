@@ -13,9 +13,9 @@ import (
 	"ticken-event-service/repos"
 )
 
-const defaultChannel = "ticken-channel"
 const clusterStoragePath = "/tmp/ticken-pv"
 const totalFakeOrganizations = 3
+const tickenOrg = "ticken"
 
 type FakeOrgsPopulator struct {
 	hsm              infra.HSM
@@ -38,7 +38,6 @@ func NewFakeOrgsPopulator(
 	}
 }
 
-//goland:noinspection SpellCheckingInspection
 func (populator *FakeOrgsPopulator) Populate() error {
 	if !env.TickenEnv.IsDev() {
 		return nil
@@ -55,8 +54,8 @@ func (populator *FakeOrgsPopulator) Populate() error {
 	}
 
 	// load genesis org in the database
-	if !populator.organizationRepo.AnyWithName("ticken") {
-		populator.createOrganization("ticken", organizer)
+	if !populator.organizationRepo.AnyWithName(tickenOrg) {
+		populator.createOrganization(tickenOrg, organizer)
 	}
 
 	for i := 1; i <= totalFakeOrganizations; i++ {
@@ -72,7 +71,7 @@ func (populator *FakeOrgsPopulator) Populate() error {
 
 func (populator *FakeOrgsPopulator) createOrganization(orgName string, admin *models.Organizer) *models.Organization {
 	orgCACert, tlsCACert := populator.readOrgMSP(orgName)
-	newOrganization := models.NewOrganization(orgName, defaultChannel, orgCACert, tlsCACert)
+	newOrganization := models.NewOrganization(orgName, getOrgChannelName(orgName), orgCACert, tlsCACert)
 
 	userOrgCert := populator.readOrgUserMSP(orgName, admin.Username)
 	_ = newOrganization.AddUser(admin, "admin", userOrgCert)
@@ -149,4 +148,8 @@ func (populator *FakeOrgsPopulator) readOrgNodeMSP(orgName string, node string) 
 	}
 
 	return models.NewCertificate(nodeCertBytes, nodePrivStorageKey), models.NewCertificate(tlsCertBytes, "")
+}
+
+func getOrgChannelName(orgName string) string {
+	return tickenOrg + "-" + orgName + "-" + "channel"
 }

@@ -5,7 +5,7 @@ import (
 	"github.com/google/uuid"
 	"net/http"
 	"ticken-event-service/api/mappers"
-	"ticken-event-service/api/security"
+	"ticken-event-service/security/jwt"
 	"ticken-event-service/utils"
 	"time"
 )
@@ -18,7 +18,7 @@ type createEventPayload struct {
 func (controller *EventController) CreateEvent(c *gin.Context) {
 	var payload createEventPayload
 
-	userID := c.MustGet("jwt").(*security.JWT).Subject
+	userID := c.MustGet("jwt").(*jwt.Token).Subject
 
 	organizationID, err := uuid.Parse(c.Param("organizationID"))
 	if err != nil {

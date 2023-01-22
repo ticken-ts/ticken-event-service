@@ -5,7 +5,7 @@ import (
 	"github.com/google/uuid"
 	"net/http"
 	"ticken-event-service/api/mappers"
-	"ticken-event-service/api/security"
+	"ticken-event-service/security/jwt"
 	"ticken-event-service/utils"
 )
 
@@ -18,7 +18,7 @@ type createSectionPayload struct {
 func (controller *SectionController) AddSection(c *gin.Context) {
 	var payload createSectionPayload
 
-	userID := c.MustGet("jwt").(*security.JWT).Subject
+	userID := c.MustGet("jwt").(*jwt.Token).Subject
 
 	eventID, err := uuid.Parse(c.Param("eventID"))
 	if err != nil {
