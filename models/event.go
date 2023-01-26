@@ -7,16 +7,23 @@ import (
 )
 
 type Event struct {
+	// ************* PVTBC Data ************* //
 	EventID  uuid.UUID  `bson:"event_id"`
 	Name     string     `bson:"name"`
 	Date     time.Time  `bson:"date"`
 	Sections []*Section `bson:"sections"`
+	OnSale   bool       `bson:"on_sale"`
+	// ************************************** //
 
+	// ********** Access & Auditory ********* //
 	OrganizerID    uuid.UUID `bson:"organizer_id"`
 	OrganizationID uuid.UUID `bson:"organization_id"`
+	// ************************************** //
 
+	// ************ PVTBC Metadata ********** //
 	OnChain      bool   `bson:"on_chain"`
 	PvtBCChannel string `bson:"pvt_bc_channel"`
+	// ************************************** //
 }
 
 func NewEvent(name string, date time.Time, organizer *Organizer, organization *Organization) (*Event, error) {

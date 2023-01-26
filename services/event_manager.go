@@ -11,6 +11,13 @@ import (
 	"time"
 )
 
+// *************+ Payloads *************** //
+
+type CreateEventProps struct {
+}
+
+// *************+************************* //
+
 type EventManager struct {
 	publisher           *async.Publisher
 	eventRepo           repos.EventRepository
@@ -80,20 +87,13 @@ func (eventManager *EventManager) CreateEvent(organizerID, organizationID uuid.U
 
 func (eventManager *EventManager) AddSection(organizerID, organizationID, eventID uuid.UUID, name string, totalTickets int, ticketPrice float64) (*models.Section, error) {
 	section := models.NewSection(name, eventID, totalTickets, ticketPrice)
-
 	event := eventManager.eventRepo.FindEvent(eventID)
+
 	if event == nil {
-		// todo - how to handle this?
-		// this case is more complicated. we should let pass
-		// adding a section without the event? we should had maybe
-		// some way to try to sync here with the on chain event
 		return section, nil
 	}
 
 	if err := event.AssociateSection(section); err != nil {
-		// todo -> see what to do here
-		// we cant fail if we couldn't save the event
-		// because the tx is already submitted
 		log.TickenLogger.Error().Err(err)
 	}
 
@@ -157,4 +157,25 @@ func (eventManager *EventManager) GetOrganizationEvents(requesterID uuid.UUID, o
 	}
 
 	return eventManager.eventRepo.FindOrganizationEvents(organizationID), nil
+}
+
+func (eventManager *EventManager) SetEventOnSale(eventID, organizationID, organizerID uuid.UUID) (*models.Event, error) {
+	event, err := eventManager.GetEvent(eventID, organizerID, organizationID)
+	if err != nil {
+		return nil, err
+	}
+
+	atomicPvtbcCaller, err := eventManager.organizationManager.GetPvtbcConnection(organizerID, organizationID)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := atomicPvtbcCaller.SetEventOnSale(eventID); err != nil {
+		return nil, err
+	}
+
+	event.OnSale = true
+	updatedEvent := eventManager.eventRepo.UpdateEvent(event)
+
+	return updatedEvent, err
 }

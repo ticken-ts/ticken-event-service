@@ -7,17 +7,9 @@ import (
 	"ticken-event-service/api/mappers"
 	"ticken-event-service/security/jwt"
 	"ticken-event-service/utils"
-	"time"
 )
 
-type createEventPayload struct {
-	Name string    `json:"name" binding:"required"`
-	Date time.Time `json:"date" binding:"required"`
-}
-
-func (controller *EventController) CreateEvent(c *gin.Context) {
-	var payload createEventPayload
-
+func (controller *EventController) SetEventOnSale(c *gin.Context) {
 	userID := c.MustGet("jwt").(*jwt.Token).Subject
 
 	organizationID, err := uuid.Parse(c.Param("organizationID"))
@@ -26,21 +18,16 @@ func (controller *EventController) CreateEvent(c *gin.Context) {
 		c.Abort()
 		return
 	}
-
-	if err = c.BindJSON(&payload); err != nil {
+	eventID, err := uuid.Parse(c.Param("eventID"))
+	if err != nil {
 		c.JSON(http.StatusBadRequest, utils.HttpResponse{Message: err.Error()})
 		c.Abort()
 		return
 	}
 
-	// the only thing that we are going to validate
-	// is the that we can bind the request to the struct
-	// No further validation are going to be added, so all
-	// validations are going to be performed on chain
-
 	eventManager := controller.serviceProvider.GetEventManager()
 
-	event, err := eventManager.CreateEvent(userID, organizationID, payload.Name, payload.Date)
+	event, err := eventManager.SetEventOnSale(eventID, organizationID, userID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, utils.HttpResponse{Message: err.Error()})
 		c.Abort()
@@ -49,5 +36,5 @@ func (controller *EventController) CreateEvent(c *gin.Context) {
 
 	eventDTO := mappers.MapEventToEventDTO(event)
 
-	c.JSON(http.StatusCreated, utils.HttpResponse{Data: eventDTO})
+	c.JSON(http.StatusOK, utils.HttpResponse{Data: eventDTO})
 }

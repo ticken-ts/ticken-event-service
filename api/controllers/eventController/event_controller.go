@@ -19,7 +19,8 @@ func New(serviceProvider services.IProvider) *EventController {
 }
 
 func (controller *EventController) Setup(router gin.IRouter) {
-	router.GET("/organizations/:organizationID/events", controller.GetOrganizationEvents)
-	router.GET("/organizations/:organizationID/events/:eventID", controller.GetEvent)
 	router.POST("/organizations/:organizationID/events", controller.CreateEvent)
+	router.GET("/organizations/:organizationID/events/:eventID", controller.GetEvent)
+	router.GET("/organizations/:organizationID/events", controller.GetOrganizationEvents)
+	router.PATCH("/organizations/:organizationID/events/:eventID/on_sale", controller.SetEventOnSale)
 }

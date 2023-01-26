@@ -17,6 +17,7 @@ type IEventManager interface {
 	AddSection(organizerID, organizationID, eventID uuid.UUID, name string, totalTickets int, ticketPrice float64) (*models.Section, error)
 	GetEvent(eventID uuid.UUID, requesterID uuid.UUID, organizationID uuid.UUID) (*models.Event, error)
 	GetOrganizationEvents(requesterID uuid.UUID, organizationID uuid.UUID) ([]*models.Event, error)
+	SetEventOnSale(eventID, organizationID, organizerID uuid.UUID) (*models.Event, error)
 }
 
 type IOrganizationManager interface {
