@@ -28,7 +28,7 @@ func (controller *EventController) GetOrganizationEvents(c *gin.Context) {
 		return
 	}
 
-	eventsDTO := mappers.MapEventListToEventListDTO(events)
+	eventsDTO := mappers.MapEventListToDTO(events)
 
 	c.JSON(http.StatusOK, utils.HttpResponse{Data: eventsDTO})
 }
