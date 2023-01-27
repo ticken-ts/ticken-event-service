@@ -28,14 +28,15 @@ type Event struct {
 
 func NewEvent(name string, date time.Time, organizer *Organizer, organization *Organization) (*Event, error) {
 	if !organization.HasUser(organizer.Username) {
-		return nil, exception.WithMessage("organizer %s doest not belong to organization %s",
-			organizer.Username, organization.Name)
+		return nil, exception.WithMessage(
+			"organizer %s doest not belong to organization %s", organizer.Username, organization.Name)
 	}
 
 	event := &Event{
 		EventID:  uuid.New(),
 		Name:     name,
 		Date:     date,
+		OnSale:   false,
 		Sections: make([]*Section, 0),
 
 		// this values will be validated from
@@ -73,19 +74,10 @@ func (event *Event) AddSection(name string, totalTickets int, ticketPrice float6
 	return newSection
 }
 
-func (event *Event) AssociateSection(section *Section) error {
-	if section.EventID != event.EventID {
-		return exception.WithMessage("section does not belongs to event")
-	}
-
-	sectionWithSameName := event.GetSection(section.Name)
-	if sectionWithSameName != nil {
-		return exception.WithMessage(
-			"section with name %s already exists in event %s", sectionWithSameName.Name, event.EventID)
-	}
-
+func (event *Event) AssociateSection(section *Section) {
+	// just to ensure that the section has same event ID
+	section.EventID = event.EventID
 	event.Sections = append(event.Sections, section)
-	return nil
 }
 
 func (event *Event) IsFromOrganization(organizationID uuid.UUID) bool {
