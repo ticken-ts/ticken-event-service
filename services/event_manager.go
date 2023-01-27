@@ -5,7 +5,6 @@ import (
 	"github.com/google/uuid"
 	"ticken-event-service/async"
 	"ticken-event-service/exception"
-	"ticken-event-service/log"
 	"ticken-event-service/models"
 	"ticken-event-service/repos"
 	"time"
@@ -58,13 +57,6 @@ func (eventManager *EventManager) CreateEvent(organizerID, organizationID uuid.U
 		return nil, exception.FromError(err, "failed to create event")
 	}
 
-	if err = eventManager.eventRepo.AddEvent(event); err != nil {
-		// todo -> see what to do here
-		// we cant fail if we couldn't save the event
-		// because the tx is already submitted
-		log.TickenLogger.Error().Err(err)
-	}
-
 	atomicPvtbcCaller, err := eventManager.organizationManager.GetPvtbcConnection(organizerID, organizationID)
 	if err != nil {
 		return nil, err
@@ -82,22 +74,22 @@ func (eventManager *EventManager) CreateEvent(organizerID, organizationID uuid.U
 		panic(err)
 	}
 
+	if err := eventManager.eventRepo.AddEvent(event); err != nil {
+		return nil, exception.FromError(err, "failed to store event, please sync with the blockchain")
+	}
+
 	return event, nil
 }
 
 func (eventManager *EventManager) AddSection(organizerID, organizationID, eventID uuid.UUID, name string, totalTickets int, ticketPrice float64) (*models.Section, error) {
 	section := models.NewSection(name, eventID, totalTickets, ticketPrice)
+
 	event := eventManager.eventRepo.FindEvent(eventID)
-
 	if event == nil {
-		return section, nil
+		return nil, exception.WithMessage("event %s not found, please try sync with the blockchain", eventID)
 	}
 
-	if err := event.AssociateSection(section); err != nil {
-		log.TickenLogger.Error().Err(err)
-	}
-
-	eventManager.eventRepo.UpdateEvent(event)
+	event.AssociateSection(section)
 
 	atomicPvtbcCaller, err := eventManager.organizationManager.GetPvtbcConnection(organizerID, organizationID)
 	if err != nil {
@@ -110,6 +102,7 @@ func (eventManager *EventManager) AddSection(organizerID, organizationID, eventI
 	}
 
 	section.OnChain = true
+	eventManager.eventRepo.UpdateEvent(event)
 
 	return section, nil
 }
