@@ -13,3 +13,11 @@ func MapSectionToDTO(section *models.Section) *dto.SectionDTO {
 		OnChain:      section.OnChain,
 	}
 }
+
+func MapSectionListToDTO(sections []*models.Section) []*dto.SectionDTO {
+	dtos := make([]*dto.SectionDTO, len(sections))
+	for i, section := range sections {
+		dtos[i] = MapSectionToDTO(section)
+	}
+	return dtos
+}
