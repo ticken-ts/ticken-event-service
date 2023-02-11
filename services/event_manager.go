@@ -3,6 +3,7 @@ package services
 import (
 	"fmt"
 	"github.com/google/uuid"
+	pubbc "github.com/ticken-ts/ticken-pubbc-connector"
 	"ticken-event-service/async"
 	"ticken-event-service/exception"
 	"ticken-event-service/models"
@@ -23,6 +24,7 @@ type EventManager struct {
 	organizerRepo       repos.OrganizerRepository
 	organizationRepo    repos.OrganizationRepository
 	organizationManager IOrganizationManager
+	pubbcAdmin          pubbc.Admin
 }
 
 func NewEventManager(
@@ -31,6 +33,7 @@ func NewEventManager(
 	organizationRepo repos.OrganizationRepository,
 	publisher *async.Publisher,
 	organizationManager IOrganizationManager,
+	pubbcAdmin pubbc.Admin,
 ) IEventManager {
 	return &EventManager{
 		publisher:           publisher,
@@ -38,6 +41,7 @@ func NewEventManager(
 		organizerRepo:       organizerRepo,
 		organizationRepo:    organizationRepo,
 		organizationManager: organizationManager,
+		pubbcAdmin:          pubbcAdmin,
 	}
 }
 
@@ -66,13 +70,7 @@ func (eventManager *EventManager) CreateEvent(organizerID, organizationID uuid.U
 	if err != nil {
 		return nil, err
 	}
-
 	event.SetOnChain(organization.Channel)
-
-	if err := eventManager.publisher.PublishNewEvent(event); err != nil {
-		// TODO -> how to handle
-		panic(err)
-	}
 
 	if err := eventManager.eventRepo.AddEvent(event); err != nil {
 		return nil, exception.FromError(err, "failed to store event, please sync with the blockchain")
@@ -167,8 +165,22 @@ func (eventManager *EventManager) SetEventOnSale(eventID, organizationID, organi
 		return nil, err
 	}
 
+	addr, err := eventManager.pubbcAdmin.DeployEventContract()
+	if err != nil {
+		// TODO -> how to handle
+		panic(err)
+	}
+	event.PubBCAddress = addr
+
 	event.OnSale = true
 	updatedEvent := eventManager.eventRepo.UpdateEvent(event)
+
+	// once the event is published in the public blockchain, we sent
+	// it to the other services to start commercializing  the tickets
+	if err := eventManager.publisher.PublishNewEvent(event); err != nil {
+		// TODO -> how to handle
+		panic(err)
+	}
 
 	return updatedEvent, err
 }

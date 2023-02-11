@@ -3,6 +3,9 @@ package infra
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	pubbc "github.com/ticken-ts/ticken-pubbc-connector"
+	eth_connector "github.com/ticken-ts/ticken-pubbc-connector/eth-connector"
+	ethnode "github.com/ticken-ts/ticken-pubbc-connector/eth-connector/node"
 	pvtbc "github.com/ticken-ts/ticken-pvtbc-connector"
 	"github.com/ticken-ts/ticken-pvtbc-connector/fabric/peerconnector"
 	"ticken-event-service/config"
@@ -19,7 +22,10 @@ type Builder struct {
 	tickenConfig *config.Config
 }
 
-var pc peerconnector.PeerConnector = nil
+var (
+	pc    peerconnector.PeerConnector = nil
+	ethnc *ethnode.Connector          = nil
+)
 
 func NewBuilder(tickenConfig *config.Config) (*Builder, error) {
 	if tickenConfig == nil {
@@ -105,6 +111,17 @@ func (builder *Builder) BuildPvtbcListener() *pvtbc.Listener {
 	return listener
 }
 
+func (builder *Builder) BuildPubbcAdmin(privateKey string) pubbc.Admin {
+	caller, err := eth_connector.NewAdmin(
+		buildEthNodeConnector(builder.tickenConfig.Pubbc, builder.tickenConfig.Dev),
+		privateKey,
+	)
+	if err != nil {
+		panic(err)
+	}
+	return caller
+}
+
 func (builder *Builder) BuildBusPublisher(connString string) BusPublisher {
 	var tickenBus BusPublisher = nil
 
@@ -182,6 +199,20 @@ func (builder *Builder) BuildAtomicPvtbcCaller(mspID, user, peerAddr string, use
 	}
 
 	return caller, nil
+}
+
+func buildEthNodeConnector(config config.PubbcConfig, devConfig config.DevConfig) *ethnode.Connector {
+	if ethnc != nil {
+		return ethnc
+	}
+
+	ethnc = ethnode.New(config.ChainURL)
+	err := ethnc.Connect()
+	if err != nil {
+		panic(err)
+	}
+
+	return ethnc
 }
 
 func buildPeerConnector(config config.PvtbcConfig, devConfig config.DevConfig) peerconnector.PeerConnector {

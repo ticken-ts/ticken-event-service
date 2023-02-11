@@ -24,6 +24,10 @@ type Event struct {
 	OnChain      bool   `bson:"on_chain"`
 	PvtBCChannel string `bson:"pvt_bc_channel"`
 	// ************************************** //
+
+	// ************ PUBBC Metadata ********** //
+	PubBCAddress string `bson:"pub_bc_address"`
+	// ************************************** //
 }
 
 func NewEvent(name string, date time.Time, organizer *Organizer, organization *Organization) (*Event, error) {

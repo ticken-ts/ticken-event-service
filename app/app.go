@@ -39,6 +39,7 @@ func New(infraBuilder infra.IBuilder, tickenConfig *config.Config) *TickenEventA
 	jwtVerifier := infraBuilder.BuildJWTVerifier()
 	db := infraBuilder.BuildDb(env.TickenEnv.DbConnString)
 	hsm := infraBuilder.BuildHSM(env.TickenEnv.HSMEncryptionKey)
+	pubbcAdmin := infraBuilder.BuildPubbcAdmin(env.TickenEnv.TickenWalletKey)
 	busPublisher := infraBuilder.BuildBusPublisher(env.TickenEnv.BusConnString)
 
 	repoProvider, err := repos.NewProvider(db, &tickenConfig.Database)
@@ -46,7 +47,7 @@ func New(infraBuilder infra.IBuilder, tickenConfig *config.Config) *TickenEventA
 		panic(err)
 	}
 
-	serviceProvider, err := services.NewProvider(repoProvider, busPublisher, hsm, infraBuilder)
+	serviceProvider, err := services.NewProvider(repoProvider, busPublisher, hsm, infraBuilder, pubbcAdmin)
 	if err != nil {
 		panic(err)
 	}

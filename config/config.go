@@ -7,6 +7,7 @@ const DefaultConfigFilename = "config"
 type Config struct {
 	Database DatabaseConfig `mapstructure:"database"`
 	Pvtbc    PvtbcConfig    `mapstructure:"pvtbc"`
+	Pubbc    PubbcConfig    `mapstructure:"pubbc"`
 	Server   ServerConfig   `mapstructure:"server"`
 	Bus      BusConfig      `mapstructure:"bus"`
 

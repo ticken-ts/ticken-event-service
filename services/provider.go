@@ -1,6 +1,7 @@
 package services
 
 import (
+	pubbc "github.com/ticken-ts/ticken-pubbc-connector"
 	"ticken-event-service/async"
 	"ticken-event-service/infra"
 	"ticken-event-service/repos"
@@ -12,7 +13,9 @@ type provider struct {
 	organizationManager IOrganizationManager
 }
 
-func NewProvider(repoProvider repos.IProvider, busPublisher infra.BusPublisher, hsm infra.HSM, builder infra.IBuilder) (IProvider, error) {
+func NewProvider(
+	repoProvider repos.IProvider, busPublisher infra.BusPublisher, hsm infra.HSM, builder infra.IBuilder, pubbcAdmin pubbc.Admin,
+) (IProvider, error) {
 	provider := new(provider)
 
 	publisher, err := async.NewPublisher(busPublisher)
@@ -25,7 +28,7 @@ func NewProvider(repoProvider repos.IProvider, busPublisher infra.BusPublisher, 
 	organizationRepo := repoProvider.GetOrganizationRepository()
 
 	provider.organizationManager = NewOrganizationManager(hsm, organizerRepo, organizationRepo, builder.BuildAtomicPvtbcCaller)
-	provider.eventManager = NewEventManager(eventRepo, organizerRepo, organizationRepo, publisher, provider.organizationManager)
+	provider.eventManager = NewEventManager(eventRepo, organizerRepo, organizationRepo, publisher, provider.organizationManager, pubbcAdmin)
 
 	return provider, nil
 }

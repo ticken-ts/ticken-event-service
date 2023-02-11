@@ -17,6 +17,7 @@ type eventDTO struct {
 	EventID      uuid.UUID `json:"event_id"`
 	OrganizerID  uuid.UUID `json:"organizer_id"`
 	PvtBCChannel string    `json:"pvt_bc_channel"`
+	PubBCAddress string    `json:"pub_bc_address"`
 }
 
 type EventPublisher struct {
@@ -51,5 +52,6 @@ func mapToDTO(event *models.Event) *eventDTO {
 		EventID:      event.EventID,
 		OrganizerID:  event.OrganizationID,
 		PvtBCChannel: event.PvtBCChannel,
+		PubBCAddress: event.PubBCAddress,
 	}
 }
