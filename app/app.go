@@ -75,9 +75,8 @@ func New(infraBuilder infra.IBuilder, tickenConfig *config.Config) *TickenEventA
 	}
 
 	tickenEventApp.populators = []Populator{
-		fakes.NewFakeUsersPopulator(repoProvider.GetOrganizerRepository(), tickenConfig.Dev.User),
-		fakes.NewFakeOrgsPopulator(
-			hsm, tickenConfig.Dev.User, repoProvider.GetOrganizerRepository(), repoProvider.GetOrganizationRepository()),
+		fakes.NewFakeUsersPopulator(repoProvider, tickenConfig.Dev.User),
+		fakes.NewFakeOrgsPopulator(repoProvider, tickenConfig.Dev.User, hsm),
 	}
 
 	return tickenEventApp

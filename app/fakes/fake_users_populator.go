@@ -10,13 +10,13 @@ import (
 
 type FakeUsersPopulator struct {
 	devUserInfo   config.DevUser
-	organizerRepo repos.OrganizerRepository
+	reposProvider repos.IProvider
 }
 
-func NewFakeUsersPopulator(organizerRepo repos.OrganizerRepository, devUserInfo config.DevUser) *FakeUsersPopulator {
+func NewFakeUsersPopulator(reposProvider repos.IProvider, devUserInfo config.DevUser) *FakeUsersPopulator {
 	return &FakeUsersPopulator{
 		devUserInfo:   devUserInfo,
-		organizerRepo: organizerRepo,
+		reposProvider: reposProvider,
 	}
 }
 
@@ -30,7 +30,9 @@ func (populator *FakeUsersPopulator) Populate() error {
 		return err
 	}
 
-	if populator.organizerRepo.AnyWithID(uuidDevUser) {
+	organizerRepo := populator.reposProvider.GetOrganizerRepository()
+
+	if organizerRepo.AnyWithID(uuidDevUser) {
 		return nil
 	}
 
@@ -42,7 +44,7 @@ func (populator *FakeUsersPopulator) Populate() error {
 		populator.devUserInfo.Email,
 	)
 
-	if err := populator.organizerRepo.AddOrganizer(devOrganizer); err != nil {
+	if err := organizerRepo.AddOrganizer(devOrganizer); err != nil {
 		return err
 	}
 

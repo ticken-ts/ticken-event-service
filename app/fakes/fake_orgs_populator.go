@@ -18,23 +18,16 @@ const totalFakeOrganizations = 3
 const tickenOrg = "ticken"
 
 type FakeOrgsPopulator struct {
-	hsm              infra.HSM
-	devUserInfo      config.DevUser
-	organizerRepo    repos.OrganizerRepository
-	organizationRepo repos.OrganizationRepository
+	hsm           infra.HSM
+	devUserInfo   config.DevUser
+	reposProvider repos.IProvider
 }
 
-func NewFakeOrgsPopulator(
-	hsm infra.HSM,
-	devUserInfo config.DevUser,
-	organizerRepo repos.OrganizerRepository,
-	organizationRepo repos.OrganizationRepository,
-) *FakeOrgsPopulator {
+func NewFakeOrgsPopulator(reposProvider repos.IProvider, devUserInfo config.DevUser, hsm infra.HSM) *FakeOrgsPopulator {
 	return &FakeOrgsPopulator{
-		hsm:              hsm,
-		devUserInfo:      devUserInfo,
-		organizerRepo:    organizerRepo,
-		organizationRepo: organizationRepo,
+		hsm:           hsm,
+		devUserInfo:   devUserInfo,
+		reposProvider: reposProvider,
 	}
 }
 
@@ -48,19 +41,22 @@ func (populator *FakeOrgsPopulator) Populate() error {
 		return err
 	}
 
-	organizer := populator.organizerRepo.FindOrganizer(uuidDevUser)
+	organizerRepo := populator.reposProvider.GetOrganizerRepository()
+	organizationRepo := populator.reposProvider.GetOrganizationRepository()
+
+	organizer := organizerRepo.FindOrganizer(uuidDevUser)
 	if organizer == nil {
 		return exception.WithMessage("dev user with id %s not found", populator.devUserInfo.UserID)
 	}
 
 	// load genesis org in the database
-	if !populator.organizationRepo.AnyWithName(tickenOrg) {
+	if !organizationRepo.AnyWithName(tickenOrg) {
 		populator.createOrganization(tickenOrg, organizer)
 	}
 
 	for i := 1; i <= totalFakeOrganizations; i++ {
 		orgName := "org" + strconv.Itoa(i)
-		if populator.organizationRepo.AnyWithName(orgName) {
+		if organizationRepo.AnyWithName(orgName) {
 			continue
 		}
 		populator.createOrganization(orgName, organizer)
@@ -79,8 +75,9 @@ func (populator *FakeOrgsPopulator) createOrganization(orgName string, admin *mo
 	nodeOrgCert, nodeTlsCert := populator.readOrgNodeMSP(orgName, "peer0")
 	_ = newOrganization.AddNode("peer0", orgName+"-peer0"+".localho.st:443", nodeOrgCert, nodeTlsCert)
 
-	err := populator.organizationRepo.AddOrganization(newOrganization)
-	if err != nil {
+	organizationRepo := populator.reposProvider.GetOrganizationRepository()
+
+	if err := organizationRepo.AddOrganization(newOrganization); err != nil {
 		panic(err)
 	}
 	return newOrganization
