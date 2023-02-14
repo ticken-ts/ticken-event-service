@@ -109,6 +109,7 @@ func (r *EventMongoDBRepository) UpdateEvent(event *models.Event) *models.Event 
 				"pvt_bc_channel":  event.PvtBCChannel,
 				"sections":        event.Sections,
 				"on_chain":        event.OnChain,
+				"on_sale":         event.OnSale,
 			},
 		},
 		updateOptions,
