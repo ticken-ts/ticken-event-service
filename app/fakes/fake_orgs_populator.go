@@ -13,21 +13,22 @@ import (
 	"ticken-event-service/repos"
 )
 
-const clusterStoragePath = "/tmp/ticken-pv"
 const totalFakeOrganizations = 3
 const tickenOrg = "ticken"
 
 type FakeOrgsPopulator struct {
-	hsm           infra.HSM
-	devUserInfo   config.DevUser
-	reposProvider repos.IProvider
+	hsm                infra.HSM
+	devUserInfo        config.DevUser
+	reposProvider      repos.IProvider
+	clusterStoragePath string
 }
 
-func NewFakeOrgsPopulator(reposProvider repos.IProvider, devUserInfo config.DevUser, hsm infra.HSM) *FakeOrgsPopulator {
+func NewFakeOrgsPopulator(reposProvider repos.IProvider, devUserInfo config.DevUser, hsm infra.HSM, clusterStoragePath string) *FakeOrgsPopulator {
 	return &FakeOrgsPopulator{
-		hsm:           hsm,
-		devUserInfo:   devUserInfo,
-		reposProvider: reposProvider,
+		hsm:                hsm,
+		devUserInfo:        devUserInfo,
+		reposProvider:      reposProvider,
+		clusterStoragePath: clusterStoragePath,
 	}
 }
 
@@ -84,7 +85,7 @@ func (populator *FakeOrgsPopulator) createOrganization(orgName string, admin *mo
 }
 
 func (populator *FakeOrgsPopulator) readOrgMSP(orgName string) (*models.Certificate, *models.Certificate) {
-	baseMspPath := path.Join(clusterStoragePath, "orgs", "peer-orgs", orgName, "msp")
+	baseMspPath := path.Join(populator.clusterStoragePath, "orgs", "peer-orgs", orgName, "msp")
 
 	orgCACertBytes, err := ioutil.ReadFile(path.Join(baseMspPath, "cacerts", "ca-signcert.pem"))
 	if err != nil {
@@ -101,7 +102,7 @@ func (populator *FakeOrgsPopulator) readOrgMSP(orgName string) (*models.Certific
 
 func (populator *FakeOrgsPopulator) readOrgUserMSP(orgName string, username string) *models.Certificate {
 	// todo -> replace here and in the pvtbc bootstrap the admin name
-	userMspPath := path.Join(clusterStoragePath, "orgs", "peer-orgs", orgName, "users", orgName+"-admin", "msp")
+	userMspPath := path.Join(populator.clusterStoragePath, "orgs", "peer-orgs", orgName, "users", orgName+"-admin", "msp")
 
 	userCertBytes, err := ioutil.ReadFile(path.Join(userMspPath, "signcerts", "cert.pem"))
 	if err != nil {
@@ -122,7 +123,7 @@ func (populator *FakeOrgsPopulator) readOrgUserMSP(orgName string, username stri
 }
 
 func (populator *FakeOrgsPopulator) readOrgNodeMSP(orgName string, node string) (*models.Certificate, *models.Certificate) {
-	nodePath := path.Join(clusterStoragePath, "orgs", "peer-orgs", orgName, "nodes", orgName+"-"+node)
+	nodePath := path.Join(populator.clusterStoragePath, "orgs", "peer-orgs", orgName, "nodes", orgName+"-"+node)
 
 	nodeCertBytes, err := ioutil.ReadFile(path.Join(nodePath, "msp", "signcerts", "cert.pem"))
 	if err != nil {

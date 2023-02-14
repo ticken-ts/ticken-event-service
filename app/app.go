@@ -77,7 +77,7 @@ func New(infraBuilder infra.IBuilder, tickenConfig *config.Config) *TickenEventA
 
 	tickenEventApp.populators = []Populator{
 		fakes.NewFakeUsersPopulator(repoProvider, tickenConfig.Dev.User),
-		fakes.NewFakeOrgsPopulator(repoProvider, tickenConfig.Dev.User, hsm),
+		fakes.NewFakeOrgsPopulator(repoProvider, tickenConfig.Dev.User, hsm, tickenConfig.Pvtbc.ClusterStoragePath),
 	}
 
 	return tickenEventApp
