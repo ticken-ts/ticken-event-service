@@ -18,6 +18,7 @@ type IEventManager interface {
 	GetEvent(eventID uuid.UUID, requesterID uuid.UUID, organizationID uuid.UUID) (*models.Event, error)
 	GetOrganizationEvents(requesterID uuid.UUID, organizationID uuid.UUID) ([]*models.Event, error)
 	SetEventOnSale(eventID, organizationID, organizerID uuid.UUID) (*models.Event, error)
+	GetAvailableEvents() ([]*models.Event, error)
 }
 
 type IOrganizationManager interface {

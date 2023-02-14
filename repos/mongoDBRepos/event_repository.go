@@ -122,3 +122,25 @@ func (r *EventMongoDBRepository) UpdateEvent(event *models.Event) *models.Event 
 	}
 	return updatedEvent
 }
+
+// FindAvailableEvents
+// Find all events that are on sale
+func (r *EventMongoDBRepository) FindAvailableEvents() []*models.Event {
+	findContext, cancel := r.generateOpSubcontext()
+	defer cancel()
+
+	events := r.getCollection()
+	result, err := events.Find(findContext, bson.M{"on_sale": true})
+
+	if err != nil {
+		return nil
+	}
+
+	var foundEvents []*models.Event
+	for result.Next(findContext) {
+		var event = new(models.Event)
+		err = result.Decode(event)
+		foundEvents = append(foundEvents, event)
+	}
+	return foundEvents
+}

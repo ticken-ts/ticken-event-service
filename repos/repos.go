@@ -10,6 +10,7 @@ type EventRepository interface {
 	FindEvent(eventID uuid.UUID) *models.Event
 	UpdateEvent(event *models.Event) *models.Event
 	FindOrganizationEvents(organizationID uuid.UUID) []*models.Event
+	FindAvailableEvents() []*models.Event
 }
 
 type OrganizerRepository interface {

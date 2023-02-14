@@ -184,3 +184,14 @@ func (eventManager *EventManager) SetEventOnSale(eventID, organizationID, organi
 
 	return updatedEvent, err
 }
+
+// GetAvailableEvents
+// returns all the events that are on sale and have not expired
+func (eventManager *EventManager) GetAvailableEvents() ([]*models.Event, error) {
+	events := eventManager.eventRepo.FindAvailableEvents()
+	if events == nil {
+		return nil, fmt.Errorf("error querying events from database")
+	}
+
+	return events, nil
+}
