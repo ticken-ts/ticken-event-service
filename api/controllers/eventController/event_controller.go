@@ -3,24 +3,32 @@ package eventController
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"ticken-event-service/api"
 	"ticken-event-service/services"
 )
 
 type EventController struct {
 	validator       *validator.Validate
 	serviceProvider services.IProvider
+	middlewares     []api.Middleware
 }
 
-func New(serviceProvider services.IProvider) *EventController {
+func New(serviceProvider services.IProvider, middlewares ...api.Middleware) *EventController {
 	controller := new(EventController)
 	controller.validator = validator.New()
 	controller.serviceProvider = serviceProvider
+	controller.middlewares = middlewares
 	return controller
 }
 
 func (controller *EventController) Setup(router gin.IRouter) {
-	router.POST("/organizations/:organizationID/events", controller.CreateEvent)
-	router.GET("/organizations/:organizationID/events/:eventID", controller.GetEvent)
-	router.GET("/organizations/:organizationID/events", controller.GetOrganizationEvents)
-	router.PATCH("/organizations/:organizationID/events/:eventID/on_sale", controller.SetEventOnSale)
+	group := router.Group("/organizations")
+	for _, middleware := range controller.middlewares {
+		middleware.Setup(group)
+	}
+	group.POST("/:organizationID/events", controller.CreateEvent)
+	group.GET("/:organizationID/events/:eventID", controller.GetEvent)
+	group.GET("/:organizationID/events", controller.GetOrganizationEvents)
+	group.PATCH("/:organizationID/events/:eventID/on_sale", controller.SetEventOnSale)
+	group.PUT("/:organizationID/events/:eventID/sections", controller.AddSection)
 }

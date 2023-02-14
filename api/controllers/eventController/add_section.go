@@ -1,4 +1,4 @@
-package sectionController
+package eventController
 
 import (
 	"github.com/gin-gonic/gin"
@@ -15,7 +15,7 @@ type createSectionPayload struct {
 	TotalTickets int     `json:"total_tickets"`
 }
 
-func (controller *SectionController) AddSection(c *gin.Context) {
+func (controller *EventController) AddSection(c *gin.Context) {
 	var payload createSectionPayload
 
 	userID := c.MustGet("jwt").(*jwt.Token).Subject
