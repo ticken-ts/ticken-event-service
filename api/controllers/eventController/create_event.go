@@ -1,8 +1,10 @@
 package eventController
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"mime/multipart"
 	"net/http"
 	"ticken-event-service/api/mappers"
 	"ticken-event-service/security/jwt"
@@ -11,13 +13,13 @@ import (
 )
 
 type createEventPayload struct {
-	Name string    `json:"name" binding:"required"`
-	Date time.Time `json:"date" binding:"required"`
+	Name        string    `json:"name" binding:"required"`
+	Date        time.Time `json:"date" binding:"required"`
+	Description string    `json:"description"`
+	PosterURI   string    `json:"poster_uri"`
 }
 
 func (controller *EventController) CreateEvent(c *gin.Context) {
-	var payload createEventPayload
-
 	userID := c.MustGet("jwt").(*jwt.Token).Subject
 
 	organizationID, err := uuid.Parse(c.Param("organizationID"))
@@ -27,7 +29,16 @@ func (controller *EventController) CreateEvent(c *gin.Context) {
 		return
 	}
 
-	if err = c.BindJSON(&payload); err != nil {
+	form, err := c.MultipartForm()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, utils.HttpResponse{Message: err.Error()})
+		c.Abort()
+		return
+	}
+
+	// validate the form
+	payload, err := validateMultipartForm(form)
+	if err != nil {
 		c.JSON(http.StatusBadRequest, utils.HttpResponse{Message: err.Error()})
 		c.Abort()
 		return
@@ -50,4 +61,35 @@ func (controller *EventController) CreateEvent(c *gin.Context) {
 	eventDTO := mappers.MapEventToEventDTO(event)
 
 	c.JSON(http.StatusCreated, utils.HttpResponse{Data: eventDTO})
+}
+
+// validateMultipartForm will validate the form and return an error if the form is not valid
+func validateMultipartForm(form *multipart.Form) (*createEventPayload, error) {
+	if form.Value["name"] == nil {
+		return nil, fmt.Errorf("name is required")
+	}
+
+	if form.Value["date"] == nil {
+		return nil, fmt.Errorf("date is required")
+	}
+
+	// check if we can parse date
+	time, err := time.Parse(time.RFC3339, form.Value["date"][0])
+	if err != nil {
+		return nil, fmt.Errorf("error parsing event date: %s", err.Error())
+	}
+
+	var description string
+	if form.Value["description"] != nil {
+		description = form.Value["description"][0]
+	}
+
+	// construct the payload
+	payload := createEventPayload{
+		Name:        form.Value["name"][0],
+		Date:        time,
+		Description: description,
+	}
+
+	return &payload, nil
 }
