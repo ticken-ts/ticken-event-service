@@ -57,12 +57,18 @@ func New(infraBuilder infra.IBuilder, tickenConfig *config.Config) *TickenEventA
 	tickenEventApp.repoProvider = repoProvider
 	tickenEventApp.serviceProvider = serviceProvider
 
-	authMiddleware := middlewares.NewAuthMiddleware(serviceProvider, jwtVerifier)
+	var appMiddlewares = []api.Middleware{
+		middlewares.NewAuthMiddleware(serviceProvider, jwtVerifier),
+	}
 
 	var controllers = []api.Controller{
-		eventController.New(serviceProvider, authMiddleware),
-		healthController.New(serviceProvider, authMiddleware),
+		eventController.New(serviceProvider),
+		healthController.New(serviceProvider),
 		publicController.New(serviceProvider),
+	}
+
+	for _, middleware := range appMiddlewares {
+		middleware.Setup(engine)
 	}
 
 	for _, controller := range controllers {

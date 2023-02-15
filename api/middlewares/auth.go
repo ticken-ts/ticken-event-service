@@ -30,7 +30,7 @@ func (middleware *AuthMiddleware) Setup(router gin.IRouter) {
 }
 
 func isFreeURI(uri string) bool {
-	return uri == "/healthz"
+	return uri == "/healthz" || uri == "/public/events"
 }
 
 func (middleware *AuthMiddleware) isJWTAuthorized() gin.HandlerFunc {
