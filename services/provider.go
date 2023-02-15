@@ -14,7 +14,7 @@ type provider struct {
 }
 
 func NewProvider(
-	repoProvider repos.IProvider, busPublisher infra.BusPublisher, hsm infra.HSM, builder infra.IBuilder, pubbcAdmin pubbc.Admin,
+	repoProvider repos.IProvider, busPublisher infra.BusPublisher, hsm infra.HSM, builder infra.IBuilder, pubbcAdmin pubbc.Admin, fileUploader infra.FileUploader,
 ) (IProvider, error) {
 	provider := new(provider)
 
@@ -28,7 +28,7 @@ func NewProvider(
 	organizationRepo := repoProvider.GetOrganizationRepository()
 
 	provider.organizationManager = NewOrganizationManager(hsm, organizerRepo, organizationRepo, builder.BuildAtomicPvtbcCaller)
-	provider.eventManager = NewEventManager(eventRepo, organizerRepo, organizationRepo, publisher, provider.organizationManager, pubbcAdmin)
+	provider.eventManager = NewEventManager(eventRepo, organizerRepo, organizationRepo, publisher, provider.organizationManager, pubbcAdmin, fileUploader)
 
 	return provider, nil
 }

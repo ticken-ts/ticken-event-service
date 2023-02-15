@@ -37,6 +37,10 @@ type BusPublisher interface {
 	Publish(ctx context.Context, msg bus.Message) error
 }
 
+type FileUploader interface {
+	UploadFile(file []byte, fileName string) (string, error)
+}
+
 type IBuilder interface {
 	BuildDb(connString string) Db
 	BuildHSM(encryptionKey string) HSM
@@ -46,6 +50,7 @@ type IBuilder interface {
 	BuildPvtbcListener() *pvtbc.Listener
 	BuildPubbcAdmin(privateKey string) pubbc.Admin
 	BuildBusPublisher(connString string) BusPublisher
+	BuildFileUploader() FileUploader
 
 	BuildAtomicPvtbcCaller(mspID, user, peerAddr string, userCert, userPriv, tlsCert []byte) (*pvtbc.Caller, error)
 }

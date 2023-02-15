@@ -6,6 +6,7 @@ import (
 	pubbc "github.com/ticken-ts/ticken-pubbc-connector"
 	"ticken-event-service/async"
 	"ticken-event-service/exception"
+	"ticken-event-service/infra"
 	"ticken-event-service/models"
 	"ticken-event-service/repos"
 	"time"
@@ -25,6 +26,7 @@ type EventManager struct {
 	organizationRepo    repos.OrganizationRepository
 	organizationManager IOrganizationManager
 	pubbcAdmin          pubbc.Admin
+	fileUploader        infra.FileUploader
 }
 
 func NewEventManager(
@@ -34,6 +36,7 @@ func NewEventManager(
 	publisher *async.Publisher,
 	organizationManager IOrganizationManager,
 	pubbcAdmin pubbc.Admin,
+	fileUploader infra.FileUploader,
 ) IEventManager {
 	return &EventManager{
 		publisher:           publisher,
@@ -42,6 +45,7 @@ func NewEventManager(
 		organizationRepo:    organizationRepo,
 		organizationManager: organizationManager,
 		pubbcAdmin:          pubbcAdmin,
+		fileUploader:        fileUploader,
 	}
 }
 

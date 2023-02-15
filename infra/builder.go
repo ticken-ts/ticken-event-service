@@ -12,6 +12,7 @@ import (
 	"ticken-event-service/env"
 	"ticken-event-service/infra/bus"
 	"ticken-event-service/infra/db"
+	"ticken-event-service/infra/file_uploader"
 	"ticken-event-service/infra/hsm"
 	"ticken-event-service/log"
 	"ticken-event-service/security/jwt"
@@ -233,4 +234,12 @@ func buildPeerConnector(config config.PvtbcConfig, devConfig config.DevConfig) p
 	}
 
 	return pc
+}
+
+func (builder *Builder) BuildFileUploader() FileUploader {
+	if env.TickenEnv.IsDev() {
+		return file_uploader.NewDevFileUploader()
+	} else {
+		return file_uploader.NewFileUploader()
+	}
 }

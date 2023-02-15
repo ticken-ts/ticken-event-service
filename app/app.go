@@ -41,13 +41,14 @@ func New(infraBuilder infra.IBuilder, tickenConfig *config.Config) *TickenEventA
 	hsm := infraBuilder.BuildHSM(env.TickenEnv.HSMEncryptionKey)
 	pubbcAdmin := infraBuilder.BuildPubbcAdmin(env.TickenEnv.TickenWalletKey)
 	busPublisher := infraBuilder.BuildBusPublisher(env.TickenEnv.BusConnString)
+	fileUploader := infraBuilder.BuildFileUploader()
 
 	repoProvider, err := repos.NewProvider(db, &tickenConfig.Database)
 	if err != nil {
 		panic(err)
 	}
 
-	serviceProvider, err := services.NewProvider(repoProvider, busPublisher, hsm, infraBuilder, pubbcAdmin)
+	serviceProvider, err := services.NewProvider(repoProvider, busPublisher, hsm, infraBuilder, pubbcAdmin, fileUploader)
 	if err != nil {
 		panic(err)
 	}
