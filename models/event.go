@@ -8,11 +8,12 @@ import (
 
 type Event struct {
 	// ************* PVTBC Data ************* //
-	EventID  uuid.UUID  `bson:"event_id"`
-	Name     string     `bson:"name"`
-	Date     time.Time  `bson:"date"`
-	Sections []*Section `bson:"sections"`
-	OnSale   bool       `bson:"on_sale"`
+	EventID   uuid.UUID  `bson:"event_id"`
+	Name      string     `bson:"name"`
+	Date      time.Time  `bson:"date"`
+	Sections  []*Section `bson:"sections"`
+	OnSale    bool       `bson:"on_sale"`
+	PosterURL string     `bson:"poster_url"`
 	// ************************************** //
 
 	// ********** Access & Auditory ********* //

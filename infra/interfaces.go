@@ -6,6 +6,7 @@ import (
 	pubbc "github.com/ticken-ts/ticken-pubbc-connector"
 	pvtbc "github.com/ticken-ts/ticken-pvtbc-connector"
 	"ticken-event-service/infra/bus"
+	"ticken-event-service/models"
 	"ticken-event-service/security/jwt"
 )
 
@@ -38,7 +39,7 @@ type BusPublisher interface {
 }
 
 type FileUploader interface {
-	UploadFile(file []byte, fileName string) (string, error)
+	UploadFile(file *models.File) (string, error)
 }
 
 type IBuilder interface {

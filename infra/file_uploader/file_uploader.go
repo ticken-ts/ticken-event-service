@@ -1,5 +1,9 @@
 package file_uploader
 
+import (
+	"ticken-event-service/models"
+)
+
 type FileUploader struct {
 }
 
@@ -8,6 +12,6 @@ func NewFileUploader() *FileUploader {
 }
 
 // UploadFile is going to upload the given file to the AWS S3 bucket
-func (uploader *FileUploader) UploadFile(file []byte, fileName string) (string, error) {
+func (uploader *FileUploader) UploadFile(file *models.File) (string, error) {
 	panic("implement me")
 }

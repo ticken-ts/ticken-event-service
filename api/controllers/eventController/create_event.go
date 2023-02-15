@@ -7,16 +7,17 @@ import (
 	"mime/multipart"
 	"net/http"
 	"ticken-event-service/api/mappers"
+	"ticken-event-service/models"
 	"ticken-event-service/security/jwt"
 	"ticken-event-service/utils"
 	"time"
 )
 
 type createEventPayload struct {
-	Name        string    `json:"name" binding:"required"`
-	Date        time.Time `json:"date" binding:"required"`
-	Description string    `json:"description"`
-	PosterURI   string    `json:"poster_uri"`
+	Name        string       `json:"name" binding:"required"`
+	Date        time.Time    `json:"date" binding:"required"`
+	Description string       `json:"description"`
+	PosterFile  *models.File `json:"poster"`
 }
 
 func (controller *EventController) CreateEvent(c *gin.Context) {
@@ -49,9 +50,26 @@ func (controller *EventController) CreateEvent(c *gin.Context) {
 	// No further validation are going to be added, so all
 	// validations are going to be performed on chain
 
+	if form.File["poster"] != nil {
+		file, err := form.File["poster"][0].Open()
+		if err != nil {
+			c.JSON(http.StatusBadRequest, utils.HttpResponse{Message: err.Error()})
+			c.Abort()
+			return
+		}
+		bytes := make([]byte, form.File["poster"][0].Size)
+		_, err = file.Read(bytes)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, utils.HttpResponse{Message: err.Error()})
+			c.Abort()
+			return
+		}
+		payload.PosterFile = models.NewFile(&bytes, form.File["poster"][0].Header.Get("Content-Type"))
+	}
+
 	eventManager := controller.serviceProvider.GetEventManager()
 
-	event, err := eventManager.CreateEvent(userID, organizationID, payload.Name, payload.Date)
+	event, err := eventManager.CreateEvent(userID, organizationID, payload.Name, payload.Date, payload.Description, payload.PosterFile)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, utils.HttpResponse{Message: err.Error()})
 		c.Abort()

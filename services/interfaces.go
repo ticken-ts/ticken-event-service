@@ -13,7 +13,7 @@ type IProvider interface {
 }
 
 type IEventManager interface {
-	CreateEvent(organizerID, organizationID uuid.UUID, name string, date time.Time) (*models.Event, error)
+	CreateEvent(organizerID, organizationID uuid.UUID, name string, date time.Time, description string, poster *models.File) (*models.Event, error)
 	AddSection(organizerID, organizationID, eventID uuid.UUID, name string, totalTickets int, ticketPrice float64) (*models.Section, error)
 	GetEvent(eventID uuid.UUID, requesterID uuid.UUID, organizationID uuid.UUID) (*models.Event, error)
 	GetOrganizationEvents(requesterID uuid.UUID, organizationID uuid.UUID) ([]*models.Event, error)

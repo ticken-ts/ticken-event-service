@@ -49,7 +49,7 @@ func NewEventManager(
 	}
 }
 
-func (eventManager *EventManager) CreateEvent(organizerID, organizationID uuid.UUID, name string, date time.Time) (*models.Event, error) {
+func (eventManager *EventManager) CreateEvent(organizerID, organizationID uuid.UUID, name string, date time.Time, description string, poster *models.File) (*models.Event, error) {
 	organizer := eventManager.organizerRepo.FindOrganizer(organizerID)
 	if organizer == nil {
 		return nil, exception.WithMessage("organizer with id %s not found", organizerID)
@@ -69,6 +69,13 @@ func (eventManager *EventManager) CreateEvent(organizerID, organizationID uuid.U
 	if err != nil {
 		return nil, err
 	}
+
+	// extract the bytes from the multipart file
+	posterURL, err := eventManager.fileUploader.UploadFile(poster)
+	if err != nil {
+		return nil, err
+	}
+	event.PosterURL = posterURL
 
 	_, err = atomicPvtbcCaller.TickenEventCaller.CreateEvent(event.EventID, event.Name, event.Date)
 	if err != nil {
