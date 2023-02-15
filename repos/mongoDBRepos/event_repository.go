@@ -136,7 +136,7 @@ func (r *EventMongoDBRepository) FindAvailableEvents() []*models.Event {
 		return nil
 	}
 
-	var foundEvents []*models.Event
+	var foundEvents = make([]*models.Event, 0)
 	for result.Next(findContext) {
 		var event = new(models.Event)
 		err = result.Decode(event)
