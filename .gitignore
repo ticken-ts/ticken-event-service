@@ -29,3 +29,6 @@ config.json
 
 # ticken-event-service
 tmp
+
+# uploaded assets folder
+uploads
