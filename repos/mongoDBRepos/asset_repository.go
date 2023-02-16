@@ -19,7 +19,7 @@ func NewAssetRepository(dbClient *mongo.Client, dbName string) *AssetMongoDBRepo
 		baseRepository{
 			dbClient:       dbClient,
 			dbName:         dbName,
-			collectionName: EventCollectionName,
+			collectionName: AssetCollectionName,
 		},
 	}
 }

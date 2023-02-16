@@ -10,10 +10,11 @@ import (
 type IProvider interface {
 	GetEventManager() IEventManager
 	GetOrganizationManager() IOrganizationManager
+	GetAssetManager() IAssetManager
 }
 
 type IEventManager interface {
-	CreateEvent(organizerID, organizationID uuid.UUID, name string, date time.Time, description string, poster *models.File) (*models.Event, error)
+	CreateEvent(organizerID, organizationID uuid.UUID, name string, date time.Time, description string, poster *models.Asset) (*models.Event, error)
 	AddSection(organizerID, organizationID, eventID uuid.UUID, name string, totalTickets int, ticketPrice float64) (*models.Section, error)
 	GetEvent(eventID uuid.UUID, requesterID uuid.UUID, organizationID uuid.UUID) (*models.Event, error)
 	GetOrganizationEvents(requesterID uuid.UUID, organizationID uuid.UUID) ([]*models.Event, error)
@@ -32,4 +33,5 @@ type IOrganizerManager interface {
 type IAssetManager interface {
 	GetAsset(assetID uuid.UUID) (*models.Asset, error)
 	NewAsset(name string, mimeType string, url string) (*models.Asset, error)
+	UploadAsset(file *models.File, name string) (*models.Asset, error)
 }

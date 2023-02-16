@@ -6,7 +6,6 @@ import (
 	pubbc "github.com/ticken-ts/ticken-pubbc-connector"
 	"ticken-event-service/async"
 	"ticken-event-service/exception"
-	"ticken-event-service/infra"
 	"ticken-event-service/models"
 	"ticken-event-service/repos"
 	"time"
@@ -26,7 +25,6 @@ type EventManager struct {
 	organizationRepo    repos.OrganizationRepository
 	organizationManager IOrganizationManager
 	pubbcAdmin          pubbc.Admin
-	fileUploader        infra.FileUploader
 }
 
 func NewEventManager(
@@ -36,7 +34,6 @@ func NewEventManager(
 	publisher *async.Publisher,
 	organizationManager IOrganizationManager,
 	pubbcAdmin pubbc.Admin,
-	fileUploader infra.FileUploader,
 ) IEventManager {
 	return &EventManager{
 		publisher:           publisher,
@@ -45,11 +42,10 @@ func NewEventManager(
 		organizationRepo:    organizationRepo,
 		organizationManager: organizationManager,
 		pubbcAdmin:          pubbcAdmin,
-		fileUploader:        fileUploader,
 	}
 }
 
-func (eventManager *EventManager) CreateEvent(organizerID, organizationID uuid.UUID, name string, date time.Time, description string, poster *models.File) (*models.Event, error) {
+func (eventManager *EventManager) CreateEvent(organizerID, organizationID uuid.UUID, name string, date time.Time, description string, poster *models.Asset) (*models.Event, error) {
 	organizer := eventManager.organizerRepo.FindOrganizer(organizerID)
 	if organizer == nil {
 		return nil, exception.WithMessage("organizer with id %s not found", organizerID)
@@ -70,12 +66,7 @@ func (eventManager *EventManager) CreateEvent(organizerID, organizationID uuid.U
 		return nil, err
 	}
 
-	// extract the bytes from the multipart file
-	posterURL, err := eventManager.fileUploader.UploadFile(poster)
-	if err != nil {
-		return nil, err
-	}
-	event.PosterURL = posterURL
+	event.PosterAssetID = poster.ID
 
 	_, err = atomicPvtbcCaller.TickenEventCaller.CreateEvent(event.EventID, event.Name, event.Date)
 	if err != nil {

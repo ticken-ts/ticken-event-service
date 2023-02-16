@@ -14,10 +14,10 @@ import (
 )
 
 type createEventPayload struct {
-	Name        string       `json:"name" binding:"required"`
-	Date        time.Time    `json:"date" binding:"required"`
-	Description string       `json:"description"`
-	PosterFile  *models.File `json:"poster"`
+	Name        string        `json:"name" binding:"required"`
+	Date        time.Time     `json:"date" binding:"required"`
+	Description string        `json:"description"`
+	PosterFile  *models.Asset `json:"poster"`
 }
 
 func (controller *EventController) CreateEvent(c *gin.Context) {
@@ -50,6 +50,8 @@ func (controller *EventController) CreateEvent(c *gin.Context) {
 	// No further validation are going to be added, so all
 	// validations are going to be performed on chain
 
+	assetManager := controller.serviceProvider.GetAssetManager()
+
 	if form.File["poster"] != nil {
 		file, err := form.File["poster"][0].Open()
 		if err != nil {
@@ -64,7 +66,15 @@ func (controller *EventController) CreateEvent(c *gin.Context) {
 			c.Abort()
 			return
 		}
-		payload.PosterFile = models.NewFile(&bytes, form.File["poster"][0].Header.Get("Content-Type"))
+		posterFile := models.NewFile(&bytes, form.File["poster"][0].Header.Get("Content-Type"))
+		posterAsset, err := assetManager.UploadAsset(posterFile, form.File["poster"][0].Filename)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, utils.HttpResponse{Message: err.Error()})
+			c.Abort()
+			return
+		}
+
+		payload.PosterFile = posterAsset
 	}
 
 	eventManager := controller.serviceProvider.GetEventManager()

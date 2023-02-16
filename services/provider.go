@@ -29,8 +29,8 @@ func NewProvider(
 	organizationRepo := repoProvider.GetOrganizationRepository()
 
 	provider.organizationManager = NewOrganizationManager(hsm, organizerRepo, organizationRepo, builder.BuildAtomicPvtbcCaller)
-	provider.eventManager = NewEventManager(eventRepo, organizerRepo, organizationRepo, publisher, provider.organizationManager, pubbcAdmin, fileUploader)
-	provider.assetManager = NewAssetManager(repoProvider.GetAssetRepository())
+	provider.eventManager = NewEventManager(eventRepo, organizerRepo, organizationRepo, publisher, provider.organizationManager, pubbcAdmin)
+	provider.assetManager = NewAssetManager(repoProvider.GetAssetRepository(), fileUploader)
 
 	return provider, nil
 }
@@ -41,4 +41,8 @@ func (provider *provider) GetEventManager() IEventManager {
 
 func (provider *provider) GetOrganizationManager() IOrganizationManager {
 	return provider.organizationManager
+}
+
+func (provider *provider) GetAssetManager() IAssetManager {
+	return provider.assetManager
 }
