@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	gojwt "github.com/golang-jwt/jwt"
 	"ticken-event-service/api"
+	"ticken-event-service/api/controllers/assetController"
 	"ticken-event-service/api/controllers/eventController"
 	"ticken-event-service/api/controllers/healthController"
 	"ticken-event-service/api/controllers/publicController"
@@ -66,6 +67,7 @@ func New(infraBuilder infra.IBuilder, tickenConfig *config.Config) *TickenEventA
 		eventController.New(serviceProvider),
 		healthController.New(serviceProvider),
 		publicController.New(serviceProvider),
+		assetController.New(serviceProvider),
 	}
 
 	for _, middleware := range appMiddlewares {

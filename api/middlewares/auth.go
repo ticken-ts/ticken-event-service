@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"net/http"
+	"strings"
 	"ticken-event-service/security/jwt"
 	"ticken-event-service/services"
 	"ticken-event-service/utils"
@@ -30,7 +31,7 @@ func (middleware *AuthMiddleware) Setup(router gin.IRouter) {
 }
 
 func isFreeURI(uri string) bool {
-	return uri == "/healthz" || uri == "/public/events"
+	return uri == "/healthz" || uri == "/public/events" || strings.HasPrefix(uri, "/assets")
 }
 
 func (middleware *AuthMiddleware) isJWTAuthorized() gin.HandlerFunc {
