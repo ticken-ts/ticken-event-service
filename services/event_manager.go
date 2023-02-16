@@ -66,7 +66,9 @@ func (eventManager *EventManager) CreateEvent(organizerID, organizationID uuid.U
 		return nil, err
 	}
 
-	event.PosterAssetID = poster.ID
+	if poster != nil {
+		event.PosterAssetID = poster.ID
+	}
 
 	_, err = atomicPvtbcCaller.TickenEventCaller.CreateEvent(event.EventID, event.Name, event.Date)
 	if err != nil {
