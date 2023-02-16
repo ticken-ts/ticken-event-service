@@ -29,14 +29,21 @@ type OrganizationRepository interface {
 	FindByName(name string) *models.Organization
 }
 
+type AssetRepository interface {
+	FindByID(assetID uuid.UUID) *models.Asset
+	AddAsset(asset *models.Asset) error
+}
+
 type IProvider interface {
 	GetEventRepository() EventRepository
 	GetOrganizerRepository() OrganizerRepository
 	GetOrganizationRepository() OrganizationRepository
+	GetAssetRepository() AssetRepository
 }
 
 type IFactory interface {
 	BuildEventRepository() any
 	BuildOrganizerRepository() any
 	BuildOrganizationRepository() any
+	BuildAssetRepository() any
 }

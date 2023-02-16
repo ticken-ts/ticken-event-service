@@ -28,3 +28,8 @@ type IOrganizationManager interface {
 type IOrganizerManager interface {
 	RegisterOrganizer(organizerID, firstname, lastname, username, email string) (*models.Organizer, error)
 }
+
+type IAssetManager interface {
+	GetAsset(assetID uuid.UUID) (*models.Asset, error)
+	NewAsset(name string, mimeType string, url string) (*models.Asset, error)
+}

@@ -11,6 +11,7 @@ type provider struct {
 	eventManager        IEventManager
 	organizerManager    IOrganizerManager
 	organizationManager IOrganizationManager
+	assetManager        IAssetManager
 }
 
 func NewProvider(
@@ -29,6 +30,7 @@ func NewProvider(
 
 	provider.organizationManager = NewOrganizationManager(hsm, organizerRepo, organizationRepo, builder.BuildAtomicPvtbcCaller)
 	provider.eventManager = NewEventManager(eventRepo, organizerRepo, organizationRepo, publisher, provider.organizationManager, pubbcAdmin, fileUploader)
+	provider.assetManager = NewAssetManager(repoProvider.GetAssetRepository())
 
 	return provider, nil
 }

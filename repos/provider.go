@@ -12,6 +12,7 @@ type Provider struct {
 	eventRepository        EventRepository
 	organizerRepository    OrganizerRepository
 	organizationRepository OrganizationRepository
+	assetRepository        AssetRepository
 }
 
 func NewProvider(db infra.Db, dbConfig *config.DatabaseConfig) (IProvider, error) {
@@ -46,4 +47,11 @@ func (provider *Provider) GetOrganizationRepository() OrganizationRepository {
 		provider.organizationRepository = provider.reposFactory.BuildOrganizationRepository().(OrganizationRepository)
 	}
 	return provider.organizationRepository
+}
+
+func (provider *Provider) GetAssetRepository() AssetRepository {
+	if provider.assetRepository == nil {
+		provider.assetRepository = provider.reposFactory.BuildAssetRepository().(AssetRepository)
+	}
+	return provider.assetRepository
 }

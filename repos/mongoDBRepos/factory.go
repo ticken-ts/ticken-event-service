@@ -29,3 +29,7 @@ func (factory *Factory) BuildOrganizerRepository() any {
 func (factory *Factory) BuildOrganizationRepository() any {
 	return NewOrganizationRepository(factory.dbClient, factory.dbName)
 }
+
+func (factory *Factory) BuildAssetRepository() any {
+	return NewAssetRepository(factory.dbClient, factory.dbName)
+}
