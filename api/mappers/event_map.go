@@ -13,6 +13,7 @@ func MapEventToEventDTO(event *models.Event) *dto.EventDTO {
 		Date:     event.Date.Format(time.RFC3339),
 		OnChain:  event.OnChain,
 		Sections: MapSectionListToDTO(event.Sections),
+		Poster:   event.PosterAssetID.String(),
 	}
 }
 
