@@ -237,9 +237,18 @@ func buildPeerConnector(config config.PvtbcConfig, devConfig config.DevConfig) p
 }
 
 func (builder *Builder) BuildFileUploader() FileUploader {
-	if env.TickenEnv.IsDev() {
-		return file_uploader.NewDevFileUploader()
+	var err error
+	var fileUploader FileUploader
+
+	if !env.TickenEnv.IsProd() {
+		fileUploader, err = file_uploader.NewDevFileUploader()
 	} else {
-		return file_uploader.NewFileUploader()
+		fileUploader, err = file_uploader.NewDevFileUploader()
 	}
+
+	if err != nil {
+		panic(err)
+	}
+
+	return fileUploader
 }
