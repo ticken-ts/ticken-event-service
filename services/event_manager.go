@@ -70,7 +70,8 @@ func (eventManager *EventManager) CreateEvent(organizerID, organizationID uuid.U
 		event.PosterAssetID = poster.ID
 	}
 
-	_, err = atomicPvtbcCaller.TickenEventCaller.CreateEvent(event.EventID, event.Name, event.Date)
+	// todo -> add txID to the event?
+	_, _, err = atomicPvtbcCaller.TickenEventCaller.CreateEvent(event.EventID, event.Name, event.Date)
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +99,9 @@ func (eventManager *EventManager) AddSection(organizerID, organizationID, eventI
 		return nil, err
 	}
 
-	_, err = atomicPvtbcCaller.TickenEventCaller.AddSection(section.EventID, section.Name, section.TotalTickets, section.TicketPrice)
+	// todo -> add txID to the section?
+	_, _, err = atomicPvtbcCaller.TickenEventCaller.AddSection(
+		section.EventID, section.Name, section.TotalTickets, section.TicketPrice)
 	if err != nil {
 		return nil, err
 	}
@@ -165,7 +168,7 @@ func (eventManager *EventManager) SetEventOnSale(eventID, organizationID, organi
 		return nil, err
 	}
 
-	if err := atomicPvtbcCaller.SetEventOnSale(eventID); err != nil {
+	if _, err := atomicPvtbcCaller.SetEventOnSale(eventID); err != nil {
 		return nil, err
 	}
 
