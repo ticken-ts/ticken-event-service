@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-const EventCollectionName = "event-server-events"
+const EventCollectionName = "events"
 
 type EventMongoDBRepository struct {
 	baseRepository
