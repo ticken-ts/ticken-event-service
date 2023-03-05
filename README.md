@@ -3,6 +3,14 @@
 ## Architectural design
 
 TODO 
+## Running for development
+To run in dev mode you need to set the "ENV" environment variable to "dev"
+
+Running in dev mode will mock most external services, you only need to run the following services:
+- MongoDB
+- Ganache (for the blockchain)
+
+You still need to create the .env and the config.json files using the examples.
 
 ## Running locally
 
