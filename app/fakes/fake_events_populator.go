@@ -64,6 +64,7 @@ func (populator *FakeEventsPopulator) Populate() error {
 		EventID:        eventID,
 		Name:           populator.DevEventsInfo.EventName,
 		Date:           fakeTime,
+		Description:    populator.DevEventsInfo.EventDescription,
 		Sections:       fakeSections,
 		OnSale:         true,
 		OrganizerID:    organizer.OrganizerID,

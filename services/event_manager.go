@@ -56,7 +56,7 @@ func (eventManager *EventManager) CreateEvent(organizerID, organizationID uuid.U
 		return nil, exception.WithMessage("organization with id %s not found", organizationID)
 	}
 
-	event, err := models.NewEvent(name, date, organizer, organization)
+	event, err := models.NewEvent(name, date, description, organizer, organization)
 	if err != nil {
 		return nil, exception.FromError(err, "failed to create event")
 	}

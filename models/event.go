@@ -11,6 +11,7 @@ type Event struct {
 	EventID       uuid.UUID  `bson:"event_id"`
 	Name          string     `bson:"name"`
 	Date          time.Time  `bson:"date"`
+	Description   string     `bson:"description"`
 	Sections      []*Section `bson:"sections"`
 	OnSale        bool       `bson:"on_sale"`
 	PosterAssetID uuid.UUID  `bson:"poster_id"`
@@ -31,18 +32,19 @@ type Event struct {
 	// ************************************** //
 }
 
-func NewEvent(name string, date time.Time, organizer *Organizer, organization *Organization) (*Event, error) {
+func NewEvent(name string, date time.Time, description string, organizer *Organizer, organization *Organization) (*Event, error) {
 	if !organization.HasUser(organizer.Username) {
 		return nil, exception.WithMessage(
 			"organizer %s doest not belong to organization %s", organizer.Username, organization.Name)
 	}
 
 	event := &Event{
-		EventID:  uuid.New(),
-		Name:     name,
-		Date:     date,
-		OnSale:   false,
-		Sections: make([]*Section, 0),
+		EventID:     uuid.New(),
+		Name:        name,
+		Date:        date,
+		Description: description,
+		OnSale:      false,
+		Sections:    make([]*Section, 0),
 
 		// this values will be validated from
 		// the values that the chaincode notify us
