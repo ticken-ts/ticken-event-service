@@ -14,7 +14,7 @@ type Event struct {
 	Description   string     `bson:"description"`
 	Sections      []*Section `bson:"sections"`
 	OnSale        bool       `bson:"on_sale"`
-	PosterAssetID uuid.UUID  `bson:"poster_id"`
+	PosterAssetID *uuid.UUID `bson:"poster_id"`
 	// ************************************** //
 
 	// ********** Access & Auditory ********* //
@@ -39,12 +39,13 @@ func NewEvent(name string, date time.Time, description string, organizer *Organi
 	}
 
 	event := &Event{
-		EventID:     uuid.New(),
-		Name:        name,
-		Date:        date,
-		Description: description,
-		OnSale:      false,
-		Sections:    make([]*Section, 0),
+		EventID:       uuid.New(),
+		Name:          name,
+		Date:          date,
+		Description:   description,
+		OnSale:        false,
+		Sections:      make([]*Section, 0),
+		PosterAssetID: nil,
 
 		// this values will be validated from
 		// the values that the chaincode notify us

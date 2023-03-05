@@ -1,10 +1,20 @@
 package mappers
 
 import (
+	"github.com/google/uuid"
 	"ticken-event-service/api/dto"
 	"ticken-event-service/models"
 	"time"
 )
+
+func MapPosterIDToDTO(posterID *uuid.UUID) *string {
+	if posterID == nil {
+		return nil
+	} else {
+		id := posterID.String()
+		return &id
+	}
+}
 
 func MapEventToEventDTO(event *models.Event) *dto.EventDTO {
 	return &dto.EventDTO{
@@ -13,7 +23,7 @@ func MapEventToEventDTO(event *models.Event) *dto.EventDTO {
 		Date:     event.Date.Format(time.RFC3339),
 		OnChain:  event.OnChain,
 		Sections: MapSectionListToDTO(event.Sections),
-		Poster:   event.PosterAssetID.String(),
+		Poster:   MapPosterIDToDTO(event.PosterAssetID),
 	}
 }
 

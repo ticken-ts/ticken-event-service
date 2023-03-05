@@ -67,7 +67,7 @@ func (eventManager *EventManager) CreateEvent(organizerID, organizationID uuid.U
 	}
 
 	if poster != nil {
-		event.PosterAssetID = poster.ID
+		event.PosterAssetID = &poster.ID
 	}
 
 	// todo -> add txID to the event?
