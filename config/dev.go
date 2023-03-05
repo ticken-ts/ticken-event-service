@@ -13,9 +13,30 @@ type MockInfo struct {
 	DisableBusMock   bool `mapstructure:"disable_bus_mock"`
 }
 
+type Orgs struct {
+	TickenOrgName string `mapstructure:"ticken_org_name"`
+	TotalFakeOrgs int    `mapstructure:"total_fake_orgs"`
+}
+
+type Events struct {
+	EventID          string         `mapstructure:"event_id"`
+	EventName        string         `mapstructure:"event_name"`
+	EventDescription string         `mapstructure:"event_description"`
+	EventDate        string         `mapstructure:"event_date"`
+	EventSections    []EventSection `mapstructure:"event_sections"`
+}
+
+type EventSection struct {
+	SectionName     string  `mapstructure:"section_name"`
+	SectionPrice    float64 `mapstructure:"section_price"`
+	SectionQuantity int     `mapstructure:"section_quantity"`
+}
+
 type DevConfig struct {
 	User          DevUser  `mapstructure:"user"`
 	Mock          MockInfo `mapstructure:"mock"`
+	Orgs          Orgs     `mapstructure:"orgs"`
+	Events        Events   `mapstructure:"events"`
 	JWTPublicKey  string   `mapstructure:"jwt_public_key"`
 	JWTPrivateKey string   `mapstructure:"jwt_private_key"`
 }

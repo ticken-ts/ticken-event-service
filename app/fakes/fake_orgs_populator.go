@@ -13,20 +13,19 @@ import (
 	"ticken-event-service/repos"
 )
 
-const totalFakeOrganizations = 3
-const tickenOrg = "ticken"
-
 type FakeOrgsPopulator struct {
 	hsm                infra.HSM
 	devUserInfo        config.DevUser
+	devOrgsInfo        config.Orgs
 	reposProvider      repos.IProvider
 	clusterStoragePath string
 }
 
-func NewFakeOrgsPopulator(reposProvider repos.IProvider, devUserInfo config.DevUser, hsm infra.HSM, clusterStoragePath string) *FakeOrgsPopulator {
+func NewFakeOrgsPopulator(reposProvider repos.IProvider, devUserInfo config.DevUser, devOrgsInfo config.Orgs, hsm infra.HSM, clusterStoragePath string) *FakeOrgsPopulator {
 	return &FakeOrgsPopulator{
 		hsm:                hsm,
 		devUserInfo:        devUserInfo,
+		devOrgsInfo:        devOrgsInfo,
 		reposProvider:      reposProvider,
 		clusterStoragePath: clusterStoragePath,
 	}
@@ -51,11 +50,11 @@ func (populator *FakeOrgsPopulator) Populate() error {
 	}
 
 	// load genesis org in the database
-	if !organizationRepo.AnyWithName(tickenOrg) {
-		populator.createOrganization(tickenOrg, organizer)
+	if !organizationRepo.AnyWithName(populator.devOrgsInfo.TickenOrgName) {
+		populator.createOrganization(populator.devOrgsInfo.TickenOrgName, organizer)
 	}
 
-	for i := 1; i <= totalFakeOrganizations; i++ {
+	for i := 1; i <= populator.devOrgsInfo.TotalFakeOrgs; i++ {
 		orgName := "org" + strconv.Itoa(i)
 		if organizationRepo.AnyWithName(orgName) {
 			continue
@@ -149,5 +148,5 @@ func (populator *FakeOrgsPopulator) readOrgNodeMSP(orgName string, node string) 
 }
 
 func getOrgChannelName(orgName string) string {
-	return tickenOrg + "-" + orgName + "-" + "channel"
+	return orgName + "-" + "channel"
 }

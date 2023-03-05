@@ -13,6 +13,8 @@ import (
 type FakeEventsPopulator struct {
 	ReposProvider repos.IProvider
 	DevUserInfo   config.DevUser
+	DevOrgsInfo   config.Orgs
+	DevEventsInfo config.Events
 }
 
 func (populator *FakeEventsPopulator) Populate() error {
@@ -20,7 +22,7 @@ func (populator *FakeEventsPopulator) Populate() error {
 		return nil
 	}
 
-	eventID := uuid.MustParse("8709adbb-0504-4707-9cb2-867126c8172f")
+	eventID := uuid.MustParse(populator.DevEventsInfo.EventID)
 	event := populator.ReposProvider.GetEventRepository().FindEvent(eventID)
 	if event != nil {
 		return nil
@@ -36,25 +38,39 @@ func (populator *FakeEventsPopulator) Populate() error {
 		return exception.WithMessage("dev user with id %s not found", populator.DevUserInfo.UserID)
 	}
 
-	fakeSection := &models.Section{
-		Name:         "Campo VIP",
-		EventID:      eventID,
-		OnChain:      true,
-		TicketPrice:  100,
-		TotalTickets: 100,
+	organization := populator.ReposProvider.GetOrganizationRepository().FindByName(populator.DevOrgsInfo.TickenOrgName)
+	if organization == nil {
+		return exception.WithMessage("organization with name %s not found", populator.DevOrgsInfo.TickenOrgName)
+	}
+
+	fakeSections := []*models.Section{}
+	for i := 0; i < len(populator.DevEventsInfo.EventSections); i++ {
+		fakeSection := &models.Section{
+			EventID:      eventID,
+			OnChain:      true,
+			Name:         populator.DevEventsInfo.EventSections[i].SectionName,
+			TotalTickets: populator.DevEventsInfo.EventSections[i].SectionQuantity,
+			TicketPrice:  populator.DevEventsInfo.EventSections[i].SectionPrice,
+		}
+		fakeSections = append(fakeSections, fakeSection)
+	}
+
+	fakeTime, err := time.Parse(time.RFC3339, populator.DevEventsInfo.EventDate)
+	if err != nil {
+		return exception.WithMessage("invalid time format: %s", populator.DevEventsInfo.EventDate)
 	}
 
 	fakeEvent := &models.Event{
 		EventID:        eventID,
-		Name:           "test-event-01",
-		Date:           time.Time{},
-		Sections:       []*models.Section{fakeSection},
+		Name:           populator.DevEventsInfo.EventName,
+		Date:           fakeTime,
+		Sections:       fakeSections,
 		OnSale:         true,
-		OrganizerID:    uuid.New(),
-		OrganizationID: organizer.OrganizerID,
+		OrganizerID:    organizer.OrganizerID,
+		OrganizationID: organization.OrganizationID,
 		OnChain:        true,
-		PvtBCChannel:   "ticken-event-name",
-		PubBCAddress:   "0xfafafa",
+		PvtBCChannel:   organization.Channel,
+		PubBCAddress:   "",
 	}
 
 	return populator.ReposProvider.GetEventRepository().AddEvent(fakeEvent)
