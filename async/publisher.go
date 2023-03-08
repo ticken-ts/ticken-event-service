@@ -12,7 +12,7 @@ type Publisher struct {
 
 func NewPublisher(busPublisher infra.BusPublisher) (*Publisher, error) {
 	if !busPublisher.IsConnected() {
-		return nil, fmt.Errorf("bus subscriber is not connected")
+		return nil, fmt.Errorf("bus publisher is not connected")
 	}
 
 	publisher := &Publisher{
