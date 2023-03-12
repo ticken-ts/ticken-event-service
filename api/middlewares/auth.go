@@ -14,14 +14,16 @@ type AuthMiddleware struct {
 	validator       *validator.Validate
 	serviceProvider services.IProvider
 	jwtVerifier     jwt.Verifier
+	apiPrefix       string
 }
 
-func NewAuthMiddleware(serviceProvider services.IProvider, jwtVerifier jwt.Verifier) *AuthMiddleware {
+func NewAuthMiddleware(serviceProvider services.IProvider, jwtVerifier jwt.Verifier, apiPrefix string) *AuthMiddleware {
 	middleware := new(AuthMiddleware)
 
 	middleware.validator = validator.New()
 	middleware.serviceProvider = serviceProvider
 	middleware.jwtVerifier = jwtVerifier
+	middleware.apiPrefix = apiPrefix
 
 	return middleware
 }
@@ -30,13 +32,16 @@ func (middleware *AuthMiddleware) Setup(router gin.IRouter) {
 	router.Use(middleware.isJWTAuthorized())
 }
 
-func isFreeURI(uri string) bool {
-	return uri == "/healthz" || uri == "/public/events" || strings.HasPrefix(uri, "/assets")
+func (middleware *AuthMiddleware) isFreeURI(uri string) bool {
+	uri = strings.Replace(uri, middleware.apiPrefix, "", 1)
+	return uri == "/healthz" ||
+		uri == "/public/events" ||
+		strings.HasPrefix(uri, "/assets")
 }
 
 func (middleware *AuthMiddleware) isJWTAuthorized() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		if isFreeURI(c.Request.URL.Path) {
+		if middleware.isFreeURI(c.Request.URL.Path) {
 			return
 		}
 
