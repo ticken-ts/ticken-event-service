@@ -70,12 +70,14 @@ func New(infraBuilder infra.IBuilder, tickenConfig *config.Config) *TickenEventA
 		assetController.New(serviceProvider),
 	}
 
+	apiRouter := engine.Group(tickenConfig.Server.APIPrefix)
+
 	for _, middleware := range appMiddlewares {
-		middleware.Setup(engine)
+		middleware.Setup(apiRouter)
 	}
 
 	for _, controller := range controllers {
-		controller.Setup(engine)
+		controller.Setup(apiRouter)
 	}
 
 	tickenEventApp.populators = []Populator{
