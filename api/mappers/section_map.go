@@ -10,6 +10,7 @@ func MapSectionToDTO(section *models.Section) *dto.SectionDTO {
 		EventID:      section.EventID.String(),
 		Name:         section.Name,
 		TotalTickets: section.TotalTickets,
+		Price:        section.TicketPrice,
 		OnChain:      section.OnChain,
 	}
 }
