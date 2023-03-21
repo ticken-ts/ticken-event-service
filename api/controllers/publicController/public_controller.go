@@ -18,4 +18,5 @@ func New(serviceProvider services.IProvider) *PublicController {
 func (controller *PublicController) Setup(router gin.IRouter) {
 	group := router.Group("/public")
 	group.GET("/events", controller.GetAvailableEvents)
+	group.GET("/events/:eventID", controller.GetPublicEvent)
 }

@@ -35,7 +35,7 @@ func (middleware *AuthMiddleware) Setup(router gin.IRouter) {
 func (middleware *AuthMiddleware) isFreeURI(uri string) bool {
 	uri = strings.Replace(uri, middleware.apiPrefix, "", 1)
 	return uri == "/healthz" ||
-		uri == "/public/events" ||
+		strings.HasPrefix(uri, "/public") ||
 		strings.HasPrefix(uri, "/assets")
 }
 

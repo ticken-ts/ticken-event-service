@@ -202,3 +202,16 @@ func (eventManager *EventManager) GetAvailableEvents() ([]*models.Event, error) 
 
 	return events, nil
 }
+
+func (eventManager *EventManager) GetPublicEvent(eventID uuid.UUID) (*models.Event, error) {
+	event := eventManager.eventRepo.FindEvent(eventID)
+	if event == nil {
+		return nil, fmt.Errorf("event %s not found", eventID)
+	}
+
+	if !event.OnSale {
+		return nil, fmt.Errorf("event %s is not available", eventID)
+	}
+
+	return event, nil
+}
