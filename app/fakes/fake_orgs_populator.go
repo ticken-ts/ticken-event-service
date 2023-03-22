@@ -1,8 +1,9 @@
 package fakes
 
 import (
+	"fmt"
 	"github.com/google/uuid"
-	"io/ioutil"
+	"os"
 	"path"
 	"strconv"
 	"ticken-event-service/config"
@@ -11,34 +12,41 @@ import (
 	"ticken-event-service/infra"
 	"ticken-event-service/models"
 	"ticken-event-service/repos"
+	"ticken-event-service/security/auth"
+	"ticken-event-service/sync"
 )
 
 type FakeOrgsPopulator struct {
 	hsm                infra.HSM
-	devUserInfo        config.DevUser
-	devOrgsInfo        config.Orgs
+	devConfig          config.DevConfig
 	reposProvider      repos.IProvider
+	keycloakClient     *sync.KeycloakHTTPClient
 	clusterStoragePath string
 }
 
-func NewFakeOrgsPopulator(reposProvider repos.IProvider, devUserInfo config.DevUser, devOrgsInfo config.Orgs, hsm infra.HSM, clusterStoragePath string) *FakeOrgsPopulator {
+func NewFakeOrgsPopulator(
+	reposProvider repos.IProvider,
+	authIssuer *auth.Issuer,
+	devConfig config.DevConfig,
+	hsm infra.HSM,
+	clusterStoragePath string) *FakeOrgsPopulator {
 	return &FakeOrgsPopulator{
 		hsm:                hsm,
-		devUserInfo:        devUserInfo,
-		devOrgsInfo:        devOrgsInfo,
+		devConfig:          devConfig,
 		reposProvider:      reposProvider,
 		clusterStoragePath: clusterStoragePath,
+		keycloakClient:     sync.NewKeycloakHTTPClient("http://localhost:8080", auth.Organizer, authIssuer),
 	}
 }
 
 func (populator *FakeOrgsPopulator) Populate() error {
-	if !env.TickenEnv.IsDev() {
-		return nil
-	}
-
-	uuidDevUser, err := uuid.Parse(populator.devUserInfo.UserID)
-	if err != nil {
-		return err
+	uuidDevUser := uuid.MustParse(populator.devConfig.User.UserID)
+	if !env.TickenEnv.IsDev() || populator.devConfig.Mock.DisableAuthMock {
+		foundUserInKeycloak, _ := populator.keycloakClient.GetUserByEmail(populator.devConfig.User.Email)
+		if foundUserInKeycloak == nil {
+			return fmt.Errorf("auth is not mocked but admin is not present in identity provider")
+		}
+		uuidDevUser = foundUserInKeycloak.ID
 	}
 
 	organizerRepo := populator.reposProvider.GetOrganizerRepository()
@@ -46,15 +54,15 @@ func (populator *FakeOrgsPopulator) Populate() error {
 
 	organizer := organizerRepo.FindOrganizer(uuidDevUser)
 	if organizer == nil {
-		return exception.WithMessage("dev user with id %s not found", populator.devUserInfo.UserID)
+		return exception.WithMessage("dev user with id %s not found", populator.devConfig.User.UserID)
 	}
 
 	// load genesis org in the database
-	if !organizationRepo.AnyWithName(populator.devOrgsInfo.TickenOrgName) {
-		populator.createOrganization(populator.devOrgsInfo.TickenOrgName, organizer)
+	if !organizationRepo.AnyWithName(populator.devConfig.Orgs.TickenOrgName) {
+		populator.createOrganization(populator.devConfig.Orgs.TickenOrgName, organizer)
 	}
 
-	for i := 1; i <= populator.devOrgsInfo.TotalFakeOrgs; i++ {
+	for i := 1; i <= populator.devConfig.Orgs.TotalFakeOrgs; i++ {
 		orgName := "org" + strconv.Itoa(i)
 		if organizationRepo.AnyWithName(orgName) {
 			continue
@@ -86,12 +94,12 @@ func (populator *FakeOrgsPopulator) createOrganization(orgName string, admin *mo
 func (populator *FakeOrgsPopulator) readOrgMSP(orgName string) (*models.Certificate, *models.Certificate) {
 	baseMspPath := path.Join(populator.clusterStoragePath, "orgs", "peer-orgs", orgName, "msp")
 
-	orgCACertBytes, err := ioutil.ReadFile(path.Join(baseMspPath, "cacerts", "ca-signcert.pem"))
+	orgCACertBytes, err := os.ReadFile(path.Join(baseMspPath, "cacerts", "ca-signcert.pem"))
 	if err != nil {
 		panic(err)
 	}
 
-	tlsCACertBytes, err := ioutil.ReadFile(path.Join(baseMspPath, "tlscacerts", "tlsca-signcert.pem"))
+	tlsCACertBytes, err := os.ReadFile(path.Join(baseMspPath, "tlscacerts", "tlsca-signcert.pem"))
 	if err != nil {
 		panic(err)
 	}
@@ -99,16 +107,16 @@ func (populator *FakeOrgsPopulator) readOrgMSP(orgName string) (*models.Certific
 	return models.NewCertificate(orgCACertBytes, ""), models.NewCertificate(tlsCACertBytes, "")
 }
 
-func (populator *FakeOrgsPopulator) readOrgUserMSP(orgName string, username string) *models.Certificate {
+func (populator *FakeOrgsPopulator) readOrgUserMSP(orgName string, _ string) *models.Certificate {
 	// todo -> replace here and in the pvtbc bootstrap the admin name
 	userMspPath := path.Join(populator.clusterStoragePath, "orgs", "peer-orgs", orgName, "users", orgName+"-admin", "msp")
 
-	userCertBytes, err := ioutil.ReadFile(path.Join(userMspPath, "signcerts", "cert.pem"))
+	userCertBytes, err := os.ReadFile(path.Join(userMspPath, "signcerts", "cert.pem"))
 	if err != nil {
 		panic(err)
 	}
 
-	userPrivBytes, err := ioutil.ReadFile(path.Join(userMspPath, "keystore", "priv.pem"))
+	userPrivBytes, err := os.ReadFile(path.Join(userMspPath, "keystore", "priv.pem"))
 	if err != nil {
 		panic(err)
 	}
@@ -124,12 +132,12 @@ func (populator *FakeOrgsPopulator) readOrgUserMSP(orgName string, username stri
 func (populator *FakeOrgsPopulator) readOrgNodeMSP(orgName string, node string) (*models.Certificate, *models.Certificate) {
 	nodePath := path.Join(populator.clusterStoragePath, "orgs", "peer-orgs", orgName, "nodes", orgName+"-"+node)
 
-	nodeCertBytes, err := ioutil.ReadFile(path.Join(nodePath, "msp", "signcerts", "cert.pem"))
+	nodeCertBytes, err := os.ReadFile(path.Join(nodePath, "msp", "signcerts", "cert.pem"))
 	if err != nil {
 		panic(err)
 	}
 
-	nodePrivBytes, err := ioutil.ReadFile(path.Join(nodePath, "msp", "keystore", "priv.pem"))
+	nodePrivBytes, err := os.ReadFile(path.Join(nodePath, "msp", "keystore", "priv.pem"))
 	if err != nil {
 		panic(err)
 	}
@@ -139,7 +147,7 @@ func (populator *FakeOrgsPopulator) readOrgNodeMSP(orgName string, node string) 
 		panic(err)
 	}
 
-	tlsCertBytes, err := ioutil.ReadFile(path.Join(nodePath, "tls", "signcerts", "tls-cert.pem"))
+	tlsCertBytes, err := os.ReadFile(path.Join(nodePath, "tls", "signcerts", "tls-cert.pem"))
 	if err != nil {
 		panic(err)
 	}

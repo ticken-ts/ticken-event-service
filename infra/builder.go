@@ -15,6 +15,7 @@ import (
 	"ticken-event-service/infra/file_uploader"
 	"ticken-event-service/infra/hsm"
 	"ticken-event-service/log"
+	"ticken-event-service/security/auth"
 	"ticken-event-service/security/jwt"
 	"ticken-event-service/utils"
 )
@@ -104,6 +105,23 @@ func (builder *Builder) BuildPvtbcCaller() *pvtbc.Caller {
 	return caller
 }
 
+func (builder *Builder) BuildFileUploader() FileUploader {
+	var err error
+	var fileUploader FileUploader
+
+	if !env.TickenEnv.IsProd() {
+		fileUploader, err = file_uploader.NewDevFileUploader()
+	} else {
+		fileUploader, err = file_uploader.NewDevFileUploader()
+	}
+
+	if err != nil {
+		panic(err)
+	}
+
+	return fileUploader
+}
+
 func (builder *Builder) BuildPvtbcListener() *pvtbc.Listener {
 	listener, err := pvtbc.NewListener(buildPeerConnector(builder.tickenConfig.Pvtbc, builder.tickenConfig.Dev))
 	if err != nil {
@@ -181,6 +199,19 @@ func (builder *Builder) BuildBusSubscriber(connString string) BusSubscriber {
 	return tickenBus
 }
 
+func (builder *Builder) BuildAuthIssuer(clientSecret string) *auth.Issuer {
+	authIssuer, err := auth.NewAuthIssuer(
+		auth.TickenEventService,
+		builder.tickenConfig.Services.Keycloak,
+		builder.tickenConfig.Server.ClientID,
+		clientSecret,
+	)
+	if err != nil {
+		log.TickenLogger.Panic().Msg(err.Error())
+	}
+	return authIssuer
+}
+
 func (builder *Builder) BuildAtomicPvtbcCaller(mspID, user, peerAddr string, userCert, userPriv, tlsCert []byte) (*pvtbc.Caller, error) {
 	var pc peerconnector.PeerConnector
 	if env.TickenEnv.IsDev() && !builder.tickenConfig.Dev.Mock.DisablePVTBCMock {
@@ -234,21 +265,4 @@ func buildPeerConnector(config config.PvtbcConfig, devConfig config.DevConfig) p
 	}
 
 	return pc
-}
-
-func (builder *Builder) BuildFileUploader() FileUploader {
-	var err error
-	var fileUploader FileUploader
-
-	if !env.TickenEnv.IsProd() {
-		fileUploader, err = file_uploader.NewDevFileUploader()
-	} else {
-		fileUploader, err = file_uploader.NewDevFileUploader()
-	}
-
-	if err != nil {
-		panic(err)
-	}
-
-	return fileUploader
 }

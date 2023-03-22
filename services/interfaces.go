@@ -11,6 +11,7 @@ type IProvider interface {
 	GetEventManager() IEventManager
 	GetOrganizationManager() IOrganizationManager
 	GetAssetManager() IAssetManager
+	GetValidatorManager() IValidatorManager
 }
 
 type IEventManager interface {
@@ -29,6 +30,10 @@ type IOrganizationManager interface {
 
 type IOrganizerManager interface {
 	RegisterOrganizer(organizerID, firstname, lastname, username, email string) (*models.Organizer, error)
+}
+
+type IValidatorManager interface {
+	RegisterValidator(organizerID, organizationID uuid.UUID, username, password, email string) (*models.Validator, error)
 }
 
 type IAssetManager interface {

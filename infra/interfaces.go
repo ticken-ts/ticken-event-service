@@ -7,6 +7,7 @@ import (
 	pvtbc "github.com/ticken-ts/ticken-pvtbc-connector"
 	"ticken-event-service/infra/bus"
 	"ticken-event-service/models"
+	"ticken-event-service/security/auth"
 	"ticken-event-service/security/jwt"
 )
 
@@ -48,10 +49,10 @@ type IBuilder interface {
 	BuildEngine() *gin.Engine
 	BuildJWTVerifier() jwt.Verifier
 	BuildPvtbcCaller() *pvtbc.Caller
+	BuildFileUploader() FileUploader
 	BuildPvtbcListener() *pvtbc.Listener
 	BuildPubbcAdmin(privateKey string) pubbc.Admin
 	BuildBusPublisher(connString string) BusPublisher
-	BuildFileUploader() FileUploader
-
+	BuildAuthIssuer(clientSecret string) *auth.Issuer
 	BuildAtomicPvtbcCaller(mspID, user, peerAddr string, userCert, userPriv, tlsCert []byte) (*pvtbc.Caller, error)
 }

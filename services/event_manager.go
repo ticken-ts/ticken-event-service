@@ -28,18 +28,16 @@ type EventManager struct {
 }
 
 func NewEventManager(
-	eventRepo repos.EventRepository,
-	organizerRepo repos.OrganizerRepository,
-	organizationRepo repos.OrganizationRepository,
+	repoProvider repos.IProvider,
 	publisher *async.Publisher,
 	organizationManager IOrganizationManager,
 	pubbcAdmin pubbc.Admin,
 ) IEventManager {
 	return &EventManager{
 		publisher:           publisher,
-		eventRepo:           eventRepo,
-		organizerRepo:       organizerRepo,
-		organizationRepo:    organizationRepo,
+		eventRepo:           repoProvider.GetEventRepository(),
+		organizerRepo:       repoProvider.GetOrganizerRepository(),
+		organizationRepo:    repoProvider.GetOrganizationRepository(),
 		organizationManager: organizationManager,
 		pubbcAdmin:          pubbcAdmin,
 	}

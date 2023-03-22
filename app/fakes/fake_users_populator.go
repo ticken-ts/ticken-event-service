@@ -6,28 +6,44 @@ import (
 	"ticken-event-service/env"
 	"ticken-event-service/models"
 	"ticken-event-service/repos"
+	"ticken-event-service/security/auth"
+	"ticken-event-service/sync"
 )
 
 type FakeUsersPopulator struct {
-	devUserInfo   config.DevUser
-	reposProvider repos.IProvider
+	devConfig      config.DevConfig
+	reposProvider  repos.IProvider
+	keycloakClient *sync.KeycloakHTTPClient
 }
 
-func NewFakeUsersPopulator(reposProvider repos.IProvider, devUserInfo config.DevUser) *FakeUsersPopulator {
+func NewFakeUsersPopulator(reposProvider repos.IProvider, authIssuer *auth.Issuer, devConfig config.DevConfig, servicesConfig config.ServicesConfig) *FakeUsersPopulator {
 	return &FakeUsersPopulator{
-		devUserInfo:   devUserInfo,
-		reposProvider: reposProvider,
+		devConfig:      devConfig,
+		reposProvider:  reposProvider,
+		keycloakClient: sync.NewKeycloakHTTPClient(servicesConfig.Keycloak, auth.Organizer, authIssuer),
 	}
 }
 
 func (populator *FakeUsersPopulator) Populate() error {
-	if !env.TickenEnv.IsDev() {
-		return nil
-	}
+	var uuidDevUser = uuid.MustParse(populator.devConfig.User.UserID)
 
-	uuidDevUser, err := uuid.Parse(populator.devUserInfo.UserID)
-	if err != nil {
-		return err
+	if !env.TickenEnv.IsDev() || populator.devConfig.Mock.DisableAuthMock {
+		foundUserInKeycloak, _ := populator.keycloakClient.GetUserByEmail(populator.devConfig.User.Email)
+		if foundUserInKeycloak != nil {
+			return nil
+		}
+
+		_, err := populator.keycloakClient.RegisterUser(
+			populator.devConfig.User.Username,
+			populator.devConfig.User.Username,
+			populator.devConfig.User.Email,
+		)
+		if err != nil {
+			return err
+		}
+
+		foundUserInKeycloak, _ = populator.keycloakClient.GetUserByEmail(populator.devConfig.User.Email)
+		uuidDevUser = foundUserInKeycloak.ID
 	}
 
 	organizerRepo := populator.reposProvider.GetOrganizerRepository()
@@ -38,10 +54,10 @@ func (populator *FakeUsersPopulator) Populate() error {
 
 	devOrganizer := models.NewOrganizer(
 		uuidDevUser,
-		populator.devUserInfo.Firstname,
-		populator.devUserInfo.Lastname,
-		populator.devUserInfo.Username,
-		populator.devUserInfo.Email,
+		populator.devConfig.User.Firstname,
+		populator.devConfig.User.Lastname,
+		populator.devConfig.User.Username,
+		populator.devConfig.User.Email,
 	)
 
 	if err := organizerRepo.AddOrganizer(devOrganizer); err != nil {

@@ -18,15 +18,13 @@ type OrganizationManager struct {
 }
 
 func NewOrganizationManager(
+	repoProvider repos.IProvider,
 	hsm infra.HSM,
-	organizerRepo repos.OrganizerRepository,
-	organizationRepo repos.OrganizationRepository,
 	pvtbcCallerAtomicBuilder pvtbcCallerAtomicBuilder) *OrganizationManager {
-
 	return &OrganizationManager{
 		hsm:                      hsm,
-		organizerRepo:            organizerRepo,
-		organizationRepo:         organizationRepo,
+		organizerRepo:            repoProvider.GetOrganizerRepository(),
+		organizationRepo:         repoProvider.GetOrganizationRepository(),
 		pvtbcCallerAtomicBuilder: pvtbcCallerAtomicBuilder,
 	}
 }

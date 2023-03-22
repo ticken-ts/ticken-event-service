@@ -31,4 +31,4 @@ config.json
 tmp
 
 # uploaded assets folder
-uploads
+.uploads

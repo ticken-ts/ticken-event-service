@@ -9,6 +9,7 @@ import (
 	"ticken-event-service/api/controllers/eventController"
 	"ticken-event-service/api/controllers/healthController"
 	"ticken-event-service/api/controllers/publicController"
+	"ticken-event-service/api/controllers/validatorController"
 	"ticken-event-service/api/middlewares"
 	"ticken-event-service/app/fakes"
 	"ticken-event-service/config"
@@ -38,18 +39,28 @@ func New(infraBuilder infra.IBuilder, tickenConfig *config.Config) *TickenEventA
 
 	engine := infraBuilder.BuildEngine()
 	jwtVerifier := infraBuilder.BuildJWTVerifier()
+	fileUploader := infraBuilder.BuildFileUploader()
 	db := infraBuilder.BuildDb(env.TickenEnv.DbConnString)
 	hsm := infraBuilder.BuildHSM(env.TickenEnv.HSMEncryptionKey)
 	pubbcAdmin := infraBuilder.BuildPubbcAdmin(env.TickenEnv.TickenWalletKey)
 	busPublisher := infraBuilder.BuildBusPublisher(env.TickenEnv.BusConnString)
-	fileUploader := infraBuilder.BuildFileUploader()
+	authIssuer := infraBuilder.BuildAuthIssuer(env.TickenEnv.ServiceClientSecret)
 
 	repoProvider, err := repos.NewProvider(db, &tickenConfig.Database)
 	if err != nil {
 		panic(err)
 	}
 
-	serviceProvider, err := services.NewProvider(repoProvider, busPublisher, hsm, infraBuilder, pubbcAdmin, fileUploader)
+	serviceProvider, err := services.NewProvider(
+		repoProvider,
+		busPublisher,
+		hsm,
+		infraBuilder,
+		pubbcAdmin,
+		fileUploader,
+		authIssuer,
+		tickenConfig.Services,
+	)
 	if err != nil {
 		panic(err)
 	}
@@ -68,6 +79,7 @@ func New(infraBuilder infra.IBuilder, tickenConfig *config.Config) *TickenEventA
 		healthController.New(serviceProvider),
 		publicController.New(serviceProvider),
 		assetController.New(serviceProvider),
+		validatorController.New(serviceProvider),
 	}
 
 	apiRouter := engine.Group(tickenConfig.Server.APIPrefix)
@@ -81,14 +93,8 @@ func New(infraBuilder infra.IBuilder, tickenConfig *config.Config) *TickenEventA
 	}
 
 	tickenEventApp.populators = []Populator{
-		fakes.NewFakeUsersPopulator(repoProvider, tickenConfig.Dev.User),
-		fakes.NewFakeOrgsPopulator(repoProvider, tickenConfig.Dev.User, tickenConfig.Dev.Orgs, hsm, tickenConfig.Pvtbc.ClusterStoragePath),
-		//&fakes.FakeEventsPopulator{
-		//	ReposProvider: repoProvider,
-		//	DevUserInfo:   tickenConfig.Dev.User,
-		//	DevEventsInfo: tickenConfig.Dev.Events,
-		//	DevOrgsInfo:   tickenConfig.Dev.Orgs,
-		//},
+		fakes.NewFakeUsersPopulator(repoProvider, authIssuer, tickenConfig.Dev, tickenConfig.Services),
+		fakes.NewFakeOrgsPopulator(repoProvider, authIssuer, tickenConfig.Dev, hsm, tickenConfig.Pvtbc.ClusterStoragePath),
 	}
 
 	return tickenEventApp

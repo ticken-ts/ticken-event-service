@@ -34,16 +34,23 @@ type AssetRepository interface {
 	AddAsset(asset *models.Asset) error
 }
 
+type ValidatorRepository interface {
+	AddValidator(validator *models.Validator) error
+	FindValidator(validatorID uuid.UUID) *models.Validator
+}
+
 type IProvider interface {
+	GetAssetRepository() AssetRepository
 	GetEventRepository() EventRepository
 	GetOrganizerRepository() OrganizerRepository
+	GetValidatorRepository() ValidatorRepository
 	GetOrganizationRepository() OrganizationRepository
-	GetAssetRepository() AssetRepository
 }
 
 type IFactory interface {
+	BuildAssetRepository() any
 	BuildEventRepository() any
 	BuildOrganizerRepository() any
+	BuildValidatorRepository() any
 	BuildOrganizationRepository() any
-	BuildAssetRepository() any
 }

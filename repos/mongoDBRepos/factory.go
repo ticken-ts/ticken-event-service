@@ -33,3 +33,7 @@ func (factory *Factory) BuildOrganizationRepository() any {
 func (factory *Factory) BuildAssetRepository() any {
 	return NewAssetRepository(factory.dbClient, factory.dbName)
 }
+
+func (factory *Factory) BuildValidatorRepository() any {
+	return NewValidatorRepository(factory.dbClient, factory.dbName)
+}

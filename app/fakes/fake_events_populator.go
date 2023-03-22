@@ -17,6 +17,22 @@ type FakeEventsPopulator struct {
 	DevEventsInfo config.Events
 }
 
+/*
+   "events": {
+     "event_id": "8709adbb-0504-4707-9cb2-867126c8172f",
+     "event_name": "ticken event",
+     "event_description": "ticken event description",
+     "event_date": "2023-04-22T15:04:05Z07:00",
+     "event_sections": [
+       {
+         "section_name": "ticken section",
+         "section_price": 100,
+         "section_quantity": 100
+       }
+     ]
+   },
+*/
+
 func (populator *FakeEventsPopulator) Populate() error {
 	if !env.TickenEnv.IsDev() {
 		return nil
