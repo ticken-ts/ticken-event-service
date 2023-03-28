@@ -1,8 +1,9 @@
 package models
 
 import (
+	"fmt"
 	"github.com/google/uuid"
-	"ticken-event-service/exception"
+	"github.com/pkg/errors"
 	"time"
 )
 
@@ -34,8 +35,7 @@ type Event struct {
 
 func NewEvent(name string, date time.Time, description string, organizer *Organizer, organization *Organization) (*Event, error) {
 	if !organization.HasUser(organizer.Username) {
-		return nil, exception.WithMessage(
-			"organizer %s doest not belong to organization %s", organizer.Username, organization.Name)
+		return nil, errors.New(fmt.Sprintf("organizer %s doest not belong to organization %s", organizer.Username, organization.Name))
 	}
 
 	event := &Event{

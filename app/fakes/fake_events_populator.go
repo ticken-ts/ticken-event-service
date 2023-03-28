@@ -1,10 +1,10 @@
 package fakes
 
 import (
+	"fmt"
 	"github.com/google/uuid"
 	"ticken-event-service/config"
 	"ticken-event-service/env"
-	"ticken-event-service/exception"
 	"ticken-event-service/models"
 	"ticken-event-service/repos"
 	"time"
@@ -51,12 +51,12 @@ func (populator *FakeEventsPopulator) Populate() error {
 
 	organizer := populator.ReposProvider.GetOrganizerRepository().FindOrganizer(uuidDevUser)
 	if organizer == nil {
-		return exception.WithMessage("dev user with id %s not found", populator.DevUserInfo.UserID)
+		return fmt.Errorf("dev user with id %s not found", populator.DevUserInfo.UserID)
 	}
 
 	organization := populator.ReposProvider.GetOrganizationRepository().FindByName(populator.DevOrgsInfo.TickenOrgName)
 	if organization == nil {
-		return exception.WithMessage("organization with name %s not found", populator.DevOrgsInfo.TickenOrgName)
+		return fmt.Errorf("organization with name %s not found", populator.DevOrgsInfo.TickenOrgName)
 	}
 
 	fakeSections := []*models.Section{}
@@ -73,7 +73,7 @@ func (populator *FakeEventsPopulator) Populate() error {
 
 	fakeTime, err := time.Parse(time.RFC3339, populator.DevEventsInfo.EventDate)
 	if err != nil {
-		return exception.WithMessage("invalid time format: %s", populator.DevEventsInfo.EventDate)
+		return fmt.Errorf("invalid time format: %s", populator.DevEventsInfo.EventDate)
 	}
 
 	fakeEvent := &models.Event{

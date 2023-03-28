@@ -71,6 +71,7 @@ func New(infraBuilder infra.IBuilder, tickenConfig *config.Config) *TickenEventA
 	tickenEventApp.serviceProvider = serviceProvider
 
 	var appMiddlewares = []api.Middleware{
+		middlewares.NewErrorMiddleware(),
 		middlewares.NewAuthMiddleware(serviceProvider, jwtVerifier, tickenConfig.Server.APIPrefix),
 	}
 

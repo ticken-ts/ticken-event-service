@@ -3,9 +3,9 @@ package services
 import (
 	"fmt"
 	"github.com/google/uuid"
+	"github.com/pkg/errors"
 	pubbc "github.com/ticken-ts/ticken-pubbc-connector"
 	"ticken-event-service/async"
-	"ticken-event-service/exception"
 	"ticken-event-service/models"
 	"ticken-event-service/repos"
 	"time"
@@ -46,17 +46,17 @@ func NewEventManager(
 func (eventManager *EventManager) CreateEvent(organizerID, organizationID uuid.UUID, name string, date time.Time, description string, poster *models.Asset) (*models.Event, error) {
 	organizer := eventManager.organizerRepo.FindOrganizer(organizerID)
 	if organizer == nil {
-		return nil, exception.WithMessage("organizer with id %s not found", organizerID)
+		return nil, errors.New(fmt.Sprintf("organizer with id %s not found", organizerID))
 	}
 
 	organization := eventManager.organizationRepo.FindOrganization(organizationID)
 	if organization == nil {
-		return nil, exception.WithMessage("organization with id %s not found", organizationID)
+		return nil, errors.New(fmt.Sprintf("organization with id %s not found", organizationID))
 	}
 
 	event, err := models.NewEvent(name, date, description, organizer, organization)
 	if err != nil {
-		return nil, exception.FromError(err, "failed to create event")
+		return nil, errors.New("failed to create event")
 	}
 
 	atomicPvtbcCaller, err := eventManager.organizationManager.GetPvtbcConnection(organizerID, organizationID)
@@ -76,7 +76,7 @@ func (eventManager *EventManager) CreateEvent(organizerID, organizationID uuid.U
 	event.SetOnChain(organization.Channel)
 
 	if err := eventManager.eventRepo.AddEvent(event); err != nil {
-		return nil, exception.FromError(err, "failed to store event, please sync with the blockchain")
+		return nil, errors.New("failed to store event, please sync with the blockchain")
 	}
 
 	return event, nil
@@ -87,7 +87,7 @@ func (eventManager *EventManager) AddSection(organizerID, organizationID, eventI
 
 	event := eventManager.eventRepo.FindEvent(eventID)
 	if event == nil {
-		return nil, exception.WithMessage("event %s not found, please try sync with the blockchain", eventID)
+		return nil, errors.New(fmt.Sprintf("event %s not found, please try sync with the blockchain", eventID))
 	}
 
 	event.AssociateSection(section)

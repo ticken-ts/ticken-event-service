@@ -8,7 +8,6 @@ import (
 	"strconv"
 	"ticken-event-service/config"
 	"ticken-event-service/env"
-	"ticken-event-service/exception"
 	"ticken-event-service/infra"
 	"ticken-event-service/models"
 	"ticken-event-service/repos"
@@ -54,7 +53,7 @@ func (populator *FakeOrgsPopulator) Populate() error {
 
 	organizer := organizerRepo.FindOrganizer(uuidDevUser)
 	if organizer == nil {
-		return exception.WithMessage("dev user with id %s not found", populator.devConfig.User.UserID)
+		return fmt.Errorf("dev user with id %s not found", populator.devConfig.User.UserID)
 	}
 
 	// load genesis org in the database
