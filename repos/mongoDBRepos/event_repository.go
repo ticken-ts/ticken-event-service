@@ -110,6 +110,7 @@ func (r *EventMongoDBRepository) UpdateEvent(event *models.Event) *models.Event 
 				"sections":        event.Sections,
 				"on_chain":        event.OnChain,
 				"on_sale":         event.OnSale,
+				"pub_bc_address":  event.PubBCAddress,
 			},
 		},
 		updateOptions,
