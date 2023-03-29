@@ -96,6 +96,13 @@ func New(infraBuilder infra.IBuilder, tickenConfig *config.Config) *TickenEventA
 	tickenEventApp.populators = []Populator{
 		fakes.NewFakeUsersPopulator(repoProvider, authIssuer, tickenConfig.Dev, tickenConfig.Services),
 		fakes.NewFakeOrgsPopulator(repoProvider, authIssuer, tickenConfig.Dev, hsm, tickenConfig.Pvtbc.ClusterStoragePath),
+		&fakes.FakeEventsPopulator{
+			ServiceProvider: serviceProvider,
+			ReposProvider:   repoProvider,
+			DevUserInfo:     tickenConfig.Dev.User,
+			DevOrgsInfo:     tickenConfig.Dev.Orgs,
+			DevEventsInfo:   tickenConfig.Dev.Events,
+		},
 	}
 
 	return tickenEventApp

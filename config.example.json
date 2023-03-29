@@ -57,6 +57,7 @@
       "event_name": "ticken event",
       "event_description": "ticken event description",
       "event_date": "2023-04-22T15:04:05Z07:00",
+      "event_poster_uri": "https://cdn.getcrowder.com/images/90add69a-63d0-4e09-aa9b-72031906c803-abel1920x720-aa-5-min.png",
       "event_sections": [
         {
           "section_name": "ticken section",

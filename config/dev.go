@@ -24,6 +24,7 @@ type Events struct {
 	EventName        string         `mapstructure:"event_name"`
 	EventDescription string         `mapstructure:"event_description"`
 	EventDate        string         `mapstructure:"event_date"`
+	EventPosterUri   string         `mapstructure:"event_poster_uri"`
 	EventSections    []EventSection `mapstructure:"event_sections"`
 }
 

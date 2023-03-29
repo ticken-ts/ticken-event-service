@@ -2,19 +2,22 @@ package fakes
 
 import (
 	"fmt"
-	"github.com/google/uuid"
 	"ticken-event-service/config"
 	"ticken-event-service/env"
 	"ticken-event-service/models"
 	"ticken-event-service/repos"
+	"ticken-event-service/services"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type FakeEventsPopulator struct {
-	ReposProvider repos.IProvider
-	DevUserInfo   config.DevUser
-	DevOrgsInfo   config.Orgs
-	DevEventsInfo config.Events
+	ServiceProvider services.IProvider
+	ReposProvider   repos.IProvider
+	DevUserInfo     config.DevUser
+	DevOrgsInfo     config.Orgs
+	DevEventsInfo   config.Events
 }
 
 /*
@@ -38,10 +41,11 @@ func (populator *FakeEventsPopulator) Populate() error {
 		return nil
 	}
 
-	eventID := uuid.MustParse(populator.DevEventsInfo.EventID)
-	event := populator.ReposProvider.GetEventRepository().FindEvent(eventID)
-	if event != nil {
-		return nil
+	events := populator.ReposProvider.GetEventRepository().FindAvailableEvents()
+	for _, event := range events {
+		if event.Name == populator.DevEventsInfo.EventName {
+			return nil
+		}
 	}
 
 	uuidDevUser, err := uuid.Parse(populator.DevUserInfo.UserID)
@@ -59,16 +63,12 @@ func (populator *FakeEventsPopulator) Populate() error {
 		return fmt.Errorf("organization with name %s not found", populator.DevOrgsInfo.TickenOrgName)
 	}
 
-	fakeSections := []*models.Section{}
-	for i := 0; i < len(populator.DevEventsInfo.EventSections); i++ {
-		fakeSection := &models.Section{
-			EventID:      eventID,
-			OnChain:      true,
-			Name:         populator.DevEventsInfo.EventSections[i].SectionName,
-			TotalTickets: populator.DevEventsInfo.EventSections[i].SectionQuantity,
-			TicketPrice:  populator.DevEventsInfo.EventSections[i].SectionPrice,
-		}
-		fakeSections = append(fakeSections, fakeSection)
+	var assetManager = populator.ServiceProvider.GetAssetManager()
+
+	var posterUri = populator.DevEventsInfo.EventPosterUri
+	poster, err := assetManager.NewAsset("fake", "image/png", posterUri)
+	if err != nil {
+		return err
 	}
 
 	fakeTime, err := time.Parse(time.RFC3339, populator.DevEventsInfo.EventDate)
@@ -76,19 +76,36 @@ func (populator *FakeEventsPopulator) Populate() error {
 		return fmt.Errorf("invalid time format: %s", populator.DevEventsInfo.EventDate)
 	}
 
-	fakeEvent := &models.Event{
-		EventID:        eventID,
-		Name:           populator.DevEventsInfo.EventName,
-		Date:           fakeTime,
-		Description:    populator.DevEventsInfo.EventDescription,
-		Sections:       fakeSections,
-		OnSale:         true,
-		OrganizerID:    organizer.OrganizerID,
-		OrganizationID: organization.OrganizationID,
-		OnChain:        true,
-		PvtBCChannel:   organization.Channel,
-		PubBCAddress:   "",
+	var manager = populator.ServiceProvider.GetEventManager()
+
+	fakeEvent, err := manager.CreateEvent(organizer.OrganizerID, organization.OrganizationID, populator.DevEventsInfo.EventName, fakeTime, populator.DevEventsInfo.EventDescription, poster)
+	if err != nil {
+		return fmt.Errorf("failed to create fake event %s", err.Error())
 	}
 
-	return populator.ReposProvider.GetEventRepository().AddEvent(fakeEvent)
+	var fakeSections []*models.Section
+	for _, fakeSection := range populator.DevEventsInfo.EventSections {
+		fakeSection := &models.Section{
+			EventID:      fakeEvent.EventID,
+			OnChain:      true,
+			Name:         fakeSection.SectionName,
+			TotalTickets: fakeSection.SectionQuantity,
+			TicketPrice:  fakeSection.SectionPrice,
+		}
+		fakeSections = append(fakeSections, fakeSection)
+	}
+
+	for _, section := range fakeSections {
+		_, err = manager.AddSection(organizer.OrganizerID, organization.OrganizationID, section.EventID, section.Name, section.TotalTickets, section.TicketPrice)
+		if err != nil {
+			return fmt.Errorf("failed to add fake section %s", err.Error())
+		}
+	}
+
+	_, err = populator.ServiceProvider.GetEventManager().SetEventOnSale(fakeEvent.EventID, organization.OrganizationID, organizer.OrganizerID)
+	if err != nil {
+		return fmt.Errorf("failed to set fake event on sale %s", err.Error())
+	}
+
+	return nil
 }
