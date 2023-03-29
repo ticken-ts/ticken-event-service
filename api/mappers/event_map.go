@@ -18,13 +18,14 @@ func MapPosterIDToDTO(posterID *uuid.UUID) *string {
 
 func MapEventToEventDTO(event *models.Event) *dto.EventDTO {
 	return &dto.EventDTO{
-		EventID:     event.EventID.String(),
-		Name:        event.Name,
-		Date:        event.Date.Format(time.RFC3339),
-		OnChain:     event.OnChain,
-		Sections:    MapSectionListToDTO(event.Sections),
-		Poster:      MapPosterIDToDTO(event.PosterAssetID),
-		Description: event.Description,
+		EventID:      event.EventID.String(),
+		Name:         event.Name,
+		Date:         event.Date.Format(time.RFC3339),
+		OnChain:      event.OnChain,
+		Sections:     MapSectionListToDTO(event.Sections),
+		Poster:       MapPosterIDToDTO(event.PosterAssetID),
+		Description:  event.Description,
+		PubBcAddress: event.PubBCAddress,
 	}
 }
 
