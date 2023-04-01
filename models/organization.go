@@ -69,7 +69,7 @@ func (organization *Organization) HasNodes() bool {
 }
 
 func (organization *Organization) AddUser(organizer *Organizer, role string, userOrgCert *Certificate) error {
-	if organization.HasUser(organizer.Username) {
+	if organization.HasUser(organizer.OrganizerID) {
 		return fmt.Errorf("%s already is part of the organization %s", organizer.Username, organization.Name)
 	}
 
@@ -100,17 +100,17 @@ func (organization *Organization) AddNode(nodeName string, address string, nodeO
 	return nil
 }
 
-func (organization *Organization) HasUser(username string) bool {
-	return organization.GetUserByName(username) != nil
+func (organization *Organization) HasUser(organizerID uuid.UUID) bool {
+	return organization.GetUserByID(organizerID) != nil
 }
 
 func (organization *Organization) HasNode(nodeName string) bool {
 	return organization.GetNodeByName(nodeName) != nil
 }
 
-func (organization *Organization) GetUserByName(username string) *OrganizationUser {
+func (organization *Organization) GetUserByID(organizerID uuid.UUID) *OrganizationUser {
 	for _, orgUser := range organization.Users {
-		if orgUser.Username == username {
+		if orgUser.OrganizerID == organizerID {
 			return orgUser
 		}
 	}

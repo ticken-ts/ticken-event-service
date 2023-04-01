@@ -5,8 +5,8 @@ import (
 	"github.com/google/uuid"
 	"net/http"
 	"ticken-event-service/api/mappers"
+	"ticken-event-service/api/res"
 	"ticken-event-service/security/jwt"
-	"ticken-event-service/utils"
 )
 
 type createSectionPayload struct {
@@ -18,51 +18,43 @@ type createSectionPayload struct {
 func (controller *EventController) AddSection(c *gin.Context) {
 	var payload createSectionPayload
 
-	userID := c.MustGet("jwt").(*jwt.Token).Subject
+	organizerID := c.MustGet("jwt").(*jwt.Token).Subject
 
 	eventID, err := uuid.Parse(c.Param("eventID"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, utils.HttpResponse{Message: err.Error()})
+		c.Error(err)
 		c.Abort()
 		return
 	}
 
 	organizationID, err := uuid.Parse(c.Param("organizationID"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, utils.HttpResponse{Message: err.Error()})
+		c.Error(err)
 		c.Abort()
 		return
 	}
 
 	if err = c.BindJSON(&payload); err != nil {
-		c.JSON(http.StatusBadRequest, utils.HttpResponse{Message: err.Error()})
 		c.Abort()
 		return
 	}
 
-	// the only thing that we are going to validate
-	// is the that we can bind the request to the struct
-	// No further validation are going to be added, so all
-	// validations are going to be performed on chain
-
-	eventManager := controller.serviceProvider.GetEventManager()
-
-	section, err := eventManager.AddSection(
-		userID,
+	section, err := controller.serviceProvider.GetEventManager().AddSection(
+		organizerID,
 		organizationID,
 		eventID,
 		payload.Name,
 		payload.TotalTickets,
 		payload.TicketPrice,
 	)
-
 	if err != nil {
-		c.JSON(http.StatusBadRequest, utils.HttpResponse{Message: err.Error()})
+		c.Error(err)
 		c.Abort()
 		return
 	}
 
-	sectionDTO := mappers.MapSectionToDTO(section)
-
-	c.JSON(http.StatusOK, utils.HttpResponse{Data: sectionDTO})
+	c.JSON(http.StatusOK, res.Success{
+		Message: "section added successfully",
+		Data:    mappers.MapSectionToDTO(section),
+	})
 }

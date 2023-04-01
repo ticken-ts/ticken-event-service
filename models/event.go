@@ -3,7 +3,6 @@ package models
 import (
 	"fmt"
 	"github.com/google/uuid"
-	"github.com/pkg/errors"
 	"time"
 )
 
@@ -34,8 +33,8 @@ type Event struct {
 }
 
 func NewEvent(name string, date time.Time, description string, organizer *Organizer, organization *Organization) (*Event, error) {
-	if !organization.HasUser(organizer.Username) {
-		return nil, errors.New(fmt.Sprintf("organizer %s doest not belong to organization %s", organizer.Username, organization.Name))
+	if !organization.HasUser(organizer.OrganizerID) {
+		return nil, fmt.Errorf("organizer %s doest not belong to organization %s", organizer.Username, organization.Name)
 	}
 
 	event := &Event{

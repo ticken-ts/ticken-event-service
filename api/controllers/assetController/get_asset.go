@@ -12,21 +12,19 @@ import (
 func (controller *AssetController) GetAsset(c *gin.Context) {
 	assetID, err := uuid.Parse(c.Param("assetID"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, utils.HttpResponse{Message: err.Error()})
+		c.Error(err)
 		c.Abort()
 		return
 	}
 
-	assetManager := controller.serviceProvider.GetAssetManager()
-
-	asset, err := assetManager.GetAsset(assetID)
+	asset, err := controller.serviceProvider.GetAssetManager().GetAsset(assetID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, utils.HttpResponse{Message: err.Error()})
 		c.Abort()
 		return
 	}
 
-	if !URLIsLocal(asset.URL) {
+	if !isLocalURL(asset.URL) {
 		filePath := "/tmp/" + assetID.String()
 		err = downloadFile(asset.URL, filePath)
 		if err != nil {
@@ -40,7 +38,7 @@ func (controller *AssetController) GetAsset(c *gin.Context) {
 	}
 }
 
-func URLIsLocal(url string) bool {
+func isLocalURL(url string) bool {
 	return url[0:4] != "http"
 }
 

@@ -5,37 +5,41 @@ import (
 	"github.com/google/uuid"
 	"net/http"
 	"ticken-event-service/api/mappers"
+	"ticken-event-service/api/res"
 	"ticken-event-service/security/jwt"
 	"ticken-event-service/utils"
 )
 
 func (controller *EventController) GetEvent(c *gin.Context) {
-	userID := c.MustGet("jwt").(*jwt.Token).Subject
-
-	organizationID, err := uuid.Parse(c.Param("organizationID"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, utils.HttpResponse{Message: err.Error()})
-		c.Abort()
-		return
-	}
+	organizerID := c.MustGet("jwt").(*jwt.Token).Subject
 
 	eventID, err := uuid.Parse(c.Param("eventID"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, utils.HttpResponse{Message: err.Error()})
+		c.Error(err)
 		c.Abort()
 		return
 	}
 
-	eventManager := controller.serviceProvider.GetEventManager()
+	organizationID, err := uuid.Parse(c.Param("organizationID"))
+	if err != nil {
+		c.Error(err)
+		c.Abort()
+		return
+	}
 
-	event, err := eventManager.GetEvent(eventID, userID, organizationID)
+	event, err := controller.serviceProvider.GetEventManager().GetEvent(
+		eventID,
+		organizerID,
+		organizationID,
+	)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, utils.HttpResponse{Message: err.Error()})
 		c.Abort()
 		return
 	}
 
-	eventDTO := mappers.MapEventToEventDTO(event)
-
-	c.JSON(http.StatusOK, utils.HttpResponse{Data: eventDTO})
+	c.JSON(http.StatusOK, res.Success{
+		Message: "event retrieved successfully",
+		Data:    mappers.MapEventToEventDTO(event),
+	})
 }

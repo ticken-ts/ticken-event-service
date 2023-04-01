@@ -15,10 +15,22 @@ type IProvider interface {
 }
 
 type IEventManager interface {
+	// CreateEvent create and event, stored it locally and publish
+	// it to the private blockchain. This method DO NOT publish the
+	// event contract to the public blockchain, neither to publish it
+	// to other services, because the event still can be modified, such
+	// as adding new sections. To finally publish the event, we need
+	// to call method SetEventOnSale.
 	CreateEvent(organizerID, organizationID uuid.UUID, name string, date time.Time, description string, poster *models.Asset) (*models.Event, error)
+
+	// AddSection adds a section into the event  with "totalTickets" in it,
+	// with each ticket with a price of "ticketPrice".
+	// The event must not be on sale in order to be able to
+	// add more sections. Each section must have a unique name
 	AddSection(organizerID, organizationID, eventID uuid.UUID, name string, totalTickets int, ticketPrice float64) (*models.Section, error)
-	GetEvent(eventID uuid.UUID, requesterID uuid.UUID, organizationID uuid.UUID) (*models.Event, error)
-	GetOrganizationEvents(requesterID uuid.UUID, organizationID uuid.UUID) ([]*models.Event, error)
+
+	GetEvent(eventID, organizerID, organizationID uuid.UUID) (*models.Event, error)
+	GetOrganizationEvents(organizerID uuid.UUID, organizationID uuid.UUID) ([]*models.Event, error)
 	SetEventOnSale(eventID, organizationID, organizerID uuid.UUID) (*models.Event, error)
 	GetAvailableEvents() ([]*models.Event, error)
 	GetPublicEvent(eventID uuid.UUID) (*models.Event, error)

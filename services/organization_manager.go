@@ -6,6 +6,9 @@ import (
 	pvtbc "github.com/ticken-ts/ticken-pvtbc-connector"
 	"ticken-event-service/infra"
 	"ticken-event-service/repos"
+	"ticken-event-service/tickenerr"
+	organizationerr "ticken-event-service/tickenerr/organizationrerr"
+	"ticken-event-service/tickenerr/organizererr"
 )
 
 type pvtbcCallerAtomicBuilder func(mspID, user, peerAddr string, userCert, userPriv, tlsCert []byte) (*pvtbc.Caller, error)
@@ -20,7 +23,8 @@ type OrganizationManager struct {
 func NewOrganizationManager(
 	repoProvider repos.IProvider,
 	hsm infra.HSM,
-	pvtbcCallerAtomicBuilder pvtbcCallerAtomicBuilder) *OrganizationManager {
+	pvtbcCallerAtomicBuilder pvtbcCallerAtomicBuilder,
+) *OrganizationManager {
 	return &OrganizationManager{
 		hsm:                      hsm,
 		organizerRepo:            repoProvider.GetOrganizerRepository(),
@@ -32,31 +36,38 @@ func NewOrganizationManager(
 func (service *OrganizationManager) GetPvtbcConnection(organizerID uuid.UUID, organizationID uuid.UUID) (*pvtbc.Caller, error) {
 	organizer := service.organizerRepo.FindOrganizer(organizerID)
 	if organizer == nil {
-		return nil, fmt.Errorf("could not find organizer with ID %s", organizerID)
+		return nil, tickenerr.New(organizererr.OrganizerNotFoundErrorCode)
 	}
-
 	organization := service.organizationRepo.FindOrganization(organizationID)
 	if organization == nil {
-		return nil, fmt.Errorf("could not find organization with ID %s", organizationID)
+		return nil, tickenerr.New(organizationerr.OrganizationNotFoundErrorCode)
 	}
 
-	if !organization.HasUser(organizer.Username) {
-		return nil, fmt.Errorf("organizer %s doesnt belong to organization %s", organizer.Username, organization.MSPID)
+	if !organization.HasUser(organizer.OrganizerID) {
+		return nil, tickenerr.NewWithMessage(
+			organizationerr.EstablishPVTBCConnectionErrorCode,
+			fmt.Sprintf("user %s doest not belong to organization %s", organizer.Username, organization.Name),
+		)
 	}
 
 	if !organization.HasNodes() {
-		return nil, fmt.Errorf("organization doenst has any active nodes")
+		return nil, tickenerr.NewWithMessage(
+			organizationerr.EstablishPVTBCConnectionErrorCode,
+			fmt.Sprintf("organization %s doest not have any nodes", organization.Name),
+		)
 	}
 
-	orgUserInfo := organization.GetUserByName(organizer.Username)
+	// we are sure that this user belongs to the organization
+	// and we will find it, because we checked in the lines before
+	orgUserInfo := organization.GetUserByID(organizer.OrganizerID)
 
 	memberPrivBytes, err := service.hsm.Retrieve(orgUserInfo.UserOrgCert.PrivKeyStorageKey)
 	if err != nil {
 		return nil, fmt.Errorf("could not get user private key from HSM: %s", err.Error())
 	}
 
-	orgMemberCert := orgUserInfo.UserOrgCert.Content
 	orgMemberPriv := memberPrivBytes
+	orgMemberCert := orgUserInfo.UserOrgCert.Content
 
 	peerNode := organization.Nodes[0]
 
@@ -68,9 +79,16 @@ func (service *OrganizationManager) GetPvtbcConnection(organizerID uuid.UUID, or
 		orgMemberPriv,
 		peerNode.NodeTlsCert.Content,
 	)
+	if err != nil {
+		return nil, tickenerr.FromError(organizationerr.EstablishPVTBCConnectionErrorCode, err)
+	}
 
 	if err := pvtbcCaller.SetChannel(organization.Channel); err != nil {
-		return nil, err
+		return nil, tickenerr.FromErrorWithMessage(
+			organizationerr.EstablishPVTBCConnectionErrorCode,
+			err,
+			fmt.Sprintf("could not stablish connection in PVTBC channel %s", organization.Channel),
+		)
 	}
 
 	return pvtbcCaller, nil

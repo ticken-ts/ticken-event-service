@@ -8,15 +8,12 @@ import (
 	"ticken-event-service/async"
 	"ticken-event-service/models"
 	"ticken-event-service/repos"
+	"ticken-event-service/tickenerr"
+	"ticken-event-service/tickenerr/eventerr"
+	organizationerr "ticken-event-service/tickenerr/organizationrerr"
+	"ticken-event-service/tickenerr/organizererr"
 	"time"
 )
-
-// *************+ Payloads *************** //
-
-type CreateEventProps struct {
-}
-
-// *************+************************* //
 
 type EventManager struct {
 	publisher           *async.Publisher
@@ -43,7 +40,14 @@ func NewEventManager(
 	}
 }
 
-func (eventManager *EventManager) CreateEvent(organizerID, organizationID uuid.UUID, name string, date time.Time, description string, poster *models.Asset) (*models.Event, error) {
+func (eventManager *EventManager) CreateEvent(
+	organizerID uuid.UUID,
+	organizationID uuid.UUID,
+	name string,
+	date time.Time,
+	description string,
+	poster *models.Asset,
+) (*models.Event, error) {
 	organizer := eventManager.organizerRepo.FindOrganizer(organizerID)
 	if organizer == nil {
 		return nil, errors.New(fmt.Sprintf("organizer with id %s not found", organizerID))
@@ -82,112 +86,150 @@ func (eventManager *EventManager) CreateEvent(organizerID, organizationID uuid.U
 	return event, nil
 }
 
-func (eventManager *EventManager) AddSection(organizerID, organizationID, eventID uuid.UUID, name string, totalTickets int, ticketPrice float64) (*models.Section, error) {
+func (eventManager *EventManager) AddSection(
+	organizerID uuid.UUID,
+	organizationID uuid.UUID,
+	eventID uuid.UUID,
+	name string,
+	totalTickets int,
+	ticketPrice float64,
+) (*models.Section, error) {
+
 	section := models.NewSection(name, eventID, totalTickets, ticketPrice)
 
 	event := eventManager.eventRepo.FindEvent(eventID)
 	if event == nil {
-		return nil, errors.New(fmt.Sprintf("event %s not found, please try sync with the blockchain", eventID))
+		return nil, tickenerr.New(eventerr.EventNotFoundErrorCode)
 	}
 
 	event.AssociateSection(section)
 
-	atomicPvtbcCaller, err := eventManager.organizationManager.GetPvtbcConnection(organizerID, organizationID)
+	atomicPvtbcCaller, err := eventManager.organizationManager.GetPvtbcConnection(
+		organizerID,
+		organizationID,
+	)
 	if err != nil {
 		return nil, err
 	}
 
-	// todo -> add txID to the section?
-	_, _, err = atomicPvtbcCaller.TickenEventCaller.AddSection(
-		section.EventID, section.Name, section.TotalTickets, section.TicketPrice)
+	_, txID, err := atomicPvtbcCaller.AddSection(
+		section.EventID,
+		section.Name,
+		section.TotalTickets,
+		section.TicketPrice,
+	)
 	if err != nil {
-		return nil, err
+		return nil, tickenerr.FromError(eventerr.FailedToAddSectionInPVTBC, err)
 	}
 
-	section.OnChain = true
+	section.SetOnChain(txID)
+
 	eventManager.eventRepo.UpdateEvent(event)
 
 	return section, nil
 }
 
-func (eventManager *EventManager) GetEvent(eventID uuid.UUID, requesterID uuid.UUID, organizationID uuid.UUID) (*models.Event, error) {
+func (eventManager *EventManager) GetEvent(
+	eventID uuid.UUID,
+	organizerID uuid.UUID,
+	organizationID uuid.UUID,
+) (*models.Event, error) {
 	event := eventManager.eventRepo.FindEvent(eventID)
 	if event == nil {
-		return nil, fmt.Errorf("event %s not found", eventID)
+		return nil, tickenerr.New(eventerr.EventNotFoundErrorCode)
 	}
 
-	requester := eventManager.organizerRepo.FindOrganizer(requesterID)
-	if requester == nil {
-		return nil, fmt.Errorf("requester with id %s not found", requesterID)
+	organizer := eventManager.organizerRepo.FindOrganizer(organizerID)
+	if organizer == nil {
+		return nil, tickenerr.New(organizererr.OrganizerNotFoundErrorCode)
 	}
 
 	organization := eventManager.organizationRepo.FindOrganization(organizationID)
 	if organization == nil {
-		return nil, fmt.Errorf("organization with id %s not found", organizationID)
-	}
-
-	if !organization.HasUser(requester.Username) {
-		return nil, fmt.Errorf("user do not belong to the organization")
+		return nil, tickenerr.New(organizationerr.OrganizationNotFoundErrorCode)
 	}
 
 	if !event.IsFromOrganization(organization.OrganizationID) {
-		return nil, fmt.Errorf("user %s doest not belongs to the event organization", requesterID)
+		return nil, tickenerr.NewWithMessage(
+			eventerr.EventReadPermissionErrorCode,
+			fmt.Sprintf("event doest not belongs to organization"),
+		)
+	}
+
+	if !organization.HasUser(organizer.OrganizerID) {
+		return nil, tickenerr.NewWithMessage(
+			eventerr.EventReadPermissionErrorCode,
+			fmt.Sprintf("organizer doest not belongs to organization"),
+		)
 	}
 
 	return event, nil
 }
 
-func (eventManager *EventManager) GetOrganizationEvents(requesterID uuid.UUID, organizationID uuid.UUID) ([]*models.Event, error) {
+func (eventManager *EventManager) GetOrganizationEvents(
+	organizerID uuid.UUID,
+	organizationID uuid.UUID,
+) ([]*models.Event, error) {
+	organizer := eventManager.organizerRepo.FindOrganizer(organizerID)
+	if organizer == nil {
+		return nil, tickenerr.New(organizererr.OrganizerNotFoundErrorCode)
+	}
+
 	organization := eventManager.organizationRepo.FindOrganization(organizationID)
 	if organization == nil {
-		return nil, fmt.Errorf("organization with id %s not found", organizationID)
+		return nil, tickenerr.New(organizationerr.OrganizationNotFoundErrorCode)
 	}
 
-	requester := eventManager.organizerRepo.FindOrganizer(requesterID)
-	if requester == nil {
-		return nil, fmt.Errorf("organizer with id %s not found", requesterID)
-	}
-
-	if !organization.HasUser(requester.Username) {
-		return nil, fmt.Errorf("user do not belong to the organization")
+	if !organization.HasUser(organizer.OrganizerID) {
+		return nil, tickenerr.NewWithMessage(
+			eventerr.EventReadPermissionErrorCode,
+			fmt.Sprintf("organizer doest not belongs to organization"),
+		)
 	}
 
 	return eventManager.eventRepo.FindOrganizationEvents(organizationID), nil
 }
 
-func (eventManager *EventManager) SetEventOnSale(eventID, organizationID, organizerID uuid.UUID) (*models.Event, error) {
+func (eventManager *EventManager) SetEventOnSale(
+	eventID uuid.UUID,
+	organizationID uuid.UUID,
+	organizerID uuid.UUID,
+) (*models.Event, error) {
+	// this method perform all permissions checks
 	event, err := eventManager.GetEvent(eventID, organizerID, organizationID)
 	if err != nil {
 		return nil, err
 	}
 
-	atomicPvtbcCaller, err := eventManager.organizationManager.GetPvtbcConnection(organizerID, organizationID)
+	atomicPvtbcCaller, err := eventManager.organizationManager.GetPvtbcConnection(
+		organizerID,
+		organizationID,
+	)
 	if err != nil {
 		return nil, err
 	}
 
 	if _, err := atomicPvtbcCaller.SetEventOnSale(eventID); err != nil {
-		return nil, err
+		return nil, tickenerr.FromError(eventerr.SetTicketOnSaleInPVTBCErrorCode, err)
 	}
 
 	addr, err := eventManager.pubbcAdmin.DeployEventContract()
 	if err != nil {
-		// TODO -> how to handle
-		panic(err)
+		panic(err) // todo -> handle this
 	}
-	event.PubBCAddress = addr
 
 	event.OnSale = true
+	event.PubBCAddress = addr
+
 	updatedEvent := eventManager.eventRepo.UpdateEvent(event)
 
 	// once the event is published in the public blockchain, we sent
 	// it to the other services to start commercializing  the tickets
 	if err := eventManager.publisher.PublishNewEvent(event); err != nil {
-		// TODO -> how to handle
-		panic(err)
+		panic(err) // TODO -> how to handle
 	}
 
-	return updatedEvent, err
+	return updatedEvent, nil
 }
 
 // GetAvailableEvents

@@ -15,9 +15,6 @@ type validatorPayload struct {
 	Email    string `json:"email"`
 }
 
-// transferencia
-// scannear tickets -> app tickets
-
 func (controller *ValidatorController) RegisterValidator(c *gin.Context) {
 	organizerID := c.MustGet("jwt").(*jwt.Token).Subject
 
@@ -25,20 +22,17 @@ func (controller *ValidatorController) RegisterValidator(c *gin.Context) {
 
 	organizationID, err := uuid.Parse(c.Param("organizationID"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, utils.HttpResponse{Message: err.Error()})
+		c.Error(err)
 		c.Abort()
 		return
 	}
 
 	if err = c.BindJSON(&payload); err != nil {
-		c.JSON(http.StatusBadRequest, utils.HttpResponse{Message: err.Error()})
 		c.Abort()
 		return
 	}
 
-	validatorManager := controller.serviceProvider.GetValidatorManager()
-
-	newValidator, err := validatorManager.RegisterValidator(
+	newValidator, err := controller.serviceProvider.GetValidatorManager().RegisterValidator(
 		organizerID,
 		organizationID,
 		payload.Username,
@@ -46,13 +40,13 @@ func (controller *ValidatorController) RegisterValidator(c *gin.Context) {
 		payload.Email,
 	)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, utils.HttpResponse{Message: err.Error()})
+		c.Error(err)
 		c.Abort()
 		return
 	}
 
 	c.JSON(http.StatusCreated, utils.HttpResponse{
-		Message: "Validator created",
+		Message: "validator created successfully",
 		Data:    mappers.MapValidatorToValidatorDTO(newValidator),
 	})
 }

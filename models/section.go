@@ -8,6 +8,7 @@ type Section struct {
 	TicketPrice  float64   `bson:"ticket_price"`
 	TotalTickets int       `bson:"total_tickets"`
 	OnChain      bool      `bson:"on_chain"`
+	TxID         string    `bson:"tx_id"`
 }
 
 func NewSection(name string, eventID uuid.UUID, totalTickets int, ticketPrice float64) *Section {
@@ -18,4 +19,9 @@ func NewSection(name string, eventID uuid.UUID, totalTickets int, ticketPrice fl
 		TotalTickets: totalTickets,
 		OnChain:      false,
 	}
+}
+
+func (section *Section) SetOnChain(txID string) {
+	section.OnChain = true
+	section.TxID = txID
 }

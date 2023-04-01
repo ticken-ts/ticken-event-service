@@ -1,34 +1,37 @@
 package eventController
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"net/http"
 	"ticken-event-service/api/mappers"
+	"ticken-event-service/api/res"
 	"ticken-event-service/security/jwt"
-	"ticken-event-service/utils"
 )
 
 func (controller *EventController) GetOrganizationEvents(c *gin.Context) {
-	userID := c.MustGet("jwt").(*jwt.Token).Subject
+	organizerID := c.MustGet("jwt").(*jwt.Token).Subject
 
 	organizationID, err := uuid.Parse(c.Param("organizationID"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, utils.HttpResponse{Message: err.Error()})
+		c.Error(err)
 		c.Abort()
 		return
 	}
 
-	eventManager := controller.serviceProvider.GetEventManager()
-
-	events, err := eventManager.GetOrganizationEvents(userID, organizationID)
+	events, err := controller.serviceProvider.GetEventManager().GetOrganizationEvents(
+		organizerID,
+		organizationID,
+	)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, utils.HttpResponse{Message: err.Error()})
+		c.Error(err)
 		c.Abort()
 		return
 	}
 
-	eventsDTO := mappers.MapEventListToDTO(events)
-
-	c.JSON(http.StatusOK, utils.HttpResponse{Data: eventsDTO})
+	c.JSON(http.StatusOK, res.Success{
+		Message: fmt.Sprintf("%d events found", len(events)),
+		Data:    mappers.MapEventListToDTO(events),
+	})
 }

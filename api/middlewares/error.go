@@ -6,12 +6,9 @@ import (
 	"ticken-event-service/api/res"
 	"ticken-event-service/log"
 	"ticken-event-service/tickenerr"
-	"ticken-event-service/tickenerr/usererr"
 )
 
-var statusCodesByError = map[uint8]int{
-	usererr.UserAlreadyExistErrorCode: http.StatusBadRequest,
-}
+var statusCodesByError = map[uint32]int{}
 
 type ErrorMiddleware struct {
 }
@@ -42,7 +39,7 @@ func (middleware *ErrorMiddleware) ErrorHandler() gin.HandlerFunc {
 	}
 }
 
-func getStatusCode(errCode uint8) int {
+func getStatusCode(errCode uint32) int {
 	statusCode, ok := statusCodesByError[errCode]
 	if !ok {
 		return http.StatusInternalServerError

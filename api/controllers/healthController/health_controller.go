@@ -3,8 +3,8 @@ package healthController
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"ticken-event-service/api/res"
 	"ticken-event-service/services"
-	"ticken-event-service/utils"
 )
 
 const HealthMessage = "Everything is fine"
@@ -24,5 +24,5 @@ func (controller *HealthController) Setup(router gin.IRouter) {
 }
 
 func (controller *HealthController) Healthz(c *gin.Context) {
-	c.JSON(http.StatusOK, utils.HttpResponse{Message: HealthMessage})
+	c.JSON(http.StatusOK, res.Success{Message: HealthMessage})
 }
