@@ -103,8 +103,8 @@ func (populator *FakeEventsPopulator) Populate() error {
 
 	_, err = populator.ServiceProvider.GetEventManager().StartSale(
 		fakeEvent.EventID,
-		organization.OrganizationID,
 		organizer.OrganizerID,
+		organization.OrganizationID,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to set fake event on sale %s", err.Error())
@@ -136,5 +136,6 @@ func downloadFile(URL string) (*file.File, error) {
 	return &file.File{
 		Content:  imageContent,
 		MimeType: response.Header.Get("Content-Type"),
+		Filename: "poster",
 	}, nil
 }

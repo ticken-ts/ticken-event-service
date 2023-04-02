@@ -74,10 +74,12 @@ func (eventManager *EventManager) CreateEvent(
 
 	var posterID = uuid.Nil
 	if poster != nil {
-		if asset, err := eventManager.assetManager.UploadAsset(
-			poster, fmt.Sprintf("%s-poster.%s", name, poster.GetExtension())); err != nil {
-			posterID = asset.ID
+		var assetName = fmt.Sprintf("%s-poster%s", name, poster.GetExtension())
+		asset, err := eventManager.assetManager.UploadAsset(poster, assetName)
+		if err != nil {
+			return nil, err
 		}
+		posterID = asset.ID
 	}
 
 	eventID := uuid.New()
