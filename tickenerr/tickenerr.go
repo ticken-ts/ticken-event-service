@@ -3,6 +3,7 @@ package tickenerr
 import (
 	"fmt"
 	"strconv"
+	"ticken-event-service/tickenerr/asseterr"
 	"ticken-event-service/tickenerr/commonerr"
 	"ticken-event-service/tickenerr/eventerr"
 	organizationerr "ticken-event-service/tickenerr/organizationrerr"
@@ -41,6 +42,9 @@ func FromErrorWithMessage(errCode uint32, underlyingError error, extraMsg string
 	}
 	if between(errCode, 400, 499) {
 		message = organizationerr.GetErrMessage(errCode)
+	}
+	if between(errCode, 500, 599) {
+		message = asseterr.GetErrMessage(errCode)
 	}
 
 	if len(extraMsg) > 0 {

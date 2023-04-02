@@ -8,12 +8,3 @@ type Asset struct {
 	MimeType string    `bson:"mimeType"`
 	URL      string    `bson:"url"`
 }
-
-func NewAsset(id uuid.UUID, name string, mimeType string, url string) *Asset {
-	return &Asset{
-		ID:       id,
-		Name:     name,
-		MimeType: mimeType,
-		URL:      url,
-	}
-}

@@ -1,11 +1,12 @@
 package services
 
 import (
-	"fmt"
 	"github.com/google/uuid"
 	"ticken-event-service/infra"
 	"ticken-event-service/models"
 	"ticken-event-service/repos"
+	"ticken-event-service/tickenerr"
+	"ticken-event-service/tickenerr/asseterr"
 	"ticken-event-service/utils/file"
 )
 
@@ -21,27 +22,30 @@ func NewAssetManager(assetRepo repos.AssetRepository, fileUploader infra.FileUpl
 	}
 }
 
-func (manager *AssetManager) GetAsset(assetID uuid.UUID) (*models.Asset, error) {
+func (manager *AssetManager) DownloadAsset(assetID uuid.UUID) (*models.Asset, error) {
 	asset := manager.assetRepository.FindByID(assetID)
 	if asset == nil {
-		return nil, fmt.Errorf("asset with id %s not found", assetID.String())
+		return nil, tickenerr.New(asseterr.AssetNotFoundErrorCode)
 	}
 	return asset, nil
-}
-
-func (manager *AssetManager) NewAsset(name string, mimeType string, url string) (*models.Asset, error) {
-	newAsset := models.NewAsset(uuid.New(), name, mimeType, url)
-	err := manager.assetRepository.AddAsset(newAsset)
-	if err != nil {
-		return nil, err
-	}
-	return newAsset, nil
 }
 
 func (manager *AssetManager) UploadAsset(file *file.File, name string) (*models.Asset, error) {
 	url, err := manager.fileUploader.UploadFile(file)
 	if err != nil {
-		return nil, err
+		return nil, tickenerr.FromError(asseterr.FailedToUploadAsset, err)
 	}
-	return manager.NewAsset(name, file.MimeType, url)
+
+	newAsset := &models.Asset{
+		ID:       uuid.New(),
+		Name:     name,
+		MimeType: file.MimeType,
+		URL:      url,
+	}
+
+	if err := manager.assetRepository.AddAsset(newAsset); err != nil {
+		return nil, tickenerr.FromError(asseterr.FailedToStoreAssetInDatabase, err)
+	}
+
+	return newAsset, nil
 }

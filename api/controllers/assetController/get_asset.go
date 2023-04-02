@@ -17,7 +17,7 @@ func (controller *AssetController) GetAsset(c *gin.Context) {
 		return
 	}
 
-	asset, err := controller.serviceProvider.GetAssetManager().GetAsset(assetID)
+	asset, err := controller.serviceProvider.GetAssetManager().DownloadAsset(assetID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, utils.HttpResponse{Message: err.Error()})
 		c.Abort()
