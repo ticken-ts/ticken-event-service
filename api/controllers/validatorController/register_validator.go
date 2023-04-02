@@ -5,8 +5,8 @@ import (
 	"github.com/google/uuid"
 	"net/http"
 	"ticken-event-service/api/mappers"
+	"ticken-event-service/api/res"
 	"ticken-event-service/security/jwt"
-	"ticken-event-service/utils"
 )
 
 type validatorPayload struct {
@@ -45,7 +45,7 @@ func (controller *ValidatorController) RegisterValidator(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, utils.HttpResponse{
+	c.JSON(http.StatusCreated, res.Success{
 		Message: "validator created successfully",
 		Data:    mappers.MapValidatorToValidatorDTO(newValidator),
 	})

@@ -7,7 +7,7 @@ import (
 	"ticken-event-service/infra"
 	"ticken-event-service/repos"
 	"ticken-event-service/tickenerr"
-	organizationerr "ticken-event-service/tickenerr/organizationrerr"
+	"ticken-event-service/tickenerr/organizationerr"
 	"ticken-event-service/tickenerr/organizererr"
 )
 

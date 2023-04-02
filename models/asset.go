@@ -8,3 +8,7 @@ type Asset struct {
 	MimeType string    `bson:"mimeType"`
 	URL      string    `bson:"url"`
 }
+
+func (asset *Asset) IsStoredLocally() bool {
+	return len(asset.URL) >= 4 && asset.URL[0:4] != "http"
+}

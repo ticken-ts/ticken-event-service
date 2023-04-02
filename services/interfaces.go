@@ -52,6 +52,6 @@ type IValidatorManager interface {
 }
 
 type IAssetManager interface {
-	DownloadAsset(assetID uuid.UUID) (*models.Asset, error)
+	GetAssetURL(assetID uuid.UUID) (string, error)
 	UploadAsset(file *file.File, name string) (*models.Asset, error)
 }

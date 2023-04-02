@@ -22,12 +22,13 @@ func NewAssetManager(assetRepo repos.AssetRepository, fileUploader infra.FileUpl
 	}
 }
 
-func (manager *AssetManager) DownloadAsset(assetID uuid.UUID) (*models.Asset, error) {
+func (manager *AssetManager) GetAssetURL(assetID uuid.UUID) (string, error) {
 	asset := manager.assetRepository.FindByID(assetID)
 	if asset == nil {
-		return nil, tickenerr.New(asseterr.AssetNotFoundErrorCode)
+		return "", tickenerr.New(asseterr.AssetNotFoundErrorCode)
 	}
-	return asset, nil
+
+	return asset.URL, nil
 }
 
 func (manager *AssetManager) UploadAsset(file *file.File, name string) (*models.Asset, error) {

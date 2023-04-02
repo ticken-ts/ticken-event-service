@@ -9,7 +9,7 @@ import (
 	"ticken-event-service/repos"
 	"ticken-event-service/tickenerr"
 	"ticken-event-service/tickenerr/eventerr"
-	organizationerr "ticken-event-service/tickenerr/organizationrerr"
+	"ticken-event-service/tickenerr/organizationerr"
 	"ticken-event-service/tickenerr/organizererr"
 	"ticken-event-service/utils/file"
 	"time"

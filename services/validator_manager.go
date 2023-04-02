@@ -8,7 +8,7 @@ import (
 	"ticken-event-service/security/auth"
 	"ticken-event-service/sync"
 	"ticken-event-service/tickenerr"
-	organizationerr "ticken-event-service/tickenerr/organizationrerr"
+	"ticken-event-service/tickenerr/organizationerr"
 	"ticken-event-service/tickenerr/organizererr"
 )
 

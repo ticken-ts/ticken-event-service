@@ -4,6 +4,7 @@ const (
 	AssetNotFoundErrorCode = iota
 	FailedToStoreAssetInDatabase
 	FailedToUploadAsset
+	FailedToDownloadAsset
 )
 
 func GetErrMessage(code uint32) string {
@@ -14,6 +15,8 @@ func GetErrMessage(code uint32) string {
 		return "an error occurred while storing asset info in database"
 	case FailedToUploadAsset:
 		return "an error occurred while uploading asset to bucket"
+	case FailedToDownloadAsset:
+		return "an error occurred while downloading asset to bucket"
 	default:
 		return "an error has occurred"
 	}
