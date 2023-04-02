@@ -39,7 +39,7 @@ func (controller *EventController) AddSection(c *gin.Context) {
 		return
 	}
 
-	section, err := controller.serviceProvider.GetEventManager().AddSection(
+	section, err := controller.ServiceProvider.GetEventManager().AddSection(
 		organizerID,
 		organizationID,
 		eventID,

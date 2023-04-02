@@ -20,7 +20,7 @@ func (controller *EventController) GetOrganizationEvents(c *gin.Context) {
 		return
 	}
 
-	events, err := controller.serviceProvider.GetEventManager().GetOrganizationEvents(
+	events, err := controller.ServiceProvider.GetEventManager().GetOrganizationEvents(
 		organizerID,
 		organizationID,
 	)

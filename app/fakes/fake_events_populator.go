@@ -1,12 +1,16 @@
 package fakes
 
 import (
+	"errors"
 	"fmt"
+	"io"
+	"net/http"
 	"ticken-event-service/config"
 	"ticken-event-service/env"
 	"ticken-event-service/models"
 	"ticken-event-service/repos"
 	"ticken-event-service/services"
+	"ticken-event-service/utils/file"
 	"time"
 
 	"github.com/google/uuid"
@@ -19,22 +23,6 @@ type FakeEventsPopulator struct {
 	DevOrgsInfo     config.Orgs
 	DevEventsInfo   config.Events
 }
-
-/*
-   "events": {
-     "event_id": "8709adbb-0504-4707-9cb2-867126c8172f",
-     "event_name": "ticken event",
-     "event_description": "ticken event description",
-     "event_date": "2023-04-22T15:04:05Z07:00",
-     "event_sections": [
-       {
-         "section_name": "ticken section",
-         "section_price": 100,
-         "section_quantity": 100
-       }
-     ]
-   },
-*/
 
 func (populator *FakeEventsPopulator) Populate() error {
 	if !env.TickenEnv.IsDev() {
@@ -63,10 +51,8 @@ func (populator *FakeEventsPopulator) Populate() error {
 		return fmt.Errorf("organization with name %s not found", populator.DevOrgsInfo.TickenOrgName)
 	}
 
-	var assetManager = populator.ServiceProvider.GetAssetManager()
-
 	var posterUri = populator.DevEventsInfo.EventPosterUri
-	poster, err := assetManager.NewAsset("fake", "image/png", posterUri)
+	poster, err := downloadFile(posterUri)
 	if err != nil {
 		return err
 	}
@@ -78,7 +64,14 @@ func (populator *FakeEventsPopulator) Populate() error {
 
 	var manager = populator.ServiceProvider.GetEventManager()
 
-	fakeEvent, err := manager.CreateEvent(organizer.OrganizerID, organization.OrganizationID, populator.DevEventsInfo.EventName, fakeTime, populator.DevEventsInfo.EventDescription, poster)
+	fakeEvent, err := manager.CreateEvent(
+		organizer.OrganizerID,
+		organization.OrganizationID,
+		populator.DevEventsInfo.EventName,
+		fakeTime,
+		populator.DevEventsInfo.EventDescription,
+		poster,
+	)
 	if err != nil {
 		return fmt.Errorf("failed to create fake event %s", err.Error())
 	}
@@ -96,16 +89,53 @@ func (populator *FakeEventsPopulator) Populate() error {
 	}
 
 	for _, section := range fakeSections {
-		_, err = manager.AddSection(organizer.OrganizerID, organization.OrganizationID, section.EventID, section.Name, section.TotalTickets, section.TicketPrice)
+		_, err = manager.AddSection(
+			organizer.OrganizerID,
+			organization.OrganizationID,
+			section.EventID,
+			section.Name,
+			section.TotalTickets,
+			section.TicketPrice,
+		)
 		if err != nil {
 			return fmt.Errorf("failed to add fake section %s", err.Error())
 		}
 	}
 
-	_, err = populator.ServiceProvider.GetEventManager().SetEventOnSale(fakeEvent.EventID, organization.OrganizationID, organizer.OrganizerID)
+	_, err = populator.ServiceProvider.GetEventManager().SetEventOnSale(
+		fakeEvent.EventID,
+		organization.OrganizationID,
+		organizer.OrganizerID,
+	)
 	if err != nil {
 		return fmt.Errorf("failed to set fake event on sale %s", err.Error())
 	}
 
 	return nil
+}
+
+func downloadFile(URL string) (*file.File, error) {
+	//Get the response bytes from the url
+	response, err := http.Get(URL)
+	if err != nil {
+		return nil, err
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != 200 {
+		return nil, errors.New("received non 200 response code")
+	}
+
+	imageContent, err := io.ReadAll(response.Body)
+	if err != nil {
+		return nil, err
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return &file.File{
+		Content:  imageContent,
+		MimeType: response.Header.Get("Content-Type"),
+	}, nil
 }

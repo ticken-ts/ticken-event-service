@@ -5,7 +5,7 @@ import (
 	"github.com/google/uuid"
 	"os"
 	"path/filepath"
-	"ticken-event-service/models"
+	"ticken-event-service/utils/file"
 )
 
 const uploadFilePath = ".uploads"
@@ -23,17 +23,17 @@ func NewDevFileUploader() (*DevFileUploader, error) {
 }
 
 // UploadFile is going to upload the given file to the AWS S3 bucket
-func (uploader *DevFileUploader) UploadFile(file *models.File) (string, error) {
+func (uploader *DevFileUploader) UploadFile(file *file.File) (string, error) {
 	newRandomFileName := uuid.New().String()
 
-	relativePath := filepath.Join("uploads", newRandomFileName+file.GetExtension())
+	relativePath := filepath.Join(uploadFilePath, newRandomFileName+file.GetExtension())
 
 	newFile, err := os.Create(relativePath)
 	if err != nil {
 		return "", err
 	}
 
-	_, err = newFile.Write(*file.Content)
+	_, err = newFile.Write(file.Content)
 	if err != nil {
 		return "", err
 	}

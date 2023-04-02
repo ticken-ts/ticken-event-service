@@ -5,6 +5,8 @@ const (
 	FailedToAddSectionInPVTBC
 	EventReadPermissionErrorCode
 	SetTicketOnSaleInPVTBCErrorCode
+	FailedToStoreEventInPVTBCErrorCode
+	FailedToStoreEventInDatabase
 )
 
 func GetErrMessage(code uint32) string {
@@ -16,7 +18,11 @@ func GetErrMessage(code uint32) string {
 	case EventReadPermissionErrorCode:
 		return "organizer is not allowed to read event"
 	case SetTicketOnSaleInPVTBCErrorCode:
-		return "failed to set the evebt on sale in the private blockchain"
+		return "failed to set the event on sale in the private blockchain"
+	case FailedToStoreEventInPVTBCErrorCode:
+		return "an error occurred when trying to store event in private blockchain"
+	case FailedToStoreEventInDatabase:
+		return "an error occurred when trying to store event in database"
 	default:
 		return "an error has occurred"
 	}

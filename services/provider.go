@@ -41,8 +41,8 @@ func NewProvider(
 	validatorsServiceClient := sync.NewValidatorServiceHTTPClient(servicesConfig.Validator, authIssuer)
 
 	provider.organizationManager = NewOrganizationManager(repoProvider, hsm, builder.BuildAtomicPvtbcCaller)
-	provider.eventManager = NewEventManager(repoProvider, publisher, provider.organizationManager, pubbcAdmin)
 	provider.assetManager = NewAssetManager(repoProvider.GetAssetRepository(), fileUploader)
+	provider.eventManager = NewEventManager(repoProvider, publisher, provider.organizationManager, provider.assetManager, pubbcAdmin)
 	provider.validatorManager = NewValidatorManager(repoProvider, authIssuer, validatorsKeycloakClient, validatorsServiceClient)
 
 	return provider, nil

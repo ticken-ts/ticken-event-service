@@ -3,7 +3,6 @@ package services
 import (
 	"fmt"
 	"github.com/google/uuid"
-	"github.com/pkg/errors"
 	pubbc "github.com/ticken-ts/ticken-pubbc-connector"
 	"ticken-event-service/async"
 	"ticken-event-service/models"
@@ -12,6 +11,7 @@ import (
 	"ticken-event-service/tickenerr/eventerr"
 	organizationerr "ticken-event-service/tickenerr/organizationrerr"
 	"ticken-event-service/tickenerr/organizererr"
+	"ticken-event-service/utils/file"
 	"time"
 )
 
@@ -21,6 +21,7 @@ type EventManager struct {
 	organizerRepo       repos.OrganizerRepository
 	organizationRepo    repos.OrganizationRepository
 	organizationManager IOrganizationManager
+	assetManager        IAssetManager
 	pubbcAdmin          pubbc.Admin
 }
 
@@ -28,6 +29,7 @@ func NewEventManager(
 	repoProvider repos.IProvider,
 	publisher *async.Publisher,
 	organizationManager IOrganizationManager,
+	assetManager IAssetManager,
 	pubbcAdmin pubbc.Admin,
 ) IEventManager {
 	return &EventManager{
@@ -36,6 +38,7 @@ func NewEventManager(
 		organizerRepo:       repoProvider.GetOrganizerRepository(),
 		organizationRepo:    repoProvider.GetOrganizationRepository(),
 		organizationManager: organizationManager,
+		assetManager:        assetManager,
 		pubbcAdmin:          pubbcAdmin,
 	}
 }
@@ -46,21 +49,27 @@ func (eventManager *EventManager) CreateEvent(
 	name string,
 	date time.Time,
 	description string,
-	poster *models.Asset,
+	poster *file.File,
 ) (*models.Event, error) {
+
 	organizer := eventManager.organizerRepo.FindOrganizer(organizerID)
 	if organizer == nil {
-		return nil, errors.New(fmt.Sprintf("organizer with id %s not found", organizerID))
+		return nil, tickenerr.New(organizererr.OrganizerNotFoundErrorCode)
 	}
-
 	organization := eventManager.organizationRepo.FindOrganization(organizationID)
 	if organization == nil {
-		return nil, errors.New(fmt.Sprintf("organization with id %s not found", organizationID))
+		return nil, tickenerr.New(organizationerr.OrganizationNotFoundErrorCode)
 	}
 
-	event, err := models.NewEvent(name, date, description, organizer, organization)
+	event, err := models.NewEvent(
+		name,
+		date,
+		description,
+		organizer, // auditory
+		organization,
+	)
 	if err != nil {
-		return nil, errors.New("failed to create event")
+		return nil, tickenerr.FromError(eventerr.EventNotFoundErrorCode, err)
 	}
 
 	atomicPvtbcCaller, err := eventManager.organizationManager.GetPvtbcConnection(organizerID, organizationID)
@@ -69,18 +78,26 @@ func (eventManager *EventManager) CreateEvent(
 	}
 
 	if poster != nil {
-		event.PosterAssetID = &poster.ID
+		asset, err := eventManager.assetManager.UploadAsset(
+			poster,
+			fmt.Sprintf("%s-poster.%s", event.Name, poster.GetExtension()),
+		)
+		if err != nil {
+			return nil, err
+		}
+		event.PosterAssetID = asset.ID
 	}
 
 	// todo -> add txID to the event?
-	_, _, err = atomicPvtbcCaller.TickenEventCaller.CreateEvent(event.EventID, event.Name, event.Date)
+	_, _, err = atomicPvtbcCaller.CreateEvent(event.EventID, event.Name, event.Date)
 	if err != nil {
-		return nil, err
+		return nil, tickenerr.FromError(eventerr.FailedToStoreEventInPVTBCErrorCode, err)
 	}
+
 	event.SetOnChain(organization.Channel)
 
 	if err := eventManager.eventRepo.AddEvent(event); err != nil {
-		return nil, errors.New("failed to store event, please sync with the blockchain")
+		return nil, tickenerr.FromError(eventerr.FailedToStoreEventInPVTBCErrorCode, err)
 	}
 
 	return event, nil

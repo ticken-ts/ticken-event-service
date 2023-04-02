@@ -6,6 +6,7 @@ import (
 	"ticken-event-service/infra"
 	"ticken-event-service/models"
 	"ticken-event-service/repos"
+	"ticken-event-service/utils/file"
 )
 
 type AssetManager struct {
@@ -37,7 +38,7 @@ func (manager *AssetManager) NewAsset(name string, mimeType string, url string) 
 	return newAsset, nil
 }
 
-func (manager *AssetManager) UploadAsset(file *models.File, name string) (*models.Asset, error) {
+func (manager *AssetManager) UploadAsset(file *file.File, name string) (*models.Asset, error) {
 	url, err := manager.fileUploader.UploadFile(file)
 	if err != nil {
 		return nil, err

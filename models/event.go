@@ -14,7 +14,7 @@ type Event struct {
 	Description   string     `bson:"description"`
 	Sections      []*Section `bson:"sections"`
 	OnSale        bool       `bson:"on_sale"`
-	PosterAssetID *uuid.UUID `bson:"poster_id"`
+	PosterAssetID uuid.UUID  `bson:"poster_id"`
 	// ************************************** //
 
 	// ********** Access & Auditory ********* //
@@ -44,7 +44,7 @@ func NewEvent(name string, date time.Time, description string, organizer *Organi
 		Description:   description,
 		OnSale:        false,
 		Sections:      make([]*Section, 0),
-		PosterAssetID: nil,
+		PosterAssetID: uuid.Nil,
 
 		// this values will be validated from
 		// the values that the chaincode notify us
@@ -89,4 +89,8 @@ func (event *Event) AssociateSection(section *Section) {
 
 func (event *Event) IsFromOrganization(organizationID uuid.UUID) bool {
 	return event.OrganizationID == organizationID
+}
+
+func (event *Event) HasPoster() bool {
+	return event.PosterAssetID != uuid.Nil
 }

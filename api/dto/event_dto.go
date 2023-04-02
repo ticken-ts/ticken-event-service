@@ -6,7 +6,7 @@ type EventDTO struct {
 	Date         string        `json:"date"`
 	OnChain      bool          `json:"on_chain"`
 	Sections     []*SectionDTO `json:"sections"`
-	Poster       *string       `json:"poster"`
+	Poster       string        `json:"poster"`
 	Description  string        `json:"description"`
 	PubBcAddress string        `json:"pub_bc_address"`
 }

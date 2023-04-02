@@ -27,7 +27,7 @@ func (controller *EventController) GetEvent(c *gin.Context) {
 		return
 	}
 
-	event, err := controller.serviceProvider.GetEventManager().GetEvent(
+	event, err := controller.ServiceProvider.GetEventManager().GetEvent(
 		eventID,
 		organizerID,
 		organizationID,

@@ -32,6 +32,7 @@ func (middleware *ErrorMiddleware) ErrorHandler() gin.HandlerFunc {
 					log.TickenLogger.Error().Msg(v.UnderlyingErr.Error())
 				}
 				c.JSON(getStatusCode(v.Code), res.Error{Code: v.Code, Message: v.Message})
+
 			default:
 				c.JSON(http.StatusInternalServerError, res.Error{Code: 0, Message: "An error occurred"})
 			}

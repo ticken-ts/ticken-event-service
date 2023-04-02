@@ -4,6 +4,7 @@ import (
 	"github.com/google/uuid"
 	pvtbc "github.com/ticken-ts/ticken-pvtbc-connector"
 	"ticken-event-service/models"
+	"ticken-event-service/utils/file"
 	"time"
 )
 
@@ -16,12 +17,14 @@ type IProvider interface {
 
 type IEventManager interface {
 	// CreateEvent create and event, stored it locally and publish
-	// it to the private blockchain. This method DO NOT publish the
+	// it to the private blockchain.
+	// The poster (image of the event) can be set from two sources:
+	// This method DO NOT publish the
 	// event contract to the public blockchain, neither to publish it
 	// to other services, because the event still can be modified, such
 	// as adding new sections. To finally publish the event, we need
 	// to call method SetEventOnSale.
-	CreateEvent(organizerID, organizationID uuid.UUID, name string, date time.Time, description string, poster *models.Asset) (*models.Event, error)
+	CreateEvent(organizerID, organizationID uuid.UUID, name string, date time.Time, description string, poster *file.File) (*models.Event, error)
 
 	// AddSection adds a section into the event  with "totalTickets" in it,
 	// with each ticket with a price of "ticketPrice".
@@ -51,5 +54,5 @@ type IValidatorManager interface {
 type IAssetManager interface {
 	GetAsset(assetID uuid.UUID) (*models.Asset, error)
 	NewAsset(name string, mimeType string, url string) (*models.Asset, error)
-	UploadAsset(file *models.File, name string) (*models.Asset, error)
+	UploadAsset(file *file.File, name string) (*models.Asset, error)
 }
