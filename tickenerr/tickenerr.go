@@ -6,7 +6,7 @@ import (
 	"ticken-event-service/tickenerr/asseterr"
 	"ticken-event-service/tickenerr/commonerr"
 	"ticken-event-service/tickenerr/eventerr"
-	organizationerr "ticken-event-service/tickenerr/organizationrerr"
+	"ticken-event-service/tickenerr/organizationerr"
 	"ticken-event-service/tickenerr/organizererr"
 )
 
