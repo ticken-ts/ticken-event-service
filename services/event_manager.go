@@ -2,8 +2,6 @@ package services
 
 import (
 	"fmt"
-	"github.com/google/uuid"
-	pubbc "github.com/ticken-ts/ticken-pubbc-connector"
 	"ticken-event-service/async"
 	"ticken-event-service/models"
 	"ticken-event-service/repos"
@@ -13,6 +11,9 @@ import (
 	"ticken-event-service/tickenerr/organizererr"
 	"ticken-event-service/utils/file"
 	"time"
+
+	"github.com/google/uuid"
+	pubbc "github.com/ticken-ts/ticken-pubbc-connector"
 )
 
 type EventManager struct {
@@ -238,6 +239,7 @@ func (eventManager *EventManager) SetEventOnSale(
 	event.OnSale = true
 	event.PubBCAddress = addr
 
+	event.Status = models.EventStatusOnSale
 	updatedEvent := eventManager.eventRepo.UpdateEvent(event)
 
 	// once the event is published in the public blockchain, we sent
@@ -266,7 +268,7 @@ func (eventManager *EventManager) GetPublicEvent(eventID uuid.UUID) (*models.Eve
 		return nil, fmt.Errorf("event %s not found", eventID)
 	}
 
-	if !event.OnSale {
+	if event.Status == models.EventStatusDraft {
 		return nil, fmt.Errorf("event %s is not available", eventID)
 	}
 

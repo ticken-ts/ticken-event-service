@@ -1,12 +1,13 @@
 package mongoDBRepos
 
 import (
+	"ticken-event-service/models"
+	"time"
+
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"ticken-event-service/models"
-	"time"
 )
 
 const EventCollectionName = "events"
@@ -110,6 +111,7 @@ func (r *EventMongoDBRepository) UpdateEvent(event *models.Event) *models.Event 
 				"sections":        event.Sections,
 				"on_chain":        event.OnChain,
 				"on_sale":         event.OnSale,
+				"status":          event.Status,
 				"pub_bc_address":  event.PubBCAddress,
 			},
 		},
@@ -131,7 +133,7 @@ func (r *EventMongoDBRepository) FindAvailableEvents() []*models.Event {
 	defer cancel()
 
 	events := r.getCollection()
-	result, err := events.Find(findContext, bson.M{"on_sale": true})
+	result, err := events.Find(findContext, bson.M{"status": bson.M{"$ne": models.EventStatusDraft}})
 
 	if err != nil {
 		return nil

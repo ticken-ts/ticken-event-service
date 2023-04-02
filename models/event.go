@@ -2,19 +2,35 @@ package models
 
 import (
 	"fmt"
-	"github.com/google/uuid"
 	"time"
+
+	"github.com/google/uuid"
+)
+
+const (
+	// EventStatusDraft is the status of an event that is not yet published
+	EventStatusDraft = "draft"
+	// EventStatusOnSale is the status of an event that is published for sale
+	EventStatusOnSale = "on_sale"
+	// EventStatusRunning is the status of an event that is currently happening
+	EventStatusRunning = "running"
+	// EventStatusFinished is the status of an event that has finished
+	EventStatusFinished = "finished"
 )
 
 type Event struct {
 	// ************* PVTBC Data ************* //
-	EventID       uuid.UUID  `bson:"event_id"`
-	Name          string     `bson:"name"`
-	Date          time.Time  `bson:"date"`
-	Description   string     `bson:"description"`
-	Sections      []*Section `bson:"sections"`
-	OnSale        bool       `bson:"on_sale"`
-	PosterAssetID uuid.UUID  `bson:"poster_id"`
+	EventID     uuid.UUID  `bson:"event_id"`
+	Name        string     `bson:"name"`
+	Date        time.Time  `bson:"date"`
+	Description string     `bson:"description"`
+	Sections    []*Section `bson:"sections"`
+
+	// DEPRECATED: use "status" instead
+	OnSale bool `bson:"on_sale"`
+
+	Status        string    `bson:"status"`
+	PosterAssetID uuid.UUID `bson:"poster_id"`
 	// ************************************** //
 
 	// ********** Access & Auditory ********* //
@@ -43,6 +59,7 @@ func NewEvent(name string, date time.Time, description string, organizer *Organi
 		Date:          date,
 		Description:   description,
 		OnSale:        false,
+		Status:        EventStatusDraft,
 		Sections:      make([]*Section, 0),
 		PosterAssetID: uuid.Nil,
 

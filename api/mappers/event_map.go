@@ -21,6 +21,7 @@ func MapEventToEventDTO(event *models.Event) *dto.EventDTO {
 		Poster:       posterID,
 		Description:  event.Description,
 		PubBcAddress: event.PubBCAddress,
+		Status:       event.Status,
 	}
 }
 
