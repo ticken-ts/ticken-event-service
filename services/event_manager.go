@@ -6,6 +6,7 @@ import (
 	"ticken-event-service/models"
 	"ticken-event-service/repos"
 	"ticken-event-service/tickenerr"
+	"ticken-event-service/tickenerr/commonerr"
 	"ticken-event-service/tickenerr/eventerr"
 	"ticken-event-service/tickenerr/organizationerr"
 	"ticken-event-service/tickenerr/organizererr"
@@ -52,25 +53,14 @@ func (eventManager *EventManager) CreateEvent(
 	description string,
 	poster *file.File,
 ) (*models.Event, error) {
-
 	organizer := eventManager.organizerRepo.FindOrganizer(organizerID)
 	if organizer == nil {
 		return nil, tickenerr.New(organizererr.OrganizerNotFoundErrorCode)
 	}
+
 	organization := eventManager.organizationRepo.FindOrganization(organizationID)
 	if organization == nil {
 		return nil, tickenerr.New(organizationerr.OrganizationNotFoundErrorCode)
-	}
-
-	event, err := models.NewEvent(
-		name,
-		date,
-		description,
-		organizer, // auditory
-		organization,
-	)
-	if err != nil {
-		return nil, tickenerr.FromError(eventerr.EventNotFoundErrorCode, err)
 	}
 
 	atomicPvtbcCaller, err := eventManager.organizationManager.GetPvtbcConnection(organizerID, organizationID)
@@ -78,24 +68,46 @@ func (eventManager *EventManager) CreateEvent(
 		return nil, err
 	}
 
-	if poster != nil {
-		asset, err := eventManager.assetManager.UploadAsset(
-			poster,
-			fmt.Sprintf("%s-poster.%s", event.Name, poster.GetExtension()),
-		)
-		if err != nil {
-			return nil, err
-		}
-		event.PosterAssetID = asset.ID
+	if !organization.HasUser(organizer.OrganizerID) {
+		return nil, tickenerr.New(organizererr.OrganizerNotBelongsToOrganization)
 	}
 
-	// todo -> add txID to the event?
-	_, _, err = atomicPvtbcCaller.CreateEvent(event.EventID, event.Name, event.Date)
+	var posterID = uuid.Nil
+	if poster != nil {
+		if asset, err := eventManager.assetManager.UploadAsset(
+			poster, fmt.Sprintf("%s-poster.%s", name, poster.GetExtension())); err != nil {
+			posterID = asset.ID
+		}
+	}
+
+	eventID := uuid.New()
+	_, txID, err := atomicPvtbcCaller.CreateEvent(eventID, name, date)
 	if err != nil {
 		return nil, tickenerr.FromError(eventerr.FailedToStoreEventInPVTBCErrorCode, err)
 	}
 
-	event.SetOnChain(organization.Channel)
+	event := &models.Event{
+		EventID:     eventID,
+		Name:        name,
+		Date:        date,
+		Description: description,
+		Status:      models.EventStatusDraft,
+		Sections:    make([]*models.Section, 0),
+
+		// metadata values or extra information
+		PosterAssetID: posterID,
+
+		OrganizerID:    organizer.OrganizerID,
+		OrganizationID: organization.OrganizationID,
+
+		// will be completed after event is co
+		PvtBCChannel: organization.Channel,
+		PvtBCTxID:    txID,
+
+		// will be completed after event is on sale
+		PubBCTxID:    "",
+		PubBCAddress: "",
+	}
 
 	if err := eventManager.eventRepo.AddEvent(event); err != nil {
 		return nil, tickenerr.FromError(eventerr.FailedToStoreEventInPVTBCErrorCode, err)
@@ -112,15 +124,10 @@ func (eventManager *EventManager) AddSection(
 	totalTickets int,
 	ticketPrice float64,
 ) (*models.Section, error) {
-
-	section := models.NewSection(name, eventID, totalTickets, ticketPrice)
-
 	event := eventManager.eventRepo.FindEvent(eventID)
 	if event == nil {
 		return nil, tickenerr.New(eventerr.EventNotFoundErrorCode)
 	}
-
-	event.AssociateSection(section)
 
 	atomicPvtbcCaller, err := eventManager.organizationManager.GetPvtbcConnection(
 		organizerID,
@@ -131,20 +138,73 @@ func (eventManager *EventManager) AddSection(
 	}
 
 	_, txID, err := atomicPvtbcCaller.AddSection(
-		section.EventID,
-		section.Name,
-		section.TotalTickets,
-		section.TicketPrice,
+		eventID,
+		event.Name,
+		totalTickets,
+		ticketPrice,
 	)
 	if err != nil {
 		return nil, tickenerr.FromError(eventerr.FailedToAddSectionInPVTBC, err)
 	}
 
-	section.SetOnChain(txID)
+	section := &models.Section{
+		EventID:      eventID,
+		TicketPrice:  ticketPrice,
+		Name:         name,
+		TotalTickets: totalTickets,
+		PvtBCTxID:    txID,
+	}
 
-	eventManager.eventRepo.UpdateEvent(event)
+	event.AddSection(section)
+
+	if err := eventManager.eventRepo.AddSectionToEvent(eventID, section); err != nil {
+		return nil, tickenerr.FromError(commonerr.FailedToUpdateElement, err)
+	}
 
 	return section, nil
+}
+
+func (eventManager *EventManager) StartSale(
+	eventID uuid.UUID,
+	organizerID uuid.UUID,
+	organizationID uuid.UUID,
+) (*models.Event, error) {
+	// this method perform all permissions checks
+	event, err := eventManager.GetEvent(eventID, organizerID, organizationID)
+	if err != nil {
+		return nil, err
+	}
+
+	atomicPvtbcCaller, err := eventManager.organizationManager.GetPvtbcConnection(
+		organizerID,
+		organizationID,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	if _, err := atomicPvtbcCaller.StartSale(eventID); err != nil {
+		return nil, tickenerr.FromError(eventerr.SetTicketOnSaleInPVTBCErrorCode, err)
+	}
+
+	addr, err := eventManager.pubbcAdmin.DeployEventContract()
+	if err != nil {
+		panic(err) // todo -> handle this
+	}
+
+	// TODO -> add txID
+	event.SetOnSale(addr, "")
+
+	_ = eventManager.eventRepo.UpdateEventStatus(event)
+	_ = eventManager.eventRepo.UpdatePUBBCData(event)
+
+	// once the event is published in the public blockchain, we sent
+	// it to the other services to start commercializing  the tickets
+	if err := eventManager.publisher.PublishNewEvent(event); err != nil {
+		panic(err) // TODO -> how to handle
+	}
+
+	return event, nil
 }
 
 func (eventManager *EventManager) GetEvent(
@@ -206,49 +266,6 @@ func (eventManager *EventManager) GetOrganizationEvents(
 	}
 
 	return eventManager.eventRepo.FindOrganizationEvents(organizationID), nil
-}
-
-func (eventManager *EventManager) SetEventOnSale(
-	eventID uuid.UUID,
-	organizationID uuid.UUID,
-	organizerID uuid.UUID,
-) (*models.Event, error) {
-	// this method perform all permissions checks
-	event, err := eventManager.GetEvent(eventID, organizerID, organizationID)
-	if err != nil {
-		return nil, err
-	}
-
-	atomicPvtbcCaller, err := eventManager.organizationManager.GetPvtbcConnection(
-		organizerID,
-		organizationID,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	if _, err := atomicPvtbcCaller.SetEventOnSale(eventID); err != nil {
-		return nil, tickenerr.FromError(eventerr.SetTicketOnSaleInPVTBCErrorCode, err)
-	}
-
-	addr, err := eventManager.pubbcAdmin.DeployEventContract()
-	if err != nil {
-		panic(err) // todo -> handle this
-	}
-
-	event.OnSale = true
-	event.PubBCAddress = addr
-
-	event.Status = models.EventStatusOnSale
-	updatedEvent := eventManager.eventRepo.UpdateEvent(event)
-
-	// once the event is published in the public blockchain, we sent
-	// it to the other services to start commercializing  the tickets
-	if err := eventManager.publisher.PublishNewEvent(event); err != nil {
-		panic(err) // TODO -> how to handle
-	}
-
-	return updatedEvent, nil
 }
 
 // GetAvailableEvents

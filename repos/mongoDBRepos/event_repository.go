@@ -1,13 +1,11 @@
 package mongoDBRepos
 
 import (
-	"ticken-event-service/models"
-	"time"
-
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"ticken-event-service/models"
 )
 
 const EventCollectionName = "events"
@@ -91,7 +89,7 @@ func (r *EventMongoDBRepository) FindOrganizationEvents(organizationID uuid.UUID
 	return foundEvents
 }
 
-func (r *EventMongoDBRepository) UpdateEvent(event *models.Event) *models.Event {
+func (r *EventMongoDBRepository) UpdateEventStatus(event *models.Event) error {
 	findContext, cancel := r.generateOpSubcontext()
 	defer cancel()
 
@@ -102,28 +100,51 @@ func (r *EventMongoDBRepository) UpdateEvent(event *models.Event) *models.Event 
 	result := events.FindOneAndUpdate(
 		findContext,
 		bson.M{"event_id": event.EventID},
-		bson.M{
-			"$set": bson.M{
-				"name":            event.Name,
-				"date":            event.Date.Format(time.RFC3339),
-				"organization_id": event.OrganizationID,
-				"pvt_bc_channel":  event.PvtBCChannel,
-				"sections":        event.Sections,
-				"on_chain":        event.OnChain,
-				"on_sale":         event.OnSale,
-				"status":          event.Status,
-				"pub_bc_address":  event.PubBCAddress,
-			},
-		},
+		bson.M{"$set": bson.M{"status": event.Status}},
 		updateOptions,
 	)
 
 	updatedEvent := new(models.Event)
 	err := result.Decode(updatedEvent)
 	if err != nil {
-		return nil
+		return err
 	}
-	return updatedEvent
+	return nil
+}
+
+func (r *EventMongoDBRepository) AddSectionToEvent(eventID uuid.UUID, section *models.Section) error {
+	updateContext, cancel := r.generateOpSubcontext()
+	defer cancel()
+
+	events := r.getCollection()
+	filter := bson.M{"event_id": eventID}
+	update := bson.M{"$push": bson.M{"sections": section}}
+
+	_, err := events.UpdateOne(updateContext, filter, update)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *EventMongoDBRepository) UpdatePUBBCData(event *models.Event) error {
+	updateContext, cancel := r.generateOpSubcontext()
+	defer cancel()
+
+	events := r.getCollection()
+	filter := bson.M{"event_id": event.EventID}
+	update := bson.M{"$set": bson.M{
+		"pubbc_address": event.PubBCAddress,
+		"pubbc_tx_id":   event.PubBCTxID,
+	}}
+
+	_, err := events.UpdateOne(updateContext, filter, update)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // FindAvailableEvents

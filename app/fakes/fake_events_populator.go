@@ -80,7 +80,6 @@ func (populator *FakeEventsPopulator) Populate() error {
 	for _, fakeSection := range populator.DevEventsInfo.EventSections {
 		fakeSection := &models.Section{
 			EventID:      fakeEvent.EventID,
-			OnChain:      true,
 			Name:         fakeSection.SectionName,
 			TotalTickets: fakeSection.SectionQuantity,
 			TicketPrice:  fakeSection.SectionPrice,
@@ -102,7 +101,7 @@ func (populator *FakeEventsPopulator) Populate() error {
 		}
 	}
 
-	_, err = populator.ServiceProvider.GetEventManager().SetEventOnSale(
+	_, err = populator.ServiceProvider.GetEventManager().StartSale(
 		fakeEvent.EventID,
 		organization.OrganizationID,
 		organizer.OrganizerID,

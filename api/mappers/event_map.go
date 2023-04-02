@@ -16,12 +16,11 @@ func MapEventToEventDTO(event *models.Event) *dto.EventDTO {
 		EventID:      event.EventID.String(),
 		Name:         event.Name,
 		Date:         event.Date.Format(time.RFC3339),
-		OnChain:      event.OnChain,
 		Sections:     MapSectionListToDTO(event.Sections),
 		Poster:       posterID,
 		Description:  event.Description,
 		PubBcAddress: event.PubBCAddress,
-		Status:       event.Status,
+		Status:       string(event.Status),
 	}
 }
 

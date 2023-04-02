@@ -2,6 +2,7 @@ package eventerr
 
 const (
 	EventNotFoundErrorCode = iota + 200
+	CreateEventErrorCode
 	FailedToAddSectionInPVTBC
 	EventReadPermissionErrorCode
 	SetTicketOnSaleInPVTBCErrorCode

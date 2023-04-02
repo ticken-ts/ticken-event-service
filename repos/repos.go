@@ -8,7 +8,9 @@ import (
 type EventRepository interface {
 	AddEvent(event *models.Event) error
 	FindEvent(eventID uuid.UUID) *models.Event
-	UpdateEvent(event *models.Event) *models.Event
+	UpdateEventStatus(event *models.Event) error
+	UpdatePUBBCData(event *models.Event) error
+	AddSectionToEvent(eventID uuid.UUID, section *models.Section) error
 	FindOrganizationEvents(organizationID uuid.UUID) []*models.Event
 	FindAvailableEvents() []*models.Event
 }

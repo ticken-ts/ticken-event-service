@@ -14,6 +14,7 @@ func GetErrMessage(code uint32) string {
 		return "failed to register validator for organization"
 	case EstablishPVTBCConnectionErrorCode:
 		return "failed to establish private blockchain connection error"
+
 	default:
 		return "an error has occurred"
 	}

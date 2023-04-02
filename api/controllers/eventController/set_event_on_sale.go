@@ -25,10 +25,10 @@ func (controller *EventController) SetEventOnSale(c *gin.Context) {
 		return
 	}
 
-	event, err := controller.ServiceProvider.GetEventManager().SetEventOnSale(
+	event, err := controller.ServiceProvider.GetEventManager().StartSale(
 		eventID,
-		organizationID,
 		organizerID,
+		organizationID,
 	)
 	if err != nil {
 		c.Error(err)

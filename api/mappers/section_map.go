@@ -11,7 +11,6 @@ func MapSectionToDTO(section *models.Section) *dto.SectionDTO {
 		Name:         section.Name,
 		TotalTickets: section.TotalTickets,
 		Price:        section.TicketPrice,
-		OnChain:      section.OnChain,
 	}
 }
 

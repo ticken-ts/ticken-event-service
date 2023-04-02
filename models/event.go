@@ -1,35 +1,38 @@
 package models
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/google/uuid"
 )
 
+type EventStatus string
+
 const (
 	// EventStatusDraft is the status of an event that is not yet published
-	EventStatusDraft = "draft"
+	EventStatusDraft EventStatus = "draft"
+
 	// EventStatusOnSale is the status of an event that is published for sale
-	EventStatusOnSale = "on_sale"
+	EventStatusOnSale EventStatus = "on_sale"
+
 	// EventStatusRunning is the status of an event that is currently happening
-	EventStatusRunning = "running"
+	EventStatusRunning EventStatus = "running"
+
 	// EventStatusFinished is the status of an event that has finished
-	EventStatusFinished = "finished"
+	EventStatusFinished EventStatus = "finished"
 )
 
 type Event struct {
 	// ************* PVTBC Data ************* //
-	EventID     uuid.UUID  `bson:"event_id"`
-	Name        string     `bson:"name"`
-	Date        time.Time  `bson:"date"`
-	Description string     `bson:"description"`
-	Sections    []*Section `bson:"sections"`
+	EventID     uuid.UUID   `bson:"event_id"`
+	Name        string      `bson:"name"`
+	Date        time.Time   `bson:"date"`
+	Description string      `bson:"description"`
+	Sections    []*Section  `bson:"sections"`
+	Status      EventStatus `bson:"status"`
+	// ************************************** //
 
-	// DEPRECATED: use "status" instead
-	OnSale bool `bson:"on_sale"`
-
-	Status        string    `bson:"status"`
+	// ************** MetaData ************** //
 	PosterAssetID uuid.UUID `bson:"poster_id"`
 	// ************************************** //
 
@@ -39,48 +42,14 @@ type Event struct {
 	// ************************************** //
 
 	// ************ PVTBC Metadata ********** //
-	OnChain      bool   `bson:"on_chain"`
-	PvtBCChannel string `bson:"pvt_bc_channel"`
+	PvtBCTxID    string `bson:"pvtbc_tx_id"`
+	PvtBCChannel string `bson:"pvtbc_channel"`
 	// ************************************** //
 
 	// ************ PUBBC Metadata ********** //
-	PubBCAddress string `bson:"pub_bc_address"`
+	PubBCTxID    string `bson:"pubbc_tx_id"`
+	PubBCAddress string `bson:"pubbc_address"`
 	// ************************************** //
-}
-
-func NewEvent(name string, date time.Time, description string, organizer *Organizer, organization *Organization) (*Event, error) {
-	if !organization.HasUser(organizer.OrganizerID) {
-		return nil, fmt.Errorf("organizer %s doest not belong to organization %s", organizer.Username, organization.Name)
-	}
-
-	event := &Event{
-		EventID:       uuid.New(),
-		Name:          name,
-		Date:          date,
-		Description:   description,
-		OnSale:        false,
-		Status:        EventStatusDraft,
-		Sections:      make([]*Section, 0),
-		PosterAssetID: uuid.Nil,
-
-		// this values will be validated from
-		// the values that the chaincode notify us
-		OrganizerID:    organizer.OrganizerID,
-		OrganizationID: organization.OrganizationID,
-
-		// on chain will become true when the
-		// transaction is committed and the
-		// listener updated the event state
-		OnChain:      false,
-		PvtBCChannel: "",
-	}
-
-	return event, nil
-}
-
-func (event *Event) SetOnChain(channel string) {
-	event.OnChain = true
-	event.PvtBCChannel = channel
 }
 
 func (event *Event) GetSection(name string) *Section {
@@ -92,13 +61,7 @@ func (event *Event) GetSection(name string) *Section {
 	return nil
 }
 
-func (event *Event) AddSection(name string, totalTickets int, ticketPrice float64) *Section {
-	newSection := NewSection(name, event.EventID, totalTickets, ticketPrice)
-	event.Sections = append(event.Sections, newSection)
-	return newSection
-}
-
-func (event *Event) AssociateSection(section *Section) {
+func (event *Event) AddSection(section *Section) {
 	// just to ensure that the section has same event ID
 	section.EventID = event.EventID
 	event.Sections = append(event.Sections, section)
@@ -110,4 +73,10 @@ func (event *Event) IsFromOrganization(organizationID uuid.UUID) bool {
 
 func (event *Event) HasPoster() bool {
 	return event.PosterAssetID != uuid.Nil
+}
+
+func (event *Event) SetOnSale(pubbcAddr, pubbcTxID string) {
+	event.PvtBCTxID = pubbcTxID
+	event.PubBCAddress = pubbcAddr
+	event.Status = EventStatusOnSale
 }
