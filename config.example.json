@@ -14,7 +14,9 @@
 
   "bus": {
     "driver": "rabbitmq",
-    "exchange": "ticken"
+    "exchange": "ticken",
+    "send_queues": ["service.tickets", "service.validator"],
+    "listen_queue": "service.events"
   },
 
   "external_services": {
