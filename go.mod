@@ -13,7 +13,7 @@ require (
 	github.com/rs/zerolog v1.29.0
 	github.com/spf13/viper v1.15.0
 	github.com/ticken-ts/ticken-pubbc-connector v0.0.17
-	github.com/ticken-ts/ticken-pvtbc-connector v0.2.47
+	github.com/ticken-ts/ticken-pvtbc-connector v0.2.48
 	go.mongodb.org/mongo-driver v1.11.3
 )
 

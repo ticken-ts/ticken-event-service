@@ -54,6 +54,12 @@ func (controller *EventController) ChangeStatusHandler(c *gin.Context) {
 			organizerID,
 			organizationID,
 		)
+	case models.EventStatusFinished:
+		event, statusChangeErr = controller.ServiceProvider.GetEventManager().FinishEvent(
+			eventID,
+			organizerID,
+			organizationID,
+		)
 	default:
 		statusChangeErr = fmt.Errorf("status change to %s is not supported", payload.NextStatus)
 	}

@@ -185,8 +185,8 @@ func (eventManager *EventManager) StartSale(
 		return nil, err
 	}
 
-	if _, err := atomicPvtbcCaller.StartSale(eventID); err != nil {
-		return nil, tickenerr.FromError(eventerr.SetTicketOnSaleInPVTBCErrorCode, err)
+	if _, err := atomicPvtbcCaller.Sell(eventID); err != nil {
+		return nil, tickenerr.FromError(eventerr.StartSaleInPVTBCErrorCode, err)
 	}
 
 	addr, err := eventManager.pubbcAdmin.DeployEventContract()
@@ -195,7 +195,7 @@ func (eventManager *EventManager) StartSale(
 	}
 
 	// TODO -> add txID
-	event.SetOnSale(addr, "")
+	event.StartSale(addr, "")
 
 	_ = eventManager.eventRepo.UpdateEventStatus(event)
 	_ = eventManager.eventRepo.UpdatePUBBCData(event)
@@ -205,6 +205,68 @@ func (eventManager *EventManager) StartSale(
 	if err := eventManager.publisher.PublishNewEvent(event); err != nil {
 		panic(err) // TODO -> how to handle
 	}
+
+	return event, nil
+}
+
+func (eventManager *EventManager) StartEvent(
+	eventID uuid.UUID,
+	organizerID uuid.UUID,
+	organizationID uuid.UUID,
+) (*models.Event, error) {
+	// this method perform all permissions checks
+	event, err := eventManager.GetEvent(eventID, organizerID, organizationID)
+	if err != nil {
+		return nil, err
+	}
+
+	atomicPvtbcCaller, err := eventManager.organizationManager.GetPvtbcConnection(
+		organizerID,
+		organizationID,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	if _, err := atomicPvtbcCaller.Start(eventID); err != nil {
+		return nil, tickenerr.FromError(eventerr.StartEventInPVTBCErrorCode, err)
+	}
+
+	event.Start()
+
+	_ = eventManager.eventRepo.UpdateEventStatus(event)
+	_ = eventManager.eventRepo.UpdatePUBBCData(event)
+
+	return event, nil
+}
+
+func (eventManager *EventManager) FinishEvent(
+	eventID uuid.UUID,
+	organizerID uuid.UUID,
+	organizationID uuid.UUID,
+) (*models.Event, error) {
+	// this method perform all permissions checks
+	event, err := eventManager.GetEvent(eventID, organizerID, organizationID)
+	if err != nil {
+		return nil, err
+	}
+
+	atomicPvtbcCaller, err := eventManager.organizationManager.GetPvtbcConnection(
+		organizerID,
+		organizationID,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	if _, err := atomicPvtbcCaller.Finish(eventID); err != nil {
+		return nil, tickenerr.FromError(eventerr.StartEventInPVTBCErrorCode, err)
+	}
+
+	event.Start()
+
+	_ = eventManager.eventRepo.UpdateEventStatus(event)
+	_ = eventManager.eventRepo.UpdatePUBBCData(event)
 
 	return event, nil
 }

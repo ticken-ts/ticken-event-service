@@ -75,8 +75,12 @@ func (event *Event) HasPoster() bool {
 	return event.PosterAssetID != uuid.Nil
 }
 
-func (event *Event) SetOnSale(pubbcAddr, pubbcTxID string) {
+func (event *Event) StartSale(pubbcAddr, pubbcTxID string) {
 	event.PvtBCTxID = pubbcTxID
 	event.PubBCAddress = pubbcAddr
 	event.Status = EventStatusOnSale
+}
+
+func (event *Event) Start() {
+	event.Status = EventStatusRunning
 }

@@ -34,8 +34,11 @@ type IEventManager interface {
 
 	GetEvent(eventID, organizerID, organizationID uuid.UUID) (*models.Event, error)
 	GetOrganizationEvents(organizerID uuid.UUID, organizationID uuid.UUID) ([]*models.Event, error)
+
 	StartSale(eventID, organizationID, organizerID uuid.UUID) (*models.Event, error)
 	StartEvent(eventID, organizationID, organizerID uuid.UUID) (*models.Event, error)
+	FinishEvent(eventID, organizationID, organizerID uuid.UUID) (*models.Event, error)
+
 	GetAvailableEvents() ([]*models.Event, error)
 	GetPublicEvent(eventID uuid.UUID) (*models.Event, error)
 }
