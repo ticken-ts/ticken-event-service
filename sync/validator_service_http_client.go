@@ -57,3 +57,31 @@ func (client *ValidatorServiceHTTPClient) RegisterValidator(organizationID uuid.
 
 	return nil
 }
+
+func (client *ValidatorServiceHTTPClient) SyncTickets(eventID uuid.UUID) error {
+	validatorRegistrationURL, _ := url.JoinPath(
+		client.serviceUrl, "api/v", "events", eventID.String(), "sync")
+
+	req, err := http.NewRequest(http.MethodPost, validatorRegistrationURL, nil)
+	if err != nil {
+		return err
+	}
+
+	rawJWT, err := client.authIssuer.IssueInService(auth.TickenValidatorService)
+	if err != nil {
+		return fmt.Errorf("failed to get client authentication: %s", err.Error())
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", rawJWT.Token)
+
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed to start ticket sync: %s", err.Error())
+	}
+	if res.StatusCode != http.StatusOK {
+		return fmt.Errorf("failed to start ticket sync: %s", readBody(res))
+	}
+
+	return nil
+}

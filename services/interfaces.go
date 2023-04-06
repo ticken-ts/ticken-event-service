@@ -23,7 +23,7 @@ type IEventManager interface {
 	// event contract to the public blockchain, neither to publish it
 	// to other services, because the event still can be modified, such
 	// as adding new sections. To finally publish the event, we need
-	// to call method SetEventOnSale.
+	// to call method StartSale.
 	CreateEvent(organizerID, organizationID uuid.UUID, name string, date time.Time, description string, poster *file.File) (*models.Event, error)
 
 	// AddSection adds a section into the event  with "totalTickets" in it,
@@ -35,6 +35,7 @@ type IEventManager interface {
 	GetEvent(eventID, organizerID, organizationID uuid.UUID) (*models.Event, error)
 	GetOrganizationEvents(organizerID uuid.UUID, organizationID uuid.UUID) ([]*models.Event, error)
 	StartSale(eventID, organizationID, organizerID uuid.UUID) (*models.Event, error)
+	StartEvent(eventID, organizationID, organizerID uuid.UUID) (*models.Event, error)
 	GetAvailableEvents() ([]*models.Event, error)
 	GetPublicEvent(eventID uuid.UUID) (*models.Event, error)
 }

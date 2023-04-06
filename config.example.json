@@ -28,10 +28,10 @@
     "msp_id": "tickenMSP",
     "peer_endpoint": "ticken-peer0.localho.st:443",
     "gateway_peer": "ticken-peer0.localho.st",
-    "cluster_storage_path": "/tmp/ticken-pv",
-    "certificate_path": "/tmp/ticken-pv/orgs/peer-orgs/ticken/users/ticken-admin/msp/signcerts/cert.pem",
-    "private_key_path": "/tmp/ticken-pv/orgs/peer-orgs/ticken/users/ticken-admin/msp/keystore/priv.pem",
-    "tls_certificate_path": "/tmp/ticken-pv/orgs/peer-orgs/ticken/nodes/ticken-peer0/tls/signcerts/tls-cert.pem"
+    "certificate_path": "../ticken-dev/dev-pvtbc-certs/peer-orgs/ticken/users/ticken-admin/msp/signcerts/cert.pem",
+    "private_key_path": "../ticken-dev/dev-pvtbc-certs/peer-orgs/ticken/users/ticken-admin/msp/keystore/priv.pem",
+    "tls_certificate_path": "../ticken-dev/dev-pvtbc-certs/orgs/peer-orgs/ticken/nodes/ticken-peer0/tls/signcerts/tls-cert.pem",
+    "cluster_storage_path": "../ticken-dev/dev-pvtbc-certs/",
   },
 
   "dev": {

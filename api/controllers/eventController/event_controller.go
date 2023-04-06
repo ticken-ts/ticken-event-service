@@ -19,6 +19,6 @@ func (controller *EventController) Setup(router gin.IRouter) {
 	group.POST("/:organizationID/events", controller.CreateEvent)
 	group.GET("/:organizationID/events/:eventID", controller.GetEvent)
 	group.GET("/:organizationID/events", controller.GetOrganizationEvents)
-	group.PATCH("/:organizationID/events/:eventID/on_sale", controller.SetEventOnSale)
 	group.PUT("/:organizationID/events/:eventID/sections", controller.AddSection)
+	group.PATCH("/:organizationID/events/:eventID/status", controller.ChangeStatusHandler)
 }

@@ -2,30 +2,24 @@ package fakes
 
 import (
 	"fmt"
-	"github.com/google/uuid"
 	"os"
 	"path"
 	"strconv"
 	"ticken-event-service/config"
-	"ticken-event-service/env"
 	"ticken-event-service/infra"
 	"ticken-event-service/models"
 	"ticken-event-service/repos"
-	"ticken-event-service/security/auth"
-	"ticken-event-service/sync"
 )
 
 type FakeOrgsPopulator struct {
 	hsm                infra.HSM
 	devConfig          config.DevConfig
 	reposProvider      repos.IProvider
-	keycloakClient     *sync.KeycloakHTTPClient
 	clusterStoragePath string
 }
 
 func NewFakeOrgsPopulator(
 	reposProvider repos.IProvider,
-	authIssuer *auth.Issuer,
 	devConfig config.DevConfig,
 	hsm infra.HSM,
 	clusterStoragePath string) *FakeOrgsPopulator {
@@ -34,26 +28,16 @@ func NewFakeOrgsPopulator(
 		devConfig:          devConfig,
 		reposProvider:      reposProvider,
 		clusterStoragePath: clusterStoragePath,
-		keycloakClient:     sync.NewKeycloakHTTPClient("http://localhost:8080", auth.Organizer, authIssuer),
 	}
 }
 
 func (populator *FakeOrgsPopulator) Populate() error {
-	uuidDevUser := uuid.MustParse(populator.devConfig.User.UserID)
-	if !env.TickenEnv.IsDev() || populator.devConfig.Mock.DisableAuthMock {
-		foundUserInKeycloak, _ := populator.keycloakClient.GetUserByEmail(populator.devConfig.User.Email)
-		if foundUserInKeycloak == nil {
-			return fmt.Errorf("auth is not mocked but admin is not present in identity provider")
-		}
-		uuidDevUser = foundUserInKeycloak.ID
-	}
-
 	organizerRepo := populator.reposProvider.GetOrganizerRepository()
 	organizationRepo := populator.reposProvider.GetOrganizationRepository()
 
-	organizer := organizerRepo.FindOrganizer(uuidDevUser)
+	organizer := organizerRepo.FindOrganizerByUsername(populator.devConfig.User.Username)
 	if organizer == nil {
-		return fmt.Errorf("dev user with id %s not found", populator.devConfig.User.UserID)
+		return fmt.Errorf("dev user with username %s not found", populator.devConfig.User.Username)
 	}
 
 	// load genesis org in the database

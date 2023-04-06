@@ -12,8 +12,6 @@ import (
 	"ticken-event-service/services"
 	"ticken-event-service/utils/file"
 	"time"
-
-	"github.com/google/uuid"
 )
 
 type FakeEventsPopulator struct {
@@ -22,6 +20,19 @@ type FakeEventsPopulator struct {
 	DevUserInfo     config.DevUser
 	DevOrgsInfo     config.Orgs
 	DevEventsInfo   config.Events
+}
+
+func NewFakeEventsPopulator(
+	repoProvider repos.IProvider,
+	serviceProvider services.IProvider,
+	devConfig config.DevConfig) *FakeEventsPopulator {
+	return &FakeEventsPopulator{
+		ServiceProvider: serviceProvider,
+		ReposProvider:   repoProvider,
+		DevUserInfo:     devConfig.User,
+		DevOrgsInfo:     devConfig.Orgs,
+		DevEventsInfo:   devConfig.Events,
+	}
 }
 
 func (populator *FakeEventsPopulator) Populate() error {
@@ -36,14 +47,9 @@ func (populator *FakeEventsPopulator) Populate() error {
 		}
 	}
 
-	uuidDevUser, err := uuid.Parse(populator.DevUserInfo.UserID)
-	if err != nil {
-		return err
-	}
-
-	organizer := populator.ReposProvider.GetOrganizerRepository().FindOrganizer(uuidDevUser)
+	organizer := populator.ReposProvider.GetOrganizerRepository().FindOrganizerByUsername(populator.DevUserInfo.Username)
 	if organizer == nil {
-		return fmt.Errorf("dev user with id %s not found", populator.DevUserInfo.UserID)
+		return fmt.Errorf("dev user with username %s not found", populator.DevUserInfo.Username)
 	}
 
 	organization := populator.ReposProvider.GetOrganizationRepository().FindByName(populator.DevOrgsInfo.TickenOrgName)

@@ -2,10 +2,11 @@ package eventerr
 
 const (
 	EventNotFoundErrorCode = iota + 200
-	CreateEventErrorCode
 	FailedToAddSectionInPVTBC
 	EventReadPermissionErrorCode
-	SetTicketOnSaleInPVTBCErrorCode
+	StartSaleInPVTBCErrorCode
+	StartEventInPVTBCErrorCode
+	StartEventTicketsSyncErrorCode
 	FailedToStoreEventInPVTBCErrorCode
 	FailedToStoreEventInDatabase
 )
@@ -18,12 +19,16 @@ func GetErrMessage(code uint32) string {
 		return "failed to add section in the private blockchain"
 	case EventReadPermissionErrorCode:
 		return "organizer is not allowed to read event"
-	case SetTicketOnSaleInPVTBCErrorCode:
+	case StartSaleInPVTBCErrorCode:
 		return "failed to set the event on sale in the private blockchain"
 	case FailedToStoreEventInPVTBCErrorCode:
 		return "an error occurred when trying to store event in private blockchain"
 	case FailedToStoreEventInDatabase:
 		return "an error occurred when trying to store event in database"
+	case StartEventInPVTBCErrorCode:
+		return "failed to start event in the private blockchain"
+	case StartEventTicketsSyncErrorCode:
+		return "failed to start event tickets sync in validator service"
 	default:
 		return "an error has occurred"
 	}
