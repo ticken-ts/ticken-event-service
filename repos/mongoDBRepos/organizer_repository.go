@@ -89,3 +89,21 @@ func (r *OrganizerMongoDBRepository) FindOrganizerByUsername(username string) *m
 func (r *OrganizerMongoDBRepository) AnyWithID(organizerID uuid.UUID) bool {
 	return r.FindOrganizer(organizerID) != nil
 }
+
+func (r *OrganizerMongoDBRepository) FindAll() []*models.Organizer {
+	findContext, cancel := r.generateOpSubcontext()
+	defer cancel()
+
+	organizers := r.getCollection()
+	result, err := organizers.Find(findContext, bson.M{})
+	if err != nil {
+		return nil
+	}
+
+	var foundOrganizers []*models.Organizer
+	if err := result.Decode(&foundOrganizers); err != nil {
+		return nil
+	}
+
+	return foundOrganizers
+}

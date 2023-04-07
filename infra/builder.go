@@ -2,6 +2,7 @@ package infra
 
 import (
 	"fmt"
+	"github.com/fatih/color"
 	"github.com/gin-gonic/gin"
 	pubbc "github.com/ticken-ts/ticken-pubbc-connector"
 	eth_connector "github.com/ticken-ts/ticken-pubbc-connector/eth-connector"
@@ -47,12 +48,14 @@ func (builder *Builder) BuildDb(connString string) Db {
 	case config.MongoDriver:
 		tickenDb = db.NewMongoDb()
 	default:
-		panic(fmt.Errorf("database driver %s not implemented", builder.tickenConfig.Database.Driver))
+		log.TickenLogger.Panic().Msg(
+			fmt.Sprintf("database driver %s not implemented", builder.tickenConfig.Database.Driver),
+		)
 	}
 
 	err := tickenDb.Connect(connString)
 	if err != nil {
-		panic(err)
+		log.TickenLogger.Panic().Msg(err.Error())
 	}
 
 	return tickenDb
@@ -61,18 +64,31 @@ func (builder *Builder) BuildDb(connString string) Db {
 func (builder *Builder) BuildHSM(encryptingKey string) HSM {
 	rootPath, err := utils.GetServiceRootPath()
 	if err != nil {
-		panic(err)
+		log.TickenLogger.Panic().Msg(err.Error())
 	}
 
 	localFileSystemHSM, err := hsm.NewLocalFileSystemHSM(encryptingKey, rootPath)
 	if err != nil {
-		panic(err)
+		log.TickenLogger.Panic().Msg(err.Error())
 	}
+
+	log.TickenLogger.Info().Msg("using local filesystem HSM")
+
 	return localFileSystemHSM
 }
 
 func (builder *Builder) BuildEngine() *gin.Engine {
-	return gin.Default()
+	gin.SetMode(gin.ReleaseMode)
+	r := gin.Default()
+
+	gin.DebugPrintRouteFunc = func(httpMethod, absolutePath, handlerName string, nuHandlers int) {
+		log.TickenLogger.Info().Msg(
+			// 14 is the length of the largest HTTP method (PATCH) with magenta color
+			fmt.Sprintf("%-14s -> %s", color.MagentaString(httpMethod), color.BlueString(absolutePath)),
+		)
+	}
+
+	return r
 }
 
 func (builder *Builder) BuildJWTVerifier() jwt.Verifier {
@@ -84,14 +100,16 @@ func (builder *Builder) BuildJWTVerifier() jwt.Verifier {
 
 		rsaPrivKey, err := utils.LoadRSA(jwtPrivateKey, jwtPublicKey)
 		if err != nil {
-			log.TickenLogger.Panic().Err(err)
+			log.TickenLogger.Panic().Msg(err.Error())
 		}
-
 		jwtVerifier = jwt.NewOfflineVerifier(rsaPrivKey)
+		log.TickenLogger.Info().Msg("using dev offline jwt verifier")
+
 	} else {
 		appClientID := builder.tickenConfig.Server.ClientID
 		identityIssuer := builder.tickenConfig.Server.IdentityIssuer
 		jwtVerifier = jwt.NewOnlineVerifier(identityIssuer, appClientID)
+		log.TickenLogger.Info().Msg(fmt.Sprintf("using online jwt verifier - identity issuer: %s", identityIssuer))
 	}
 
 	return jwtVerifier
@@ -100,23 +118,17 @@ func (builder *Builder) BuildJWTVerifier() jwt.Verifier {
 func (builder *Builder) BuildPvtbcCaller() *pvtbc.Caller {
 	caller, err := pvtbc.NewCaller(buildPeerConnector(builder.tickenConfig.Pvtbc, builder.tickenConfig.Dev))
 	if err != nil {
-		panic(err)
+		log.TickenLogger.Panic().Msg(err.Error())
 	}
+
+	log.TickenLogger.Info().Msg("pvtbc caller created successfully")
 	return caller
 }
 
 func (builder *Builder) BuildFileUploader() FileUploader {
-	var err error
-	var fileUploader FileUploader
-
-	if !env.TickenEnv.IsProd() {
-		fileUploader, err = file_uploader.NewDevFileUploader()
-	} else {
-		fileUploader, err = file_uploader.NewDevFileUploader()
-	}
-
+	fileUploader, err := file_uploader.NewDevFileUploader()
 	if err != nil {
-		panic(err)
+		log.TickenLogger.Panic().Msg(err.Error())
 	}
 
 	return fileUploader
@@ -125,7 +137,7 @@ func (builder *Builder) BuildFileUploader() FileUploader {
 func (builder *Builder) BuildPvtbcListener() *pvtbc.Listener {
 	listener, err := pvtbc.NewListener(buildPeerConnector(builder.tickenConfig.Pvtbc, builder.tickenConfig.Dev))
 	if err != nil {
-		panic(err)
+		log.TickenLogger.Panic().Msg(err.Error())
 	}
 	return listener
 }
@@ -136,7 +148,7 @@ func (builder *Builder) BuildPubbcAdmin(privateKey string) pubbc.Admin {
 		privateKey,
 	)
 	if err != nil {
-		panic(err)
+		log.TickenLogger.Panic().Msg(err.Error())
 	}
 	return caller
 }
@@ -158,12 +170,12 @@ func (builder *Builder) BuildBusPublisher(connString string) BusPublisher {
 		tickenBus = bus.NewRabbitMQPublisher(builder.tickenConfig.Bus.SendQueues)
 	default:
 		err := fmt.Errorf("bus driver %s not implemented", builder.tickenConfig.Bus.Driver)
-		log.TickenLogger.Panic().Err(err)
+		log.TickenLogger.Panic().Msg(err.Error())
 	}
 
 	err := tickenBus.Connect(connString, builder.tickenConfig.Bus.Exchange)
 	if err != nil {
-		log.TickenLogger.Panic().Err(err)
+		log.TickenLogger.Panic().Msg(err.Error())
 	}
 	log.TickenLogger.Info().Msg("bus publisher connection established")
 
@@ -187,12 +199,12 @@ func (builder *Builder) BuildBusSubscriber(connString string) BusSubscriber {
 		tickenBus = bus.NewRabbitMQSubscriber(builder.tickenConfig.Bus.ListenQueue)
 	default:
 		err := fmt.Errorf("bus driver %s not implemented", builder.tickenConfig.Bus.Driver)
-		log.TickenLogger.Panic().Err(err)
+		log.TickenLogger.Panic().Msg(err.Error())
 	}
 
 	err := tickenBus.Connect(connString, builder.tickenConfig.Bus.Exchange)
 	if err != nil {
-		log.TickenLogger.Panic().Err(err)
+		log.TickenLogger.Panic().Msg(err.Error())
 	}
 	log.TickenLogger.Info().Msg("bus subscriber connection established")
 

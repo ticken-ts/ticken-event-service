@@ -44,7 +44,7 @@ func (manager *AssetManager) UploadAsset(file *file.File, name string) (*models.
 		URL:      url,
 	}
 
-	if err := manager.assetRepository.AddAsset(newAsset); err != nil {
+	if err := manager.assetRepository.AddOne(newAsset); err != nil {
 		return nil, tickenerr.FromError(asseterr.FailedToStoreAssetInDatabase, err)
 	}
 

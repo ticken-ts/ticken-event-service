@@ -13,6 +13,7 @@ type IProvider interface {
 	GetOrganizationManager() IOrganizationManager
 	GetAssetManager() IAssetManager
 	GetValidatorManager() IValidatorManager
+	GetOrganizerManager() IOrganizerManager
 }
 
 type IEventManager interface {
@@ -47,12 +48,12 @@ type IOrganizationManager interface {
 	GetPvtbcConnection(organizerID uuid.UUID, organizationID uuid.UUID) (*pvtbc.Caller, error)
 }
 
-type IOrganizerManager interface {
-	RegisterOrganizer(organizerID, firstname, lastname, username, email string) (*models.Organizer, error)
-}
-
 type IValidatorManager interface {
 	RegisterValidator(organizerID, organizationID uuid.UUID, username, password, email string) (*models.Validator, error)
+}
+
+type IOrganizerManager interface {
+	RegisterOrganizer(username, password, email, firstname, lastname string) (*models.Organizer, error)
 }
 
 type IAssetManager interface {

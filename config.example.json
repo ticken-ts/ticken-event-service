@@ -31,7 +31,7 @@
     "certificate_path": "../ticken-dev/dev-pvtbc-certs/peer-orgs/ticken/users/ticken-admin/msp/signcerts/cert.pem",
     "private_key_path": "../ticken-dev/dev-pvtbc-certs/peer-orgs/ticken/users/ticken-admin/msp/keystore/priv.pem",
     "tls_certificate_path": "../ticken-dev/dev-pvtbc-certs/orgs/peer-orgs/ticken/nodes/ticken-peer0/tls/signcerts/tls-cert.pem",
-    "cluster_storage_path": "../ticken-dev/dev-pvtbc-certs/",
+    "cluster_storage_path": "../ticken-dev/dev-pvtbc-certs/"
   },
 
   "dev": {
@@ -54,20 +54,6 @@
       "total_fake_orgs": 3
     },
 
-    "events": {
-      "event_id": "8709adbb-0504-4707-9cb2-867126c8172f",
-      "event_name": "ticken event",
-      "event_description": "ticken event description",
-      "event_date": "2023-04-22T15:04:05Z07:00",
-      "event_poster_uri": "https://cdn.getcrowder.com/images/90add69a-63d0-4e09-aa9b-72031906c803-abel1920x720-aa-5-min.png",
-      "event_sections": [
-        {
-          "section_name": "ticken section",
-          "section_price": 100,
-          "section_quantity": 100
-        }
-      ]
-    },
     "jwt_public_key": "-----BEGIN RSA PUBLIC KEY-----\nMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDUqRecbJUp6pVi5cCpB97cxNav\nHxjlPCa4sB/MwcGbo/nuP/iPJf6X4XeRM1xFey5b3STSbhBKmM01+WR6XmUBvzdE\nPntm/3Byn9OfKIZcXJoRP1xpFbwfBcSlpZj0bVX0i+1asWWCvdykjcyNy3CMYCSR\nHzquQ87BNrh7g7nfjwIDAQAB\n-----END RSA PUBLIC KEY-----",
     "jwt_private_key": "-----BEGIN RSA PRIVATE KEY-----\nMIICWwIBAAKBgQDUqRecbJUp6pVi5cCpB97cxNavHxjlPCa4sB/MwcGbo/nuP/iP\nJf6X4XeRM1xFey5b3STSbhBKmM01+WR6XmUBvzdEPntm/3Byn9OfKIZcXJoRP1xp\nFbwfBcSlpZj0bVX0i+1asWWCvdykjcyNy3CMYCSRHzquQ87BNrh7g7nfjwIDAQAB\nAoGAW3URM3O7PtilQHAgyFEbNoTs80mDcmrJGFqegne9pQsDXMRkSGQFtxn/SxH0\nl+kfCeD0ig9NsFdAwfqsjLf15d6KvXZOlV8zeHHB2qLeW+1orNmThYurAPo4+MdU\nEdpYe3bGB8ZidEpDPrg1zhDlePnN9bsKSFOlCzXJRKGBTekCQQD0AiTTF0dNbRmG\nzGRmmJoLDVW32RfNCLg4CnGFIuumAKntglKYNig4ke9hNTd5+sSD/jdWSBnTTYRl\nhnCZpNI1AkEA3xyQC93M7zb4FPKEXhAaZ/XyJGgarRtNr//qGVBypP85Yucd0h5j\nyamh+ArJZouplZX0s7Pi/2bhZl4ne2PjMwJAShDghqa5QPpN1knya+YEVDh+/WhL\nPjRYXsJkxOndp6zp56s4UPWXbdx2UgZqSX9h6ULgHzORiz8rYfnV8f1CxQJAWoFC\nqZ2i2VMKFa0/Js0PeSaawEv+rkQKIqAEfZpVtzrVM5qfTTIItrB6RJ1Tj6aN92Eq\nL4+EQKiiPJ1rFLGzYwJAGpZsgLpoJq6NppNTuuKK1OJj0NSoeIdYl0UftG5pG1V+\nHw09Kn47X96bdsycEaKN/aZUPGVw9Bqtv/gsw/FTQQ==\n-----END RSA PRIVATE KEY-----"
   }

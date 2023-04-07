@@ -81,7 +81,7 @@ func (manager *ValidatorManager) RegisterValidator(
 		OrganizationID: organizationID,
 	}
 
-	if err := manager.validatorRepository.AddValidator(validator); err != nil {
+	if err := manager.validatorRepository.AddOne(validator); err != nil {
 		return nil, tickenerr.FromError(organizationerr.RegisterValidatorErrorCode, err)
 	}
 

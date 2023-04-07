@@ -111,7 +111,7 @@ func (eventManager *EventManager) CreateEvent(
 		PubBCAddress: "",
 	}
 
-	if err := eventManager.eventRepo.AddEvent(event); err != nil {
+	if err := eventManager.eventRepo.AddOne(event); err != nil {
 		return nil, tickenerr.FromError(eventerr.FailedToStoreEventInPVTBCErrorCode, err)
 	}
 

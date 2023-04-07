@@ -4,78 +4,62 @@ import (
 	"fmt"
 	"os"
 	"path"
-	"strconv"
-	"ticken-event-service/config"
 	"ticken-event-service/infra"
 	"ticken-event-service/models"
-	"ticken-event-service/repos"
 )
 
-type FakeOrgsPopulator struct {
-	hsm                infra.HSM
-	devConfig          config.DevConfig
-	reposProvider      repos.IProvider
-	clusterStoragePath string
+type SeedOrganization struct {
+	AdminUsername string `json:"admin_username"`
+	Name          string `json:"name"`
 }
 
-func NewFakeOrgsPopulator(
-	reposProvider repos.IProvider,
-	devConfig config.DevConfig,
-	hsm infra.HSM,
-	clusterStoragePath string) *FakeOrgsPopulator {
-	return &FakeOrgsPopulator{
-		hsm:                hsm,
-		devConfig:          devConfig,
-		reposProvider:      reposProvider,
-		clusterStoragePath: clusterStoragePath,
-	}
-}
+func (loader *Loader) seedOrganizations(toSeed []*SeedOrganization) []error {
+	var seedErrors = make([]error, 0)
 
-func (populator *FakeOrgsPopulator) Populate() error {
-	organizerRepo := populator.reposProvider.GetOrganizerRepository()
-	organizationRepo := populator.reposProvider.GetOrganizationRepository()
-
-	organizer := organizerRepo.FindOrganizerByUsername(populator.devConfig.User.Username)
-	if organizer == nil {
-		return fmt.Errorf("dev user with username %s not found", populator.devConfig.User.Username)
+	if loader.repoProvider.GetOrganizationRepository().Count() > 0 {
+		return seedErrors
 	}
 
-	// load genesis org in the database
-	if !organizationRepo.AnyWithName(populator.devConfig.Orgs.TickenOrgName) {
-		populator.createOrganization(populator.devConfig.Orgs.TickenOrgName, organizer)
-	}
+	for _, organization := range toSeed {
+		// load genesis org in the database
 
-	for i := 1; i <= populator.devConfig.Orgs.TotalFakeOrgs; i++ {
-		orgName := "org" + strconv.Itoa(i)
-		if organizationRepo.AnyWithName(orgName) {
-			continue
+		organizer := loader.repoProvider.GetOrganizerRepository().FindOrganizerByUsername(organization.AdminUsername)
+		if organizer == nil {
+			seedErrors = append(
+				seedErrors,
+				fmt.Errorf("failed to seed organization %s: organizer with username %s not found", organization.Name, organization.AdminUsername),
+			)
 		}
-		populator.createOrganization(orgName, organizer)
-	}
 
-	return nil
+		newOrg := createOrganization(
+			organization.Name,
+			organizer,
+			loader.config.Pvtbc.ClusterStoragePath,
+			loader.hsm,
+		)
+
+		if err := loader.repoProvider.GetOrganizationRepository().AddOne(newOrg); err != nil {
+			panic(err)
+		}
+	}
+	return seedErrors
 }
 
-func (populator *FakeOrgsPopulator) createOrganization(orgName string, admin *models.Organizer) *models.Organization {
-	orgCACert, tlsCACert := populator.readOrgMSP(orgName)
+func createOrganization(orgName string, admin *models.Organizer, clusterStoragePath string, hsm infra.HSM) *models.Organization {
+	orgCACert, tlsCACert := readOrgMSP(orgName, clusterStoragePath)
 	newOrganization := models.NewOrganization(orgName, getOrgChannelName(orgName), orgCACert, tlsCACert)
 
-	userOrgCert := populator.readOrgUserMSP(orgName, admin.Username)
+	userOrgCert := readOrgUserMSP(orgName, admin.Username, clusterStoragePath, hsm)
 	_ = newOrganization.AddUser(admin, "admin", userOrgCert)
 
-	nodeOrgCert, nodeTlsCert := populator.readOrgNodeMSP(orgName, "peer0")
+	nodeOrgCert, nodeTlsCert := readOrgNodeMSP(orgName, "peer0", clusterStoragePath, hsm)
 	_ = newOrganization.AddNode("peer0", orgName+"-peer0"+".localho.st:443", nodeOrgCert, nodeTlsCert)
 
-	organizationRepo := populator.reposProvider.GetOrganizationRepository()
-
-	if err := organizationRepo.AddOrganization(newOrganization); err != nil {
-		panic(err)
-	}
 	return newOrganization
 }
 
-func (populator *FakeOrgsPopulator) readOrgMSP(orgName string) (*models.Certificate, *models.Certificate) {
-	baseMspPath := path.Join(populator.clusterStoragePath, "orgs", "peer-orgs", orgName, "msp")
+func readOrgMSP(orgName string, clusterStoragePath string) (*models.Certificate, *models.Certificate) {
+	baseMspPath := path.Join(clusterStoragePath, "orgs", "peer-orgs", orgName, "msp")
 
 	orgCACertBytes, err := os.ReadFile(path.Join(baseMspPath, "cacerts", "ca-signcert.pem"))
 	if err != nil {
@@ -90,9 +74,9 @@ func (populator *FakeOrgsPopulator) readOrgMSP(orgName string) (*models.Certific
 	return models.NewCertificate(orgCACertBytes, ""), models.NewCertificate(tlsCACertBytes, "")
 }
 
-func (populator *FakeOrgsPopulator) readOrgUserMSP(orgName string, _ string) *models.Certificate {
+func readOrgUserMSP(orgName string, _ string, clusterStoragePath string, hsm infra.HSM) *models.Certificate {
 	// todo -> replace here and in the pvtbc bootstrap the admin name
-	userMspPath := path.Join(populator.clusterStoragePath, "orgs", "peer-orgs", orgName, "users", orgName+"-admin", "msp")
+	userMspPath := path.Join(clusterStoragePath, "orgs", "peer-orgs", orgName, "users", orgName+"-admin", "msp")
 
 	userCertBytes, err := os.ReadFile(path.Join(userMspPath, "signcerts", "cert.pem"))
 	if err != nil {
@@ -104,7 +88,7 @@ func (populator *FakeOrgsPopulator) readOrgUserMSP(orgName string, _ string) *mo
 		panic(err)
 	}
 
-	userPrivStorageKey, err := populator.hsm.Store(userPrivBytes)
+	userPrivStorageKey, err := hsm.Store(userPrivBytes)
 	if err != nil {
 		panic(err)
 	}
@@ -112,8 +96,8 @@ func (populator *FakeOrgsPopulator) readOrgUserMSP(orgName string, _ string) *mo
 	return models.NewCertificate(userCertBytes, userPrivStorageKey)
 }
 
-func (populator *FakeOrgsPopulator) readOrgNodeMSP(orgName string, node string) (*models.Certificate, *models.Certificate) {
-	nodePath := path.Join(populator.clusterStoragePath, "orgs", "peer-orgs", orgName, "nodes", orgName+"-"+node)
+func readOrgNodeMSP(orgName string, node string, clusterStoragePath string, hsm infra.HSM) (*models.Certificate, *models.Certificate) {
+	nodePath := path.Join(clusterStoragePath, "orgs", "peer-orgs", orgName, "nodes", orgName+"-"+node)
 
 	nodeCertBytes, err := os.ReadFile(path.Join(nodePath, "msp", "signcerts", "cert.pem"))
 	if err != nil {
@@ -125,7 +109,7 @@ func (populator *FakeOrgsPopulator) readOrgNodeMSP(orgName string, node string) 
 		panic(err)
 	}
 
-	nodePrivStorageKey, err := populator.hsm.Store(nodePrivBytes)
+	nodePrivStorageKey, err := hsm.Store(nodePrivBytes)
 	if err != nil {
 		panic(err)
 	}
@@ -139,5 +123,5 @@ func (populator *FakeOrgsPopulator) readOrgNodeMSP(orgName string, node string) 
 }
 
 func getOrgChannelName(orgName string) string {
-	return orgName + "-" + "channel"
+	return "ticken" + "-" + orgName + "-" + "channel"
 }

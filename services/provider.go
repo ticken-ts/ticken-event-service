@@ -39,11 +39,13 @@ func NewProvider(
 
 	validatorsKeycloakClient := sync.NewKeycloakHTTPClient(servicesConfig.Keycloak, auth.Validator, authIssuer)
 	validatorsServiceClient := sync.NewValidatorServiceHTTPClient(servicesConfig.Validator, authIssuer)
+	organizersKeycloakClient := sync.NewKeycloakHTTPClient(servicesConfig.Keycloak, auth.Organizer, authIssuer)
 
 	provider.organizationManager = NewOrganizationManager(repoProvider, hsm, builder.BuildAtomicPvtbcCaller)
 	provider.assetManager = NewAssetManager(repoProvider.GetAssetRepository(), fileUploader)
 	provider.eventManager = NewEventManager(repoProvider, publisher, provider.organizationManager, provider.assetManager, pubbcAdmin)
 	provider.validatorManager = NewValidatorManager(repoProvider, authIssuer, validatorsKeycloakClient, validatorsServiceClient)
+	provider.organizerManager = NewOrganizerManager(repoProvider, authIssuer, organizersKeycloakClient)
 
 	return provider, nil
 }
@@ -62,4 +64,8 @@ func (provider *provider) GetAssetManager() IAssetManager {
 
 func (provider *provider) GetValidatorManager() IValidatorManager {
 	return provider.validatorManager
+}
+
+func (provider *provider) GetOrganizerManager() IOrganizerManager {
+	return provider.organizerManager
 }

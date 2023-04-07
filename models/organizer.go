@@ -9,13 +9,3 @@ type Organizer struct {
 	Username    string    `bson:"username"`
 	Email       string    `bson:"email"`
 }
-
-func NewOrganizer(organizerID uuid.UUID, firstname, lastname, username, email string) *Organizer {
-	return &Organizer{
-		OrganizerID: organizerID,
-		Firstname:   firstname,
-		Lastname:    lastname,
-		Username:    username,
-		Email:       email,
-	}
-}

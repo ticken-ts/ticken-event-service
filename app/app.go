@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+	"github.com/fatih/color"
 	"github.com/gin-gonic/gin"
 	gojwt "github.com/golang-jwt/jwt"
 	"ticken-event-service/api"
@@ -15,6 +16,7 @@ import (
 	"ticken-event-service/config"
 	"ticken-event-service/env"
 	"ticken-event-service/infra"
+	"ticken-event-service/log"
 	"ticken-event-service/repos"
 	"ticken-event-service/security/jwt"
 	"ticken-event-service/services"
@@ -37,7 +39,6 @@ type TickenEventApp struct {
 func New(infraBuilder infra.IBuilder, tickenConfig *config.Config) *TickenEventApp {
 	tickenEventApp := new(TickenEventApp)
 
-	engine := infraBuilder.BuildEngine()
 	jwtVerifier := infraBuilder.BuildJWTVerifier()
 	fileUploader := infraBuilder.BuildFileUploader()
 	db := infraBuilder.BuildDb(env.TickenEnv.DbConnString)
@@ -46,9 +47,11 @@ func New(infraBuilder infra.IBuilder, tickenConfig *config.Config) *TickenEventA
 	busPublisher := infraBuilder.BuildBusPublisher(env.TickenEnv.BusConnString)
 	authIssuer := infraBuilder.BuildAuthIssuer(env.TickenEnv.ServiceClientSecret)
 
+	engine := infraBuilder.BuildEngine()
+
 	repoProvider, err := repos.NewProvider(db, &tickenConfig.Database)
 	if err != nil {
-		panic(err)
+		log.TickenLogger.Panic().Msg(err.Error())
 	}
 
 	serviceProvider, err := services.NewProvider(
@@ -62,7 +65,7 @@ func New(infraBuilder infra.IBuilder, tickenConfig *config.Config) *TickenEventA
 		tickenConfig.Services,
 	)
 	if err != nil {
-		panic(err)
+		log.TickenLogger.Panic().Msg(err.Error())
 	}
 
 	tickenEventApp.engine = engine
@@ -72,6 +75,7 @@ func New(infraBuilder infra.IBuilder, tickenConfig *config.Config) *TickenEventA
 
 	var appMiddlewares = []api.Middleware{
 		middlewares.NewErrorMiddleware(),
+		middlewares.NewLoggerMiddleware(),
 		middlewares.NewAuthMiddleware(serviceProvider, jwtVerifier, tickenConfig.Server.APIPrefix),
 	}
 
@@ -94,9 +98,7 @@ func New(infraBuilder infra.IBuilder, tickenConfig *config.Config) *TickenEventA
 	}
 
 	tickenEventApp.populators = []Populator{
-		fakes.NewFakeUsersPopulator(repoProvider, authIssuer, tickenConfig.Dev, tickenConfig.Services),
-		fakes.NewFakeOrgsPopulator(repoProvider, tickenConfig.Dev, hsm, tickenConfig.Pvtbc.ClusterStoragePath),
-		fakes.NewFakeEventsPopulator(repoProvider, serviceProvider, tickenConfig.Dev),
+		fakes.NewFakeLoader(hsm, repoProvider, serviceProvider, authIssuer, tickenConfig),
 	}
 
 	return tickenEventApp
@@ -125,17 +127,29 @@ func (tickenEventApp *TickenEventApp) EmitFakeJWT() {
 		panic(err)
 	}
 
-	fakeJWT := gojwt.NewWithClaims(gojwt.SigningMethodRS256, &jwt.Claims{
-		Subject:           tickenEventApp.config.Dev.User.UserID,
-		Email:             tickenEventApp.config.Dev.User.Email,
-		PreferredUsername: tickenEventApp.config.Dev.User.Username,
-	})
+	organizers := tickenEventApp.repoProvider.GetOrganizerRepository().FindAll()
 
-	signedJWT, err := fakeJWT.SignedString(rsaPrivKey)
+	for _, organizer := range organizers {
+		fakeJWT := gojwt.NewWithClaims(gojwt.SigningMethodRS256, &jwt.Claims{
+			Subject:           organizer.OrganizerID.String(),
+			Email:             organizer.Email,
+			PreferredUsername: organizer.Username,
+		})
 
-	if err != nil {
-		panic(fmt.Errorf("error generation fake Token: %s", err.Error()))
+		signedJWT, err := fakeJWT.SignedString(rsaPrivKey)
+
+		if err != nil {
+			log.TickenLogger.Panic().Msg(
+				fmt.Sprintf("error generation fake JWT for user %s: %s", organizer.Username, err.Error()),
+			)
+		}
+
+		log.TickenLogger.Info().Msg(
+			fmt.Sprintf("dev JWT user: %s -> %s",
+				color.GreenString(organizer.Username),
+				color.YellowString(signedJWT),
+			),
+		)
 	}
 
-	fmt.Printf("DEV Token: %s \n", signedJWT)
 }

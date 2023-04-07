@@ -7,6 +7,5 @@ type Section struct {
 	EventID      uuid.UUID `bson:"event_id"`
 	TicketPrice  float64   `bson:"ticket_price"`
 	TotalTickets int       `bson:"total_tickets"`
-
-	PvtBCTxID string `bson:"pvtbc_tx_id"`
+	PvtBCTxID    string    `bson:"pvtbc_tx_id"`
 }

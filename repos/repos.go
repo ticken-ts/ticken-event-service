@@ -5,8 +5,14 @@ import (
 	"ticken-event-service/models"
 )
 
+type BaseRepository interface {
+	Count() int64
+	AddOne(element any) error
+	AnyWithID(id uuid.UUID) bool
+}
+
 type EventRepository interface {
-	AddEvent(event *models.Event) error
+	BaseRepository
 	FindEvent(eventID uuid.UUID) *models.Event
 	UpdateEventStatus(event *models.Event) error
 	UpdatePUBBCData(event *models.Event) error
@@ -16,28 +22,27 @@ type EventRepository interface {
 }
 
 type OrganizerRepository interface {
-	AnyWithID(organizerID uuid.UUID) bool
-	AddOrganizer(organizer *models.Organizer) error
+	BaseRepository
+	FindAll() []*models.Organizer
 	FindOrganizer(organizerID uuid.UUID) *models.Organizer
 	FindOrganizerByUsername(username string) *models.Organizer
 }
 
 type OrganizationRepository interface {
+	BaseRepository
 	AnyWithName(name string) bool
-	AnyWithID(organizationID uuid.UUID) bool
-	AddOrganization(organization *models.Organization) error
 	FindOrganization(organizationID uuid.UUID) *models.Organization
 	FindByMSPID(mspID string) *models.Organization
 	FindByName(name string) *models.Organization
 }
 
 type AssetRepository interface {
+	BaseRepository
 	FindByID(assetID uuid.UUID) *models.Asset
-	AddAsset(asset *models.Asset) error
 }
 
 type ValidatorRepository interface {
-	AddValidator(validator *models.Validator) error
+	BaseRepository
 	FindValidator(validatorID uuid.UUID) *models.Validator
 }
 

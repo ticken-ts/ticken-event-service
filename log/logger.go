@@ -9,7 +9,7 @@ import (
 	"ticken-event-service/env"
 )
 
-const LogFilename = "logs"
+const Filename = "logs"
 
 var TickenLogger zerolog.Logger
 
@@ -61,7 +61,7 @@ func buildConsoleWriter() io.Writer {
 
 func buildFileWriter() io.Writer {
 	// if not exists, it is created
-	logs, err := os.Create(LogFilename)
+	logs, err := os.Create(Filename)
 	if err != nil {
 		panic(err)
 	}
