@@ -41,7 +41,7 @@ func (controller *EventController) CreateEvent(c *gin.Context) {
 	// No further validation are going to be added, so all
 	// validations are going to be performed on chain
 
-	file, err := controller.ReadAsset(payload.PosterFile)
+	file, err := controller.ReadFile(payload.PosterFile)
 	if err != nil {
 		c.Error(err)
 		c.Abort()

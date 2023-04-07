@@ -6,6 +6,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"ticken-event-service/models"
+	"time"
 )
 
 const EventCollectionName = "events"
@@ -147,15 +148,28 @@ func (r *EventMongoDBRepository) UpdatePUBBCData(event *models.Event) error {
 	return nil
 }
 
-// FindAvailableEvents
-// Find all events that are on sale
-func (r *EventMongoDBRepository) FindAvailableEvents() []*models.Event {
+func (r *EventMongoDBRepository) FindEvents(withName string, withStatus []models.EventStatus, fromDate time.Time, toDate time.Time) []*models.Event {
 	findContext, cancel := r.generateOpSubcontext()
 	defer cancel()
 
 	events := r.getCollection()
-	result, err := events.Find(findContext, bson.M{"status": bson.M{"$ne": models.EventStatusDraft}})
 
+	filter := bson.M{}
+
+	if len(withName) > 0 {
+		filter["name"] = "/a/"
+	}
+	if len(withStatus) > 0 {
+		filter["status"] = bson.M{"$in": withStatus}
+	}
+	if !fromDate.IsZero() {
+		filter["date"] = bson.M{"$ge": fromDate}
+	}
+	if !toDate.IsZero() {
+		filter["date"] = bson.M{"$le": toDate}
+	}
+
+	result, err := events.Find(findContext, filter)
 	if err != nil {
 		return nil
 	}
@@ -166,5 +180,6 @@ func (r *EventMongoDBRepository) FindAvailableEvents() []*models.Event {
 		err = result.Decode(event)
 		foundEvents = append(foundEvents, event)
 	}
+
 	return foundEvents
 }

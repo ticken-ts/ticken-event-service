@@ -3,6 +3,7 @@ package repos
 import (
 	"github.com/google/uuid"
 	"ticken-event-service/models"
+	"time"
 )
 
 type BaseRepository interface {
@@ -18,7 +19,7 @@ type EventRepository interface {
 	UpdatePUBBCData(event *models.Event) error
 	AddSectionToEvent(eventID uuid.UUID, section *models.Section) error
 	FindOrganizationEvents(organizationID uuid.UUID) []*models.Event
-	FindAvailableEvents() []*models.Event
+	FindEvents(withName string, withStatus []models.EventStatus, fromDate time.Time, toDate time.Time) []*models.Event
 }
 
 type OrganizerRepository interface {

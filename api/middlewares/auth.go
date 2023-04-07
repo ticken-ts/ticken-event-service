@@ -3,10 +3,8 @@ package middlewares
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	"net/http"
 	"strings"
 	"ticken-event-service/security/jwt"
-	"ticken-event-service/utils"
 )
 
 type AuthMiddleware struct {
@@ -46,7 +44,7 @@ func (middleware *AuthMiddleware) isJWTAuthorized() gin.HandlerFunc {
 
 		token, err := middleware.jwtVerifier.Verify(rawAccessToken)
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, utils.HttpResponse{Message: "authorisation failed while verifying the token: " + err.Error()})
+			c.Error(err)
 			c.Abort()
 			return
 		}

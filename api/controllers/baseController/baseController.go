@@ -19,7 +19,7 @@ func New(serviceProvider services.IProvider) *BaseController {
 	}
 }
 
-func (controller *BaseController) ReadAsset(fileHeader *multipart.FileHeader) (*file.File, error) {
+func (controller *BaseController) ReadFile(fileHeader *multipart.FileHeader) (*file.File, error) {
 	fileContent, err := fileHeader.Open()
 	if err != nil {
 		return nil, err

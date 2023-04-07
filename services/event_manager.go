@@ -332,10 +332,17 @@ func (eventManager *EventManager) GetOrganizationEvents(
 	return eventManager.eventRepo.FindOrganizationEvents(organizationID), nil
 }
 
-// GetAvailableEvents
-// returns all the events that are on sale and have not expired
-func (eventManager *EventManager) GetAvailableEvents() ([]*models.Event, error) {
-	events := eventManager.eventRepo.FindAvailableEvents()
+func (eventManager *EventManager) GetEventsOnSale(
+	withName string,
+	fromDate time.Time,
+	toDate time.Time,
+) ([]*models.Event, error) {
+	events := eventManager.eventRepo.FindEvents(
+		withName,
+		[]models.EventStatus{models.EventStatusOnSale},
+		fromDate,
+		toDate,
+	)
 	if events == nil {
 		return nil, fmt.Errorf("error querying events from database")
 	}
@@ -343,7 +350,9 @@ func (eventManager *EventManager) GetAvailableEvents() ([]*models.Event, error) 
 	return events, nil
 }
 
-func (eventManager *EventManager) GetPublicEvent(eventID uuid.UUID) (*models.Event, error) {
+func (eventManager *EventManager) GetPublicEvent(
+	eventID uuid.UUID,
+) (*models.Event, error) {
 	event := eventManager.eventRepo.FindEvent(eventID)
 	if event == nil {
 		return nil, fmt.Errorf("event %s not found", eventID)
