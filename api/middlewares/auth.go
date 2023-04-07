@@ -6,22 +6,19 @@ import (
 	"net/http"
 	"strings"
 	"ticken-event-service/security/jwt"
-	"ticken-event-service/services"
 	"ticken-event-service/utils"
 )
 
 type AuthMiddleware struct {
-	validator       *validator.Validate
-	serviceProvider services.IProvider
-	jwtVerifier     jwt.Verifier
-	apiPrefix       string
+	validator   *validator.Validate
+	jwtVerifier jwt.Verifier
+	apiPrefix   string
 }
 
-func NewAuthMiddleware(serviceProvider services.IProvider, jwtVerifier jwt.Verifier, apiPrefix string) *AuthMiddleware {
+func NewAuthMiddleware(jwtVerifier jwt.Verifier, apiPrefix string) *AuthMiddleware {
 	middleware := new(AuthMiddleware)
 
 	middleware.validator = validator.New()
-	middleware.serviceProvider = serviceProvider
 	middleware.jwtVerifier = jwtVerifier
 	middleware.apiPrefix = apiPrefix
 

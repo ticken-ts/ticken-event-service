@@ -25,6 +25,7 @@ import (
 
 type TickenEventApp struct {
 	engine          *gin.Engine
+	jwtVerifier     jwt.Verifier
 	config          *config.Config
 	repoProvider    repos.IProvider
 	serviceProvider services.IProvider
@@ -39,6 +40,8 @@ type TickenEventApp struct {
 func New(infraBuilder infra.IBuilder, tickenConfig *config.Config) *TickenEventApp {
 	tickenEventApp := new(TickenEventApp)
 
+	/******************************** infra builds ********************************/
+	engine := infraBuilder.BuildEngine()
 	jwtVerifier := infraBuilder.BuildJWTVerifier()
 	fileUploader := infraBuilder.BuildFileUploader()
 	db := infraBuilder.BuildDb(env.TickenEnv.DbConnString)
@@ -46,10 +49,13 @@ func New(infraBuilder infra.IBuilder, tickenConfig *config.Config) *TickenEventA
 	pubbcAdmin := infraBuilder.BuildPubbcAdmin(env.TickenEnv.TickenWalletKey)
 	busPublisher := infraBuilder.BuildBusPublisher(env.TickenEnv.BusConnString)
 	authIssuer := infraBuilder.BuildAuthIssuer(env.TickenEnv.ServiceClientSecret)
+	/**************************++***************************************************/
 
-	engine := infraBuilder.BuildEngine()
-
-	repoProvider, err := repos.NewProvider(db, &tickenConfig.Database)
+	/********************************** providers **********************************/
+	repoProvider, err := repos.NewProvider(
+		db,
+		&tickenConfig.Database,
+	)
 	if err != nil {
 		log.TickenLogger.Panic().Msg(err.Error())
 	}
@@ -67,39 +73,23 @@ func New(infraBuilder infra.IBuilder, tickenConfig *config.Config) *TickenEventA
 	if err != nil {
 		log.TickenLogger.Panic().Msg(err.Error())
 	}
+	/**************************++***************************************************/
 
 	tickenEventApp.engine = engine
 	tickenEventApp.config = tickenConfig
+	tickenEventApp.jwtVerifier = jwtVerifier
 	tickenEventApp.repoProvider = repoProvider
 	tickenEventApp.serviceProvider = serviceProvider
 
-	var appMiddlewares = []api.Middleware{
-		middlewares.NewErrorMiddleware(),
-		middlewares.NewLoggerMiddleware(),
-		middlewares.NewAuthMiddleware(serviceProvider, jwtVerifier, tickenConfig.Server.APIPrefix),
-	}
-
-	var controllers = []api.Controller{
-		eventController.New(serviceProvider),
-		healthController.New(serviceProvider),
-		publicController.New(serviceProvider),
-		assetController.New(serviceProvider),
-		validatorController.New(serviceProvider),
-	}
-
 	apiRouter := engine.Group(tickenConfig.Server.APIPrefix)
+	tickenEventApp.loadControllers(apiRouter)
+	tickenEventApp.loadMiddlewares(apiRouter)
 
-	for _, middleware := range appMiddlewares {
-		middleware.Setup(apiRouter)
-	}
-
-	for _, controller := range controllers {
-		controller.Setup(apiRouter)
-	}
-
+	/********************************* populators **********************************/
 	tickenEventApp.populators = []Populator{
 		fakes.NewFakeLoader(hsm, repoProvider, serviceProvider, authIssuer, tickenConfig),
 	}
+	/**************************++***************************************************/
 
 	return tickenEventApp
 }
@@ -124,7 +114,7 @@ func (tickenEventApp *TickenEventApp) Populate() {
 func (tickenEventApp *TickenEventApp) EmitFakeJWT() {
 	rsaPrivKey, err := utils.LoadRSA(tickenEventApp.config.Dev.JWTPrivateKey, tickenEventApp.config.Dev.JWTPublicKey)
 	if err != nil {
-		panic(err)
+		log.TickenLogger.Panic().Msg(fmt.Sprintf("failed to load dev RSA: %s", err.Error()))
 	}
 
 	organizers := tickenEventApp.repoProvider.GetOrganizerRepository().FindAll()
@@ -139,17 +129,48 @@ func (tickenEventApp *TickenEventApp) EmitFakeJWT() {
 		signedJWT, err := fakeJWT.SignedString(rsaPrivKey)
 
 		if err != nil {
-			log.TickenLogger.Panic().Msg(
-				fmt.Sprintf("error generation fake JWT for user %s: %s", organizer.Username, err.Error()),
+			log.TickenLogger.Panic().Msg(fmt.Sprintf(
+				"error generation fake JWT for user %s: %s", organizer.Username, err.Error()),
 			)
 		}
 
-		log.TickenLogger.Info().Msg(
-			fmt.Sprintf("dev JWT user: %s -> %s",
-				color.GreenString(organizer.Username),
-				color.YellowString(signedJWT),
-			),
-		)
+		log.TickenLogger.Info().Msg(fmt.Sprintf("dev JWT user: %s -> %s",
+			color.GreenString(organizer.Username),
+			color.YellowString(signedJWT)))
+
+		if _, err := tickenEventApp.jwtVerifier.Verify(signedJWT); err != nil {
+			log.TickenLogger.Warn().Msg(fmt.Sprintf("failed to verify JWT: %s", err.Error()))
+		} else {
+			log.TickenLogger.Info().Msg(fmt.Sprintf("jwt verified successfully"))
+		}
+
+		fmt.Println() // add a new line
 	}
 
+}
+
+func (tickenEventApp *TickenEventApp) loadControllers(apiRouter gin.IRouter) {
+	var appControllers = []api.Controller{
+		eventController.New(tickenEventApp.serviceProvider),
+		healthController.New(tickenEventApp.serviceProvider),
+		publicController.New(tickenEventApp.serviceProvider),
+		assetController.New(tickenEventApp.serviceProvider),
+		validatorController.New(tickenEventApp.serviceProvider),
+	}
+
+	for _, controller := range appControllers {
+		controller.Setup(apiRouter)
+	}
+}
+
+func (tickenEventApp *TickenEventApp) loadMiddlewares(apiRouter gin.IRouter) {
+	var appMiddlewares = []api.Middleware{
+		middlewares.NewErrorMiddleware(),
+		middlewares.NewLoggerMiddleware(),
+		middlewares.NewAuthMiddleware(tickenEventApp.jwtVerifier, tickenEventApp.config.Server.APIPrefix),
+	}
+
+	for _, middleware := range appMiddlewares {
+		middleware.Setup(apiRouter)
+	}
 }
