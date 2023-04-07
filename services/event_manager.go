@@ -237,6 +237,10 @@ func (eventManager *EventManager) StartEvent(
 	_ = eventManager.eventRepo.UpdateEventStatus(event)
 	_ = eventManager.eventRepo.UpdatePUBBCData(event)
 
+	if err := eventManager.publisher.PublishStatusUpdate(event); err != nil {
+		panic(err) // TODO -> how to handle
+	}
+
 	return event, nil
 }
 
@@ -267,6 +271,10 @@ func (eventManager *EventManager) FinishEvent(
 
 	_ = eventManager.eventRepo.UpdateEventStatus(event)
 	_ = eventManager.eventRepo.UpdatePUBBCData(event)
+
+	if err := eventManager.publisher.PublishStatusUpdate(event); err != nil {
+		panic(err) // TODO -> how to handle
+	}
 
 	return event, nil
 }

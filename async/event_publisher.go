@@ -10,14 +10,20 @@ import (
 )
 
 const (
-	NewEventMessageType = "new_event"
+	NewEventMessageType          = "new_event"
+	UpdateEventStatusMessageType = "update_status"
 )
 
-type eventDTO struct {
+type createEventDTO struct {
 	EventID      uuid.UUID `json:"event_id"`
 	OrganizerID  uuid.UUID `json:"organizer_id"`
 	PvtBCChannel string    `json:"pvt_bc_channel"`
 	PubBCAddress string    `json:"pub_bc_address"`
+}
+
+type updateEventStatusDTO struct {
+	EventID uuid.UUID `json:"event_id"`
+	Status  string    `json:"status"`
 }
 
 type EventPublisher struct {
@@ -29,7 +35,12 @@ func NewEventPublisher(busPublisher infra.BusPublisher) *EventPublisher {
 }
 
 func (processor *EventPublisher) PublishNewEvent(event *models.Event) error {
-	dto := mapToDTO(event)
+	dto := &createEventDTO{
+		EventID:      event.EventID,
+		OrganizerID:  event.OrganizerID,
+		PvtBCChannel: event.PvtBCChannel,
+		PubBCAddress: event.PubBCAddress,
+	}
 
 	serializedDTO, err := json.Marshal(dto)
 	if err != nil {
@@ -47,11 +58,24 @@ func (processor *EventPublisher) PublishNewEvent(event *models.Event) error {
 	return nil
 }
 
-func mapToDTO(event *models.Event) *eventDTO {
-	return &eventDTO{
-		EventID:      event.EventID,
-		OrganizerID:  event.OrganizationID,
-		PvtBCChannel: event.PvtBCChannel,
-		PubBCAddress: event.PubBCAddress,
+func (processor *EventPublisher) PublishStatusUpdate(event *models.Event) error {
+	dto := &updateEventStatusDTO{
+		EventID: event.EventID,
+		Status:  string(event.Status),
 	}
+
+	serializedDTO, err := json.Marshal(dto)
+	if err != nil {
+		return err
+	}
+
+	err = processor.busPublisher.Publish(
+		context.Background(),
+		bus.Message{Type: UpdateEventStatusMessageType, Data: serializedDTO},
+	)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
