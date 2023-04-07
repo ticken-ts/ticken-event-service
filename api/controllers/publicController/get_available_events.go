@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-func (controller *PublicController) GetAvailableEvents(c *gin.Context) {
+func (controller *PublicController) GetEventsOnSale(c *gin.Context) {
 	eventName := c.Param("name")
 
 	fromDate, err := parseDateOrZero(c.Param("fromDate"))
