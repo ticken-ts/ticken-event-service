@@ -14,6 +14,9 @@ type SeedEvent struct {
 	Sections          []*SeedSection `json:"sections"`
 	OrganizerUsername string         `json:"organizer_username"`
 	OrganizationName  string         `json:"organization_name"`
+
+	// sets the event on sale after creating it
+	SetOnSale bool `json:"set_on_sale"`
 }
 
 type SeedSection struct {
@@ -85,6 +88,20 @@ func (loader *Loader) seedEvents(toSeed []*SeedEvent) []error {
 				seedErrors = append(
 					seedErrors,
 					fmt.Errorf("failed to seed event %s: %s", event.Name, err.Error()),
+				)
+			}
+		}
+
+		if event.SetOnSale {
+			_, err := loader.serviceProvider.GetEventManager().StartSale(
+				fakeEvent.EventID,
+				organization.OrganizationID,
+				organizer.OrganizerID,
+			)
+			if err != nil {
+				seedErrors = append(
+					seedErrors,
+					fmt.Errorf("failed to set fake event on sale %s: %s", event.Name, err.Error()),
 				)
 			}
 		}

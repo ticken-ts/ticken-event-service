@@ -43,7 +43,8 @@
           "ticket_price": 100,
           "total_tickets": 100
         }
-      ]
+      ],
+      "set_on_sale": true
     },
     {
       "name": "ticken event 2",
@@ -73,7 +74,8 @@
           "ticket_price": 100,
           "total_tickets": 100
         }
-      ]
+      ],
+      "set_on_sale": true
     }
   ]
 }
