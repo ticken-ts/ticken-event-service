@@ -306,6 +306,8 @@ github.com/subosito/gotenv v1.4.2/go.mod h1:ayKnFf/c6rvx/2iiLrJUk1e6plDbT3edrFNG
 github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7 h1:epCh84lMvA70Z7CTTCmYQn2CKbY8j86K7/FAIr141uY=
 github.com/ticken-ts/ticken-pubbc-connector v0.0.17 h1:yjtEM4b59wCcNpEaRJt53Ed3fBdI9Edi+YPypPL74jo=
 github.com/ticken-ts/ticken-pubbc-connector v0.0.17/go.mod h1:3QARm+lkbMN/mJrdNBDoknNZLaVyEdk3O0DpEAu1hzM=
+github.com/ticken-ts/ticken-pubbc-connector v0.0.18 h1:+HG15Pm7DeVLzBTaC+wkNOXX3de3qoJdy4A4gTJWAl4=
+github.com/ticken-ts/ticken-pubbc-connector v0.0.18/go.mod h1:3QARm+lkbMN/mJrdNBDoknNZLaVyEdk3O0DpEAu1hzM=
 github.com/ticken-ts/ticken-pvtbc-connector v0.2.47 h1:D//WDAg9PMOqp/d2JAKRfNNuPyXLND4NjwxVRDPqJ5c=
 github.com/ticken-ts/ticken-pvtbc-connector v0.2.47/go.mod h1:rK1J3x+qeLeGTzjwqYVqI/9AKL0vseqrlwJNZoZXr3o=
 github.com/ticken-ts/ticken-pvtbc-connector v0.2.48 h1:PvfSyD7WoDHigM6kRoao5Ah8gAGRY8lMvOyby137i2A=
