@@ -6,7 +6,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"ticken-event-service/models"
-	"ticken-event-service/utils"
 )
 
 const OrganizerCollectionName = "organizers"
@@ -21,7 +20,7 @@ func NewOrganizerRepository(dbClient *mongo.Client, dbName string) *OrganizerMon
 			dbClient:       dbClient,
 			dbName:         dbName,
 			collectionName: OrganizerCollectionName,
-			primKeyField:   utils.GetStructTag(models.Organizer{}.OrganizerID, "bson"),
+			primKeyField:   "organizer_id",
 		},
 	}
 }
