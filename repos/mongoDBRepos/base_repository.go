@@ -48,7 +48,7 @@ func (r *baseRepository) Count() int64 {
 	return totalDocs
 }
 
-func (r *EventMongoDBRepository) AddOne(model any) error {
+func (r *baseRepository) AddOne(model any) error {
 	storeContext, cancel := r.generateOpSubcontext()
 	defer cancel()
 
