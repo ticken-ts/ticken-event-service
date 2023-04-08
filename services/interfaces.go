@@ -21,9 +21,9 @@ type IEventManager interface {
 	AddSection(organizerID, organizationID, eventID uuid.UUID, name string, totalTickets int, ticketPrice float64) (*models.Section, error)
 	GetEvent(eventID, organizerID, organizationID uuid.UUID) (*models.Event, error)
 	GetOrganizationEvents(organizerID uuid.UUID, organizationID uuid.UUID) ([]*models.Event, error)
-	StartSale(eventID, organizationID, organizerID uuid.UUID) (*models.Event, error)
-	StartEvent(eventID, organizationID, organizerID uuid.UUID) (*models.Event, error)
-	FinishEvent(eventID, organizationID, organizerID uuid.UUID) (*models.Event, error)
+	StartSale(eventID, organizerID, organizationID uuid.UUID) (*models.Event, error)
+	StartEvent(eventID, organizerID, organizationID uuid.UUID) (*models.Event, error)
+	FinishEvent(eventID, organizerID, organizationID uuid.UUID) (*models.Event, error)
 	GetEventsOnSale(withName string, fromDate time.Time, toDate time.Time) ([]*models.Event, error)
 	GetPublicEvent(eventID uuid.UUID) (*models.Event, error)
 }

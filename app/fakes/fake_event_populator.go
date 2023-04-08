@@ -95,8 +95,8 @@ func (loader *Loader) seedEvents(toSeed []*SeedEvent) []error {
 		if event.SetOnSale {
 			_, err := loader.serviceProvider.GetEventManager().StartSale(
 				fakeEvent.EventID,
-				organization.OrganizationID,
 				organizer.OrganizerID,
+				organization.OrganizationID,
 			)
 			if err != nil {
 				seedErrors = append(
