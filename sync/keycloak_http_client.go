@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"ticken-event-service/security/auth"
+	"ticken-event-service/utils"
 )
 
 type KeycloakUser struct {
@@ -68,7 +69,7 @@ func (client *KeycloakHTTPClient) RegisterUser(username string, password string,
 		return nil, err
 	}
 	if res.StatusCode != http.StatusCreated {
-		return nil, errors.New(readBody(res))
+		return nil, errors.New(utils.ReadHTTPResponseBody(res))
 	}
 
 	refreshedUser, err := client.GetUserByEmail(email)
@@ -106,11 +107,11 @@ func (client *KeycloakHTTPClient) GetUserByEmail(email string) (*KeycloakUser, e
 		return nil, err
 	}
 	if res.StatusCode != http.StatusOK {
-		return nil, errors.New(readBody(res))
+		return nil, errors.New(utils.ReadHTTPResponseBody(res))
 	}
 
 	var users []KeycloakUser
-	err = json.Unmarshal([]byte(readBody(res)), &users)
+	err = json.Unmarshal([]byte(utils.ReadHTTPResponseBody(res)), &users)
 	if err != nil {
 		return nil, err
 	}
@@ -158,7 +159,7 @@ func (client *KeycloakHTTPClient) UpdateUserPassword(userID uuid.UUID, newPasswo
 		return err
 	}
 	if res.StatusCode != http.StatusNoContent {
-		return errors.New(readBody(res))
+		return errors.New(utils.ReadHTTPResponseBody(res))
 	}
 
 	return nil

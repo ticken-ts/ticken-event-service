@@ -1,6 +1,7 @@
 package services
 
 import (
+	"github.com/google/uuid"
 	"ticken-event-service/models"
 	"ticken-event-service/repos"
 	"ticken-event-service/security/auth"
@@ -30,13 +31,24 @@ func NewOrganizerManager(
 }
 
 func (manager *OrganizerManager) RegisterOrganizer(username, password, email, firstname, lastname string) (*models.Organizer, error) {
-	keycloakUser, err := manager.keycloakClient.RegisterUser(username, password, email)
-	if err != nil {
-		return nil, tickenerr.FromError(organizationerr.RegisterValidatorErrorCode, err)
+	organizerID := uuid.New()
+
+	// todo -> this is to handle standalone executions
+	// how we can do this more clean and beautiful?
+	// I know this is not the best way to do this, but everybody
+	// knows that life is difficult and led us to some difficult
+	// decisions but i want to be engineer next month :) so time
+	// is something priority right now
+	if manager.keycloakClient != nil {
+		keycloakUser, err := manager.keycloakClient.RegisterUser(username, password, email)
+		if err != nil {
+			return nil, tickenerr.FromError(organizationerr.RegisterValidatorErrorCode, err)
+		}
+		organizerID = keycloakUser.ID
 	}
 
 	organizer := &models.Organizer{
-		OrganizerID: keycloakUser.ID,
+		OrganizerID: organizerID,
 		Firstname:   firstname,
 		Lastname:    lastname,
 		Username:    username,

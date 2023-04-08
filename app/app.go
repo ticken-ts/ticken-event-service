@@ -68,7 +68,7 @@ func New(infraBuilder infra.IBuilder, tickenConfig *config.Config) *TickenEventA
 		pubbcAdmin,
 		fileUploader,
 		authIssuer,
-		tickenConfig.Services,
+		tickenConfig,
 	)
 	if err != nil {
 		log.TickenLogger.Panic().Msg(err.Error())

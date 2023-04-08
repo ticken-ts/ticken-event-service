@@ -4,6 +4,7 @@ import (
 	pubbc "github.com/ticken-ts/ticken-pubbc-connector"
 	"ticken-event-service/async"
 	"ticken-event-service/config"
+	"ticken-event-service/env"
 	"ticken-event-service/infra"
 	"ticken-event-service/repos"
 	"ticken-event-service/security/auth"
@@ -28,7 +29,7 @@ func NewProvider(
 	pubbcAdmin pubbc.Admin,
 	fileUploader infra.FileUploader,
 	authIssuer *auth.Issuer,
-	servicesConfig config.ServicesConfig,
+	tickenConfig *config.Config,
 ) (IProvider, error) {
 	provider := new(provider)
 
@@ -37,15 +38,19 @@ func NewProvider(
 		return nil, err
 	}
 
-	validatorsKeycloakClient := sync.NewKeycloakHTTPClient(servicesConfig.Keycloak, auth.Validator, authIssuer)
-	validatorsServiceClient := sync.NewValidatorServiceHTTPClient(servicesConfig.Validator, authIssuer)
-	organizersKeycloakClient := sync.NewKeycloakHTTPClient(servicesConfig.Keycloak, auth.Organizer, authIssuer)
+	validatorsServiceClient := sync.NewValidatorServiceHTTPClient(tickenConfig.Services.Validator, authIssuer)
+	validatorsKeycloakClient := sync.NewKeycloakHTTPClient(tickenConfig.Services.Keycloak, auth.Validator, authIssuer)
 
-	provider.organizationManager = NewOrganizationManager(repoProvider, hsm, builder.BuildAtomicPvtbcCaller)
+	var organizersKeycloakClient *sync.KeycloakHTTPClient
+	if !env.TickenEnv.IsDev() || tickenConfig.Dev.Mock.DisableAuthMock {
+		organizersKeycloakClient = sync.NewKeycloakHTTPClient(tickenConfig.Services.Keycloak, auth.Organizer, authIssuer)
+	}
+
 	provider.assetManager = NewAssetManager(repoProvider.GetAssetRepository(), fileUploader)
-	provider.eventManager = NewEventManager(repoProvider, publisher, provider.organizationManager, provider.assetManager, pubbcAdmin)
-	provider.validatorManager = NewValidatorManager(repoProvider, authIssuer, validatorsKeycloakClient, validatorsServiceClient)
 	provider.organizerManager = NewOrganizerManager(repoProvider, authIssuer, organizersKeycloakClient)
+	provider.organizationManager = NewOrganizationManager(repoProvider, hsm, builder.BuildAtomicPvtbcCaller)
+	provider.validatorManager = NewValidatorManager(repoProvider, authIssuer, validatorsKeycloakClient, validatorsServiceClient)
+	provider.eventManager = NewEventManager(repoProvider, publisher, provider.organizationManager, provider.assetManager, pubbcAdmin)
 
 	return provider, nil
 }

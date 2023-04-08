@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"ticken-event-service/security/auth"
+	"ticken-event-service/utils"
 )
 
 type registerUserPayload struct {
@@ -52,7 +53,7 @@ func (client *ValidatorServiceHTTPClient) RegisterValidator(organizationID uuid.
 		return fmt.Errorf("failed to do validator service request: %s", err.Error())
 	}
 	if res.StatusCode != http.StatusCreated {
-		return fmt.Errorf("validator creator failed: %s", readBody(res))
+		return fmt.Errorf("validator creator failed: %s", utils.ReadHTTPResponseBody(res))
 	}
 
 	return nil
@@ -80,7 +81,7 @@ func (client *ValidatorServiceHTTPClient) SyncTickets(eventID uuid.UUID) error {
 		return fmt.Errorf("failed to start ticket sync: %s", err.Error())
 	}
 	if res.StatusCode != http.StatusOK {
-		return fmt.Errorf("failed to start ticket sync: %s", readBody(res))
+		return fmt.Errorf("failed to start ticket sync: %s", utils.ReadHTTPResponseBody(res))
 	}
 
 	return nil
