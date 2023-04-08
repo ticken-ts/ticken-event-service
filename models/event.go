@@ -62,7 +62,7 @@ func (event *Event) GetSection(name string) *Section {
 }
 
 func (event *Event) AddSection(section *Section) {
-	// just to ensure that the section has same event ID
+	// just to ensure that the section has same event AssetID
 	section.EventID = event.EventID
 	event.Sections = append(event.Sections, section)
 }

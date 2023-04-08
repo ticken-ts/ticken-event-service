@@ -79,7 +79,7 @@ func (eventManager *EventManager) CreateEvent(
 		if err != nil {
 			return nil, err
 		}
-		posterID = asset.ID
+		posterID = asset.AssetID
 	}
 
 	eventID := uuid.New()

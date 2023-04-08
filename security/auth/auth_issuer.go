@@ -40,7 +40,7 @@ type Issuer struct {
 // three parameters:
 // @ selfService -> is the service which is running
 // @ issuerURL   -> base url where the identity issues is running
-// @ clientID    -> client ID of the service specified in selfService
+// @ clientID    -> client AssetID of the service specified in selfService
 func NewAuthIssuer(selfService ServiceType, issuerURL, clientID, clientSecret string) (*Issuer, error) {
 	return &Issuer{
 		issuerURL:    issuerURL,

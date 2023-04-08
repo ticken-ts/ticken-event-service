@@ -19,9 +19,9 @@
     "listen_queue": "service.events"
   },
 
-  "external_services": {
-    "ticken_validator_service":"",
-    "keycloak_service": ""
+  "services": {
+    "keycloak": "http://localhost:8080",
+    "validator": "http://localhost:7000"
   },
 
   "pvtbc": {

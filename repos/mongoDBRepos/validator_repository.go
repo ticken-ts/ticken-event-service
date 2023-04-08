@@ -6,6 +6,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"ticken-event-service/models"
+	"ticken-event-service/utils"
 )
 
 const ValidatorCollectionName = "validators"
@@ -20,6 +21,7 @@ func NewValidatorRepository(dbClient *mongo.Client, dbName string) *ValidatorMon
 			dbClient:       dbClient,
 			dbName:         dbName,
 			collectionName: ValidatorCollectionName,
+			primKeyField:   utils.GetStructTag(models.Validator{}.ValidatorID, "bson"),
 		},
 	}
 }

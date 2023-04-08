@@ -38,7 +38,7 @@ func (manager *AssetManager) UploadAsset(file *file.File, name string) (*models.
 	}
 
 	newAsset := &models.Asset{
-		ID:       uuid.New(),
+		AssetID:  uuid.New(),
 		Name:     name,
 		MimeType: file.MimeType,
 		URL:      url,

@@ -6,6 +6,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"ticken-event-service/models"
+	"ticken-event-service/utils"
 	"time"
 )
 
@@ -21,6 +22,7 @@ func NewEventRepository(dbClient *mongo.Client, dbName string) *EventMongoDBRepo
 			dbClient:       dbClient,
 			dbName:         dbName,
 			collectionName: EventCollectionName,
+			primKeyField:   utils.GetStructTag(models.Event{}.EventID, "bson"),
 		},
 	}
 }

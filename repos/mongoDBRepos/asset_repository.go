@@ -6,6 +6,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"ticken-event-service/models"
+	"ticken-event-service/utils"
 )
 
 const AssetCollectionName = "assets"
@@ -20,6 +21,7 @@ func NewAssetRepository(dbClient *mongo.Client, dbName string) *AssetMongoDBRepo
 			dbClient:       dbClient,
 			dbName:         dbName,
 			collectionName: AssetCollectionName,
+			primKeyField:   utils.GetStructTag(models.Asset{}.AssetID, "bson"),
 		},
 	}
 }
