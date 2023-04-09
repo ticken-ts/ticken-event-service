@@ -87,10 +87,6 @@ func (r *OrganizerMongoDBRepository) FindOrganizerByUsername(username string) *m
 	return &foundOrganizer
 }
 
-func (r *OrganizerMongoDBRepository) AnyWithID(organizerID uuid.UUID) bool {
-	return r.FindOrganizer(organizerID) != nil
-}
-
 func (r *OrganizerMongoDBRepository) FindAll() []*models.Organizer {
 	findContext, cancel := r.generateOpSubcontext()
 	defer cancel()

@@ -104,10 +104,6 @@ func (r *OrganizationMongoDBRepository) FindByMSPID(mspID string) *models.Organi
 	return &foundOrganization
 }
 
-func (r *OrganizationMongoDBRepository) AnyWithID(organizationID uuid.UUID) bool {
-	return r.FindOrganization(organizationID) != nil
-}
-
 func (r *OrganizationMongoDBRepository) AnyWithName(name string) bool {
 	return r.FindByName(name) != nil
 }
