@@ -40,19 +40,6 @@ func (r *AssetMongoDBRepository) getCollection() *mongo.Collection {
 	return coll
 }
 
-func (r *AssetMongoDBRepository) AddAsset(asset *models.Asset) error {
-	storeContext, cancel := r.generateOpSubcontext()
-	defer cancel()
-
-	assets := r.getCollection()
-	_, err := assets.InsertOne(storeContext, asset)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (r *AssetMongoDBRepository) FindByID(assetID uuid.UUID) *models.Asset {
 	findContext, cancel := r.generateOpSubcontext()
 	defer cancel()
