@@ -81,9 +81,9 @@ func New(infraBuilder infra.IBuilder, tickenConfig *config.Config) *TickenEventA
 	tickenEventApp.jwtVerifier = jwtVerifier
 	tickenEventApp.repoProvider = repoProvider
 	tickenEventApp.serviceProvider = serviceProvider
+	tickenEventApp.loadMiddlewares(engine)
 
 	apiRouter := engine.Group(tickenConfig.Server.APIPrefix)
-	tickenEventApp.loadMiddlewares(apiRouter)
 	tickenEventApp.loadControllers(apiRouter)
 
 	/********************************* populators **********************************/
@@ -166,6 +166,7 @@ func (tickenEventApp *TickenEventApp) loadControllers(apiRouter gin.IRouter) {
 
 func (tickenEventApp *TickenEventApp) loadMiddlewares(apiRouter gin.IRouter) {
 	var appMiddlewares = []api.Middleware{
+		middlewares.NewCorsMiddleware(),
 		middlewares.NewErrorMiddleware(),
 		middlewares.NewLoggerMiddleware(),
 		middlewares.NewAuthMiddleware(tickenEventApp.jwtVerifier, tickenEventApp.config.Server.APIPrefix),
