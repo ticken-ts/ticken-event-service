@@ -1,11 +1,12 @@
 package mongoDBRepos
 
 import (
+	"ticken-event-service/models"
+
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"ticken-event-service/models"
 )
 
 const OrganizationCollectionName = "organizations"
@@ -106,4 +107,29 @@ func (r *OrganizationMongoDBRepository) FindByMSPID(mspID string) *models.Organi
 
 func (r *OrganizationMongoDBRepository) AnyWithName(name string) bool {
 	return r.FindByName(name) != nil
+}
+
+func (r *OrganizationMongoDBRepository) FindByOrganizer(organizerID uuid.UUID) []*models.Organization {
+	findContext, cancel := r.generateOpSubcontext()
+	defer cancel()
+
+	organizations := r.getCollection()
+
+	result, err := organizations.Aggregate(findContext, mongo.Pipeline{
+		// get orgs such that organizerID is the organizer_id of a user in the users list
+		{{Key: "$match", Value: bson.M{"users": bson.M{"$elemMatch": bson.M{"organizer_id": organizerID}}}}},
+	})
+
+	if err != nil {
+		return nil
+	}
+
+	var foundOrganizations []*models.Organization
+	err = result.All(findContext, &foundOrganizations)
+
+	if err != nil {
+		return nil
+	}
+
+	return foundOrganizations
 }

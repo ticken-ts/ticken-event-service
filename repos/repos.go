@@ -35,6 +35,7 @@ type OrganizationRepository interface {
 	FindOrganization(organizationID uuid.UUID) *models.Organization
 	FindByMSPID(mspID string) *models.Organization
 	FindByName(name string) *models.Organization
+	FindByOrganizer(organizerID uuid.UUID) []*models.Organization
 }
 
 type AssetRepository interface {

@@ -2,13 +2,15 @@ package services
 
 import (
 	"fmt"
-	"github.com/google/uuid"
-	pvtbc "github.com/ticken-ts/ticken-pvtbc-connector"
 	"ticken-event-service/infra"
+	"ticken-event-service/models"
 	"ticken-event-service/repos"
 	"ticken-event-service/tickenerr"
 	"ticken-event-service/tickenerr/organizationerr"
 	"ticken-event-service/tickenerr/organizererr"
+
+	"github.com/google/uuid"
+	pvtbc "github.com/ticken-ts/ticken-pvtbc-connector"
 )
 
 type pvtbcCallerAtomicBuilder func(mspID, user, peerAddr string, userCert, userPriv, tlsCert []byte) (*pvtbc.Caller, error)
@@ -92,4 +94,12 @@ func (service *OrganizationManager) GetPvtbcConnection(organizerID uuid.UUID, or
 	}
 
 	return pvtbcCaller, nil
+}
+
+func (service *OrganizationManager) GetOrganizationsByOrganizer(organizerID uuid.UUID) ([]*models.Organization, error) {
+	// check if organizer exists
+	if service.organizerRepo.FindOrganizer(organizerID) == nil {
+		return nil, tickenerr.New(organizererr.OrganizerNotFoundErrorCode)
+	}
+	return service.organizationRepo.FindByOrganizer(organizerID), nil
 }

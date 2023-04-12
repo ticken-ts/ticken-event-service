@@ -1,9 +1,10 @@
 package eventController
 
 import (
-	"github.com/gin-gonic/gin"
 	"ticken-event-service/api/controllers/baseController"
 	"ticken-event-service/services"
+
+	"github.com/gin-gonic/gin"
 )
 
 type EventController struct {
@@ -16,6 +17,7 @@ func New(serviceProvider services.IProvider) *EventController {
 
 func (controller *EventController) Setup(router gin.IRouter) {
 	group := router.Group("/organizations")
+	group.GET("/", controller.GetMyOrganizations)
 	group.POST("/:organizationID/events", controller.CreateEvent)
 	group.GET("/:organizationID/events/:eventID", controller.GetEvent)
 	group.GET("/:organizationID/events", controller.GetOrganizationEvents)

@@ -1,12 +1,13 @@
 package eventController
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"net/http"
 	"ticken-event-service/api/mappers"
 	"ticken-event-service/api/res"
 	"ticken-event-service/security/jwt"
+
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 func (controller *EventController) GetEvent(c *gin.Context) {

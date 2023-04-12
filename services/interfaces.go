@@ -1,11 +1,12 @@
 package services
 
 import (
-	"github.com/google/uuid"
-	pvtbc "github.com/ticken-ts/ticken-pvtbc-connector"
 	"ticken-event-service/models"
 	"ticken-event-service/utils/file"
 	"time"
+
+	"github.com/google/uuid"
+	pvtbc "github.com/ticken-ts/ticken-pvtbc-connector"
 )
 
 type IProvider interface {
@@ -30,6 +31,7 @@ type IEventManager interface {
 
 type IOrganizationManager interface {
 	GetPvtbcConnection(organizerID uuid.UUID, organizationID uuid.UUID) (*pvtbc.Caller, error)
+	GetOrganizationsByOrganizer(organizerID uuid.UUID) ([]*models.Organization, error)
 }
 
 type IValidatorManager interface {
