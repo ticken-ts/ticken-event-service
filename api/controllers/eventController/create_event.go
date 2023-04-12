@@ -1,14 +1,15 @@
 package eventController
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"mime/multipart"
 	"net/http"
 	"ticken-event-service/api/mappers"
 	"ticken-event-service/api/res"
 	"ticken-event-service/security/jwt"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 type createEventPayload struct {

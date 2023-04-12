@@ -2,9 +2,6 @@ package app
 
 import (
 	"fmt"
-	"github.com/fatih/color"
-	"github.com/gin-gonic/gin"
-	gojwt "github.com/golang-jwt/jwt"
 	"ticken-event-service/api"
 	"ticken-event-service/api/controllers/assetController"
 	"ticken-event-service/api/controllers/eventController"
@@ -21,6 +18,10 @@ import (
 	"ticken-event-service/security/jwt"
 	"ticken-event-service/services"
 	"ticken-event-service/utils"
+
+	"github.com/fatih/color"
+	"github.com/gin-gonic/gin"
+	gojwt "github.com/golang-jwt/jwt"
 )
 
 type TickenEventApp struct {
@@ -82,8 +83,8 @@ func New(infraBuilder infra.IBuilder, tickenConfig *config.Config) *TickenEventA
 	tickenEventApp.serviceProvider = serviceProvider
 
 	apiRouter := engine.Group(tickenConfig.Server.APIPrefix)
-	tickenEventApp.loadControllers(apiRouter)
 	tickenEventApp.loadMiddlewares(apiRouter)
+	tickenEventApp.loadControllers(apiRouter)
 
 	/********************************* populators **********************************/
 	tickenEventApp.populators = []Populator{

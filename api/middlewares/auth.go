@@ -1,10 +1,11 @@
 package middlewares
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/go-playground/validator/v10"
 	"strings"
 	"ticken-event-service/security/jwt"
+
+	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 )
 
 type AuthMiddleware struct {
@@ -50,5 +51,6 @@ func (middleware *AuthMiddleware) isJWTAuthorized() gin.HandlerFunc {
 		}
 
 		c.Set("jwt", token)
+		c.Next()
 	}
 }
