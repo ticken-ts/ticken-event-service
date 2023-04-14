@@ -6,6 +6,7 @@ import (
 	"ticken-event-service/api/mappers"
 	"ticken-event-service/api/res"
 	"ticken-event-service/security/jwt"
+	"ticken-event-service/utils/file"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -42,11 +43,14 @@ func (controller *EventController) CreateEvent(c *gin.Context) {
 	// No further validation are going to be added, so all
 	// validations are going to be performed on chain
 
-	file, err := controller.ReadFile(payload.PosterFile)
-	if err != nil {
-		c.Error(err)
-		c.Abort()
-		return
+	var file *file.File
+	if payload.PosterFile != nil {
+		file, err = controller.ReadFile(payload.PosterFile)
+		if err != nil {
+			c.Error(err)
+			c.Abort()
+			return
+		}
 	}
 
 	event, err := controller.ServiceProvider.GetEventManager().CreateEvent(
