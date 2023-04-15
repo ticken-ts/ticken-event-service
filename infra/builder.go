@@ -9,6 +9,7 @@ import (
 	ethnode "github.com/ticken-ts/ticken-pubbc-connector/eth-connector/node"
 	pvtbc "github.com/ticken-ts/ticken-pvtbc-connector"
 	"github.com/ticken-ts/ticken-pvtbc-connector/fabric/peerconnector"
+	"path"
 	"ticken-event-service/config"
 	"ticken-event-service/env"
 	"ticken-event-service/infra/bus"
@@ -94,7 +95,7 @@ func (builder *Builder) BuildEngine() *gin.Engine {
 func (builder *Builder) BuildJWTVerifier() jwt.Verifier {
 	var jwtVerifier jwt.Verifier
 
-	if (env.TickenEnv.IsDev() || env.TickenEnv.IsTest()) && !builder.tickenConfig.Dev.Mock.DisableAuthMock {
+	if env.TickenEnv.IsDev() && !builder.tickenConfig.Dev.Mock.DisableAuthMock {
 		jwtPublicKey := builder.tickenConfig.Dev.JWTPublicKey
 		jwtPrivateKey := builder.tickenConfig.Dev.JWTPrivateKey
 
@@ -268,10 +269,18 @@ func buildPeerConnector(config config.PvtbcConfig, devConfig config.DevConfig) p
 	if env.TickenEnv.IsDev() && !devConfig.Mock.DisablePVTBCMock {
 		pc = peerconnector.NewDev(config.MspID, "admin")
 	} else {
-		pc = peerconnector.New(config.MspID, config.CertificatePath, config.PrivateKeyPath)
+		pc = peerconnector.New(
+			config.MspID,
+			path.Join(config.ClusterStoragePath, config.CertificatePath),
+			path.Join(config.ClusterStoragePath, config.PrivateKeyPath),
+		)
 	}
 
-	err := pc.Connect(config.PeerEndpoint, config.GatewayPeer, config.TLSCertificatePath)
+	err := pc.Connect(
+		config.PeerEndpoint,
+		config.GatewayPeer,
+		path.Join(config.ClusterStoragePath, config.TLSCertificatePath),
+	)
 	if err != nil {
 		panic(err)
 	}

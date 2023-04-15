@@ -31,7 +31,7 @@
 
   "event": [
     {
-      "name": "ticken event 1",
+      "name": "Ticken Event 1",
       "date": "2023-04-22T15:04:05Z",
       "description": "ticken event description",
       "poster_uri": "https://cdn.getcrowder.com/images/90add69a-63d0-4e09-aa9b-72031906c803-abel1920x720-aa-5-min.png",
@@ -47,7 +47,7 @@
       "set_on_sale": true
     },
     {
-      "name": "ticken event 2",
+      "name": "Ticken Event 2",
       "date": "2023-04-22T15:04:05Z",
       "description": "ticken event description",
       "poster_uri": "https://cdn.getcrowder.com/images/90add69a-63d0-4e09-aa9b-72031906c803-abel1920x720-aa-5-min.png",
@@ -62,7 +62,7 @@
       ]
     },
     {
-      "name": "ticken event 3",
+      "name": "Ticken Eventc 3",
       "date": "2023-04-22T15:04:05Z",
       "description": "ticken event description",
       "poster_uri": "https://cdn.getcrowder.com/images/90add69a-63d0-4e09-aa9b-72031906c803-abel1920x720-aa-5-min.png",

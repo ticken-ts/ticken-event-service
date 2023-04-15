@@ -39,6 +39,8 @@ type TickenEventApp struct {
 }
 
 func New(infraBuilder infra.IBuilder, tickenConfig *config.Config) *TickenEventApp {
+	log.TickenLogger.Info().Msg(color.BlueString("initializing " + tickenConfig.Server.ClientID))
+
 	tickenEventApp := new(TickenEventApp)
 
 	/******************************** infra builds ********************************/
@@ -81,10 +83,9 @@ func New(infraBuilder infra.IBuilder, tickenConfig *config.Config) *TickenEventA
 	tickenEventApp.jwtVerifier = jwtVerifier
 	tickenEventApp.repoProvider = repoProvider
 	tickenEventApp.serviceProvider = serviceProvider
-	tickenEventApp.loadMiddlewares(engine)
 
-	apiRouter := engine.Group(tickenConfig.Server.APIPrefix)
-	tickenEventApp.loadControllers(apiRouter)
+	tickenEventApp.loadMiddlewares(engine)
+	tickenEventApp.loadControllers(engine)
 
 	/********************************* populators **********************************/
 	tickenEventApp.populators = []Populator{
@@ -151,6 +152,8 @@ func (tickenEventApp *TickenEventApp) EmitFakeJWT() {
 }
 
 func (tickenEventApp *TickenEventApp) loadControllers(apiRouter gin.IRouter) {
+	apiRouterGroup := apiRouter.Group(tickenEventApp.config.Server.APIPrefix)
+
 	var appControllers = []api.Controller{
 		eventController.New(tickenEventApp.serviceProvider),
 		healthController.New(tickenEventApp.serviceProvider),
@@ -160,7 +163,7 @@ func (tickenEventApp *TickenEventApp) loadControllers(apiRouter gin.IRouter) {
 	}
 
 	for _, controller := range appControllers {
-		controller.Setup(apiRouter)
+		controller.Setup(apiRouterGroup)
 	}
 }
 

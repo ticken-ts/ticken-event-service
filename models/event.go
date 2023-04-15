@@ -9,16 +9,20 @@ import (
 type EventStatus string
 
 const (
-	// EventStatusDraft is the status of an event that is not yet published
+	// EventStatusDraft is the status of an
+	// event that is not yet published
 	EventStatusDraft EventStatus = "draft"
 
-	// EventStatusOnSale is the status of an event that is published for sale
+	// EventStatusOnSale is the status of
+	// an event that is published for sale
 	EventStatusOnSale EventStatus = "on_sale"
 
-	// EventStatusRunning is the status of an event that is currently happening
+	// EventStatusRunning is the status of
+	// an event that is currently happening
 	EventStatusRunning EventStatus = "running"
 
-	// EventStatusFinished is the status of an event that has finished
+	// EventStatusFinished is the status of
+	// an event that has finished
 	EventStatusFinished EventStatus = "finished"
 )
 
