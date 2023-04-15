@@ -12,9 +12,7 @@ import (
 	"ticken-event-service/log"
 	"ticken-event-service/models"
 	"ticken-event-service/repos"
-	"ticken-event-service/security/auth"
 	"ticken-event-service/services"
-	"ticken-event-service/sync"
 	"ticken-event-service/utils"
 )
 
@@ -22,23 +20,22 @@ const Filename = "fakes.json"
 
 type Loader struct {
 	hsm             infra.HSM
+	config          *config.Config
 	repoProvider    repos.IProvider
 	serviceProvider services.IProvider
-	keycloakClient  *sync.KeycloakHTTPClient
-	config          *config.Config
 }
 
 func NewFakeLoader(
 	hsm infra.HSM,
+	config *config.Config,
 	repoProvider repos.IProvider,
 	serviceProvider services.IProvider,
-	authIssuer *auth.Issuer, config *config.Config) *Loader {
+) *Loader {
 	return &Loader{
 		hsm:             hsm,
 		config:          config,
 		repoProvider:    repoProvider,
 		serviceProvider: serviceProvider,
-		keycloakClient:  sync.NewKeycloakHTTPClient(config.Services.Keycloak, auth.Organizer, authIssuer),
 	}
 }
 

@@ -88,3 +88,7 @@ func (event *Event) StartSale(pubbcAddr, pubbcTxID string) {
 func (event *Event) Start() {
 	event.Status = EventStatusRunning
 }
+
+func (event *Event) Finish() {
+	event.Status = EventStatusFinished
+}

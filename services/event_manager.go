@@ -267,7 +267,7 @@ func (eventManager *EventManager) FinishEvent(
 		return nil, tickenerr.FromError(eventerr.StartEventInPVTBCErrorCode, err)
 	}
 
-	event.Start()
+	event.Finish()
 
 	_ = eventManager.eventRepo.UpdateEventStatus(event)
 	_ = eventManager.eventRepo.UpdatePUBBCData(event)

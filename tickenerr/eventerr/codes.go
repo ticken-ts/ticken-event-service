@@ -6,7 +6,7 @@ const (
 	EventReadPermissionErrorCode
 	StartSaleInPVTBCErrorCode
 	StartEventInPVTBCErrorCode
-	StartEventTicketsSyncErrorCode
+	FinishEventInPVTBCErrorCode
 	FailedToStoreEventInPVTBCErrorCode
 	FailedToStoreEventInDatabase
 )
@@ -27,8 +27,8 @@ func GetErrMessage(code uint32) string {
 		return "an error occurred when trying to store event in database"
 	case StartEventInPVTBCErrorCode:
 		return "failed to start event in the private blockchain"
-	case StartEventTicketsSyncErrorCode:
-		return "failed to start event tickets sync in validator service"
+	case FinishEventInPVTBCErrorCode:
+		return "failed to finish event in the private blockchain"
 	default:
 		return "an error has occurred"
 	}
