@@ -89,7 +89,7 @@ func New(infraBuilder infra.IBuilder, tickenConfig *config.Config) *TickenEventA
 
 	/********************************* populators **********************************/
 	tickenEventApp.populators = []Populator{
-		fakes.NewFakeLoader(hsm, tickenConfig, repoProvider, serviceProvider),
+		fakes.NewFakeLoader(repoProvider, serviceProvider, tickenConfig),
 	}
 	/**************************++***************************************************/
 

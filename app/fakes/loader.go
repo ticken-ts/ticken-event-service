@@ -8,7 +8,6 @@ import (
 	"strings"
 	"ticken-event-service/config"
 	"ticken-event-service/env"
-	"ticken-event-service/infra"
 	"ticken-event-service/log"
 	"ticken-event-service/models"
 	"ticken-event-service/repos"
@@ -19,20 +18,13 @@ import (
 const Filename = "fakes.json"
 
 type Loader struct {
-	hsm             infra.HSM
 	config          *config.Config
 	repoProvider    repos.IProvider
 	serviceProvider services.IProvider
 }
 
-func NewFakeLoader(
-	hsm infra.HSM,
-	config *config.Config,
-	repoProvider repos.IProvider,
-	serviceProvider services.IProvider,
-) *Loader {
+func NewFakeLoader(repoProvider repos.IProvider, serviceProvider services.IProvider, config *config.Config) *Loader {
 	return &Loader{
-		hsm:             hsm,
 		config:          config,
 		repoProvider:    repoProvider,
 		serviceProvider: serviceProvider,
