@@ -264,7 +264,7 @@ func (eventManager *EventManager) FinishEvent(
 	}
 
 	if _, err := atomicPvtbcCaller.Finish(eventID); err != nil {
-		return nil, tickenerr.FromError(eventerr.FinishEventInPVTBCErrorCodegit, err)
+		return nil, tickenerr.FromError(eventerr.FinishEventInPVTBCErrorCode, err)
 	}
 
 	event.Finish()
