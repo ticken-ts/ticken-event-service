@@ -323,6 +323,8 @@ github.com/subosito/gotenv v1.4.2/go.mod h1:ayKnFf/c6rvx/2iiLrJUk1e6plDbT3edrFNG
 github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7 h1:epCh84lMvA70Z7CTTCmYQn2CKbY8j86K7/FAIr141uY=
 github.com/ticken-ts/ticken-pubbc-connector v0.0.31 h1:uMtqcv7f3MkYy6nKFsU8Inyt1lvE/m8CeLTKeBcC0CU=
 github.com/ticken-ts/ticken-pubbc-connector v0.0.31/go.mod h1:3QARm+lkbMN/mJrdNBDoknNZLaVyEdk3O0DpEAu1hzM=
+github.com/ticken-ts/ticken-pubbc-connector v0.0.35 h1:WJDN34nTTUtBh2cxEIKE2kb05pbQaYcJQeTBqYZyZiQ=
+github.com/ticken-ts/ticken-pubbc-connector v0.0.35/go.mod h1:3QARm+lkbMN/mJrdNBDoknNZLaVyEdk3O0DpEAu1hzM=
 github.com/ticken-ts/ticken-pvtbc-connector v0.2.49 h1:LT8uYPknWxuf7fbQnMrmWq6zOKbxF4tJVlxYV0GU290=
 github.com/ticken-ts/ticken-pvtbc-connector v0.2.49/go.mod h1:rK1J3x+qeLeGTzjwqYVqI/9AKL0vseqrlwJNZoZXr3o=
 github.com/tidwall/pretty v1.0.0 h1:HsD+QiTn7sK6flMKIvNmpqz1qrpP3Ps6jOKIKMooyg4=
