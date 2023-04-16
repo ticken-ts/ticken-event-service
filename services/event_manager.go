@@ -141,7 +141,7 @@ func (eventManager *EventManager) AddSection(
 
 	_, txID, err := atomicPvtbcCaller.AddSection(
 		eventID,
-		event.Name,
+		name,
 		totalTickets,
 		ticketPrice,
 	)

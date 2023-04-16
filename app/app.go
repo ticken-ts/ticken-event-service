@@ -89,7 +89,7 @@ func New(infraBuilder infra.IBuilder, tickenConfig *config.Config) *TickenEventA
 
 	/********************************* populators **********************************/
 	tickenEventApp.populators = []Populator{
-		fakes.NewFakeLoader(repoProvider, serviceProvider, tickenConfig),
+		fakes.NewFakeLoader(repoProvider, serviceProvider, tickenConfig, hsm),
 	}
 	/**************************++***************************************************/
 
@@ -100,7 +100,7 @@ func (tickenEventApp *TickenEventApp) Start() {
 	url := tickenEventApp.config.Server.GetServerURL()
 	err := tickenEventApp.engine.Run(url)
 	if err != nil {
-		panic(err)
+		log.TickenLogger.Panic().Msg(fmt.Sprintf("failed to start server: %s", err.Error()))
 	}
 }
 

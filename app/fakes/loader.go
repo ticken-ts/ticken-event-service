@@ -3,11 +3,13 @@ package fakes
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/fatih/color"
 	"os"
 	"reflect"
 	"strings"
 	"ticken-event-service/config"
 	"ticken-event-service/env"
+	"ticken-event-service/infra"
 	"ticken-event-service/log"
 	"ticken-event-service/models"
 	"ticken-event-service/repos"
@@ -18,13 +20,15 @@ import (
 const Filename = "fakes.json"
 
 type Loader struct {
+	hsm             infra.HSM
 	config          *config.Config
 	repoProvider    repos.IProvider
 	serviceProvider services.IProvider
 }
 
-func NewFakeLoader(repoProvider repos.IProvider, serviceProvider services.IProvider, config *config.Config) *Loader {
+func NewFakeLoader(repoProvider repos.IProvider, serviceProvider services.IProvider, config *config.Config, hsm infra.HSM) *Loader {
 	return &Loader{
+		hsm:             hsm,
 		config:          config,
 		repoProvider:    repoProvider,
 		serviceProvider: serviceProvider,
@@ -48,10 +52,15 @@ func (loader *Loader) Populate() error {
 	}
 
 	for _, modelName := range []string{"organizer", "organization", "event"} {
+		log.TickenLogger.Info().Msg(
+			fmt.Sprintf("%s: %s",
+				color.GreenString("seeding model"),
+				color.New(color.FgBlue, color.Bold).Sprintf(modelName)),
+		)
+
 		switch modelName {
 
 		case strings.ToLower(reflect.TypeOf(models.Event{}).Name()):
-			log.TickenLogger.Info().Msg("seeding event model fakes")
 			eventsToSeed := make([]*SeedEvent, 0)
 
 			if err := json.Unmarshal(seedContent[modelName], &eventsToSeed); err != nil {
@@ -68,7 +77,6 @@ func (loader *Loader) Populate() error {
 			}
 
 		case strings.ToLower(reflect.TypeOf(models.Organizer{}).Name()):
-			log.TickenLogger.Info().Msg("seeding organizer model fakes")
 			organizersToSeed := make([]*SeedOrganizer, 0)
 
 			if err := json.Unmarshal(seedContent[modelName], &organizersToSeed); err != nil {
@@ -85,7 +93,6 @@ func (loader *Loader) Populate() error {
 			}
 
 		case strings.ToLower(reflect.TypeOf(models.Organization{}).Name()):
-			log.TickenLogger.Info().Msg("seeding organization model fakes")
 			organizationsToSeed := make([]*SeedOrganization, 0)
 
 			if err := json.Unmarshal(seedContent[modelName], &organizationsToSeed); err != nil {
