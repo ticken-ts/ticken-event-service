@@ -38,6 +38,7 @@ func (controller *EventController) ChangeStatusHandler(c *gin.Context) {
 		return
 	}
 
+	var successMessage string
 	var event *models.Event
 	var statusChangeErr error
 
@@ -48,18 +49,21 @@ func (controller *EventController) ChangeStatusHandler(c *gin.Context) {
 			organizerID,
 			organizationID,
 		)
+		successMessage = "event set on sale successfully"
 	case models.EventStatusRunning:
 		event, statusChangeErr = controller.ServiceProvider.GetEventManager().StartEvent(
 			eventID,
 			organizerID,
 			organizationID,
 		)
+		successMessage = "event started successfully"
 	case models.EventStatusFinished:
 		event, statusChangeErr = controller.ServiceProvider.GetEventManager().FinishEvent(
 			eventID,
 			organizerID,
 			organizationID,
 		)
+		successMessage = "event finished successfully"
 	default:
 		statusChangeErr = fmt.Errorf("status change to %s is not supported", payload.NextStatus)
 	}
@@ -71,7 +75,7 @@ func (controller *EventController) ChangeStatusHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, res.Success{
-		Message: "event set on sale successfully",
+		Message: successMessage,
 		Data:    mappers.MapEventToEventDTO(event),
 	})
 }
