@@ -1,6 +1,6 @@
 {
   "server": {
-    "host": "localhost",
+    "host": "0.0.0.0",
     "port": 9000,
     "api_prefix": "/api/e",
     "client_id": "ticken.event.service",
@@ -9,7 +9,7 @@
 
   "database": {
     "driver": "mongo",
-    "name": "ticken-db"
+    "name": "ticken-event-svc-db"
   },
 
   "bus": {
@@ -25,20 +25,24 @@
   },
 
   "pvtbc": {
+    "cluster_storage_path": "/tmp/ticken/pvtbc-pv",
     "msp_id": "tickenMSP",
     "peer_endpoint": "ticken-peer0.localho.st:443",
     "gateway_peer": "ticken-peer0.localho.st",
-    "certificate_path": "orgs/peer-orgs/ticken/users/ticken-admin/msp/signcerts/cert.pem",
-    "private_key_path": "orgs/peer-orgs/ticken/users/ticken-admin/msp/keystore/priv.pem",
-    "tls_certificate_path": "orgs/peer-orgs/ticken/nodes/ticken-peer0/tls/signcerts/tls-cert.pem",
-    "cluster_storage_path": "/tmp/ticken/pvtbc-pv"
+    "certificate_path": "/orgs/peer-orgs/ticken/users/ticken-admin/msp/signcerts/cert.pem",
+    "private_key_path": "/orgs/peer-orgs/ticken/users/ticken-admin/msp/keystore/priv.pem",
+    "tls_certificate_path": "/orgs/peer-orgs/ticken/nodes/ticken-peer0/tls/signcerts/tls-cert.pem"
+  },
+
+  "pubbc": {
+    "chain_url": "ws://localhost:8545"
   },
 
   "dev": {
     "mock": {
       "disable_bus_mock": false,
-      "disable_pvtbc_mock": false,
-      "disable_auth_mock": true
+      "disable_auth_mock": false,
+      "disable_pvtbc_mock": false
     },
 
     "jwt_public_key": "-----BEGIN RSA PUBLIC KEY-----\nMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDUqRecbJUp6pVi5cCpB97cxNav\nHxjlPCa4sB/MwcGbo/nuP/iPJf6X4XeRM1xFey5b3STSbhBKmM01+WR6XmUBvzdE\nPntm/3Byn9OfKIZcXJoRP1xpFbwfBcSlpZj0bVX0i+1asWWCvdykjcyNy3CMYCSR\nHzquQ87BNrh7g7nfjwIDAQAB\n-----END RSA PUBLIC KEY-----",
