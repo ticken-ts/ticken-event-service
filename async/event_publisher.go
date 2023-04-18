@@ -15,10 +15,11 @@ const (
 )
 
 type createEventDTO struct {
-	EventID      uuid.UUID `json:"event_id"`
-	OrganizerID  uuid.UUID `json:"organizer_id"`
-	PvtBCChannel string    `json:"pvt_bc_channel"`
-	PubBCAddress string    `json:"pub_bc_address"`
+	EventID        uuid.UUID `json:"event_id"`
+	OrganizerID    uuid.UUID `json:"organizer_id"`
+	OrganizationID uuid.UUID `json:"organization_id"`
+	PvtBCChannel   string    `json:"pvt_bc_channel"`
+	PubBCAddress   string    `json:"pub_bc_address"`
 }
 
 type updateEventStatusDTO struct {
@@ -36,10 +37,11 @@ func NewEventPublisher(busPublisher infra.BusPublisher) *EventPublisher {
 
 func (processor *EventPublisher) PublishNewEvent(event *models.Event) error {
 	dto := &createEventDTO{
-		EventID:      event.EventID,
-		OrganizerID:  event.OrganizerID,
-		PvtBCChannel: event.PvtBCChannel,
-		PubBCAddress: event.PubBCAddress,
+		EventID:        event.EventID,
+		OrganizerID:    event.OrganizerID,
+		OrganizationID: event.OrganizationID,
+		PvtBCChannel:   event.PvtBCChannel,
+		PubBCAddress:   event.PubBCAddress,
 	}
 
 	serializedDTO, err := json.Marshal(dto)
