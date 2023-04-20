@@ -6,6 +6,7 @@ import (
 	"ticken-event-service/log"
 	"ticken-event-service/models"
 	"ticken-event-service/repos"
+	"ticken-event-service/sync"
 	"ticken-event-service/tickenerr"
 	"ticken-event-service/tickenerr/commonerr"
 	"ticken-event-service/tickenerr/eventerr"
@@ -19,14 +20,17 @@ import (
 )
 
 type EventManager struct {
+	eventRepo        repos.EventRepository
+	organizerRepo    repos.OrganizerRepository
+	organizationRepo repos.OrganizationRepository
+
 	publisher           *async.Publisher
-	eventRepo           repos.EventRepository
-	organizerRepo       repos.OrganizerRepository
-	organizationRepo    repos.OrganizationRepository
 	organizationManager IOrganizationManager
 	assetManager        IAssetManager
 	pubbcAdmin          pubbc.Admin
 	pubbcCaller         pubbc.Caller
+
+	validatorServiceClient *sync.ValidatorServiceHTTPClient
 }
 
 func NewEventManager(
@@ -36,6 +40,7 @@ func NewEventManager(
 	assetManager IAssetManager,
 	pubbcAdmin pubbc.Admin,
 	pubbcCaller pubbc.Caller,
+	validatorServiceClient *sync.ValidatorServiceHTTPClient,
 ) IEventManager {
 	return &EventManager{
 		publisher:           publisher,
@@ -236,8 +241,11 @@ func (eventManager *EventManager) StartEvent(
 		return nil, tickenerr.FromError(eventerr.StartEventInPVTBCErrorCode, err)
 	}
 
-	event.Start()
+	if err := eventManager.validatorServiceClient.SyncTickets(eventID); err != nil {
+		panic(err) // TODO -> how to handle
+	}
 
+	event.Start()
 	_ = eventManager.eventRepo.UpdateEventStatus(event)
 	_ = eventManager.eventRepo.UpdatePUBBCData(event)
 

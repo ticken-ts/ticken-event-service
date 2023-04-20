@@ -43,9 +43,9 @@ func (controller *EventController) CreateEvent(c *gin.Context) {
 	// No further validation are going to be added, so all
 	// validations are going to be performed on chain
 
-	var file *file.File
+	var poster *file.File
 	if payload.PosterFile != nil {
-		file, err = controller.ReadFile(payload.PosterFile)
+		poster, err = controller.ReadFile(payload.PosterFile)
 		if err != nil {
 			c.Error(err)
 			c.Abort()
@@ -59,7 +59,7 @@ func (controller *EventController) CreateEvent(c *gin.Context) {
 		payload.Name,
 		payload.Date,
 		payload.Description,
-		file,
+		poster,
 	)
 	if err != nil {
 		c.Error(err)
