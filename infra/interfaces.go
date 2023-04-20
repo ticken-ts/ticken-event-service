@@ -52,6 +52,7 @@ type IBuilder interface {
 	BuildFileUploader() FileUploader
 	BuildPvtbcListener() *pvtbc.Listener
 	BuildPubbcAdmin(privateKey string) pubbc.Admin
+	BuildPubbcCaller(privateKey string) pubbc.Caller
 	BuildBusPublisher(connString string) BusPublisher
 	BuildAuthIssuer(clientSecret string) *auth.Issuer
 	BuildAtomicPvtbcCaller(mspID, user, peerAddr string, userCert, userPriv, tlsCert []byte) (*pvtbc.Caller, error)

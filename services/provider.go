@@ -27,6 +27,7 @@ func NewProvider(
 	hsm infra.HSM,
 	builder infra.IBuilder,
 	pubbcAdmin pubbc.Admin,
+	pubbcCaller pubbc.Caller,
 	fileUploader infra.FileUploader,
 	authIssuer *auth.Issuer,
 	tickenConfig *config.Config,
@@ -50,7 +51,9 @@ func NewProvider(
 	provider.organizerManager = NewOrganizerManager(repoProvider, authIssuer, organizersKeycloakClient)
 	provider.organizationManager = NewOrganizationManager(repoProvider, hsm, builder.BuildAtomicPvtbcCaller)
 	provider.validatorManager = NewValidatorManager(repoProvider, authIssuer, validatorsKeycloakClient, validatorsServiceClient)
-	provider.eventManager = NewEventManager(repoProvider, publisher, provider.organizationManager, provider.assetManager, pubbcAdmin)
+	provider.eventManager = NewEventManager(
+		repoProvider, publisher, provider.organizationManager, provider.assetManager, pubbcAdmin, pubbcCaller, validatorsServiceClient,
+	)
 
 	return provider, nil
 }

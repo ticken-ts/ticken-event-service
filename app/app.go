@@ -50,6 +50,7 @@ func New(infraBuilder infra.IBuilder, tickenConfig *config.Config) *TickenEventA
 	db := infraBuilder.BuildDb(env.TickenEnv.DbConnString)
 	hsm := infraBuilder.BuildHSM(env.TickenEnv.HSMEncryptionKey)
 	pubbcAdmin := infraBuilder.BuildPubbcAdmin(env.TickenEnv.TickenWalletKey)
+	pubbcCaller := infraBuilder.BuildPubbcCaller(env.TickenEnv.TickenWalletKey)
 	busPublisher := infraBuilder.BuildBusPublisher(env.TickenEnv.BusConnString)
 	authIssuer := infraBuilder.BuildAuthIssuer(env.TickenEnv.ServiceClientSecret)
 	/**************************++***************************************************/
@@ -69,6 +70,7 @@ func New(infraBuilder infra.IBuilder, tickenConfig *config.Config) *TickenEventA
 		hsm,
 		infraBuilder,
 		pubbcAdmin,
+		pubbcCaller,
 		fileUploader,
 		authIssuer,
 		tickenConfig,

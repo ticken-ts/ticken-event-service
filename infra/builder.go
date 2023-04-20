@@ -5,7 +5,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/gin-gonic/gin"
 	pubbc "github.com/ticken-ts/ticken-pubbc-connector"
-	eth_connector "github.com/ticken-ts/ticken-pubbc-connector/eth-connector"
+	ethconnector "github.com/ticken-ts/ticken-pubbc-connector/eth-connector"
 	ethnode "github.com/ticken-ts/ticken-pubbc-connector/eth-connector/node"
 	pvtbc "github.com/ticken-ts/ticken-pvtbc-connector"
 	"github.com/ticken-ts/ticken-pvtbc-connector/fabric/peerconnector"
@@ -144,12 +144,23 @@ func (builder *Builder) BuildPvtbcListener() *pvtbc.Listener {
 }
 
 func (builder *Builder) BuildPubbcAdmin(privateKey string) pubbc.Admin {
-	caller, err := eth_connector.NewAdmin(
+	caller, err := ethconnector.NewAdmin(
 		buildEthNodeConnector(builder.tickenConfig.Pubbc, builder.tickenConfig.Dev),
 		privateKey,
 	)
 	if err != nil {
 		log.TickenLogger.Panic().Msg(err.Error())
+	}
+	return caller
+}
+
+func (builder *Builder) BuildPubbcCaller(privateKey string) pubbc.Caller {
+	caller, err := ethconnector.NewCaller(
+		buildEthNodeConnector(builder.tickenConfig.Pubbc, builder.tickenConfig.Dev),
+		privateKey,
+	)
+	if err != nil {
+		panic(err)
 	}
 	return caller
 }
