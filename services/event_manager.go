@@ -3,6 +3,7 @@ package services
 import (
 	"fmt"
 	"ticken-event-service/async"
+	"ticken-event-service/log"
 	"ticken-event-service/models"
 	"ticken-event-service/repos"
 	"ticken-event-service/tickenerr"
@@ -25,6 +26,7 @@ type EventManager struct {
 	organizationManager IOrganizationManager
 	assetManager        IAssetManager
 	pubbcAdmin          pubbc.Admin
+	pubbcCaller         pubbc.Caller
 }
 
 func NewEventManager(
@@ -33,6 +35,7 @@ func NewEventManager(
 	organizationManager IOrganizationManager,
 	assetManager IAssetManager,
 	pubbcAdmin pubbc.Admin,
+	pubbcCaller pubbc.Caller,
 ) IEventManager {
 	return &EventManager{
 		publisher:           publisher,
@@ -42,6 +45,7 @@ func NewEventManager(
 		organizationManager: organizationManager,
 		assetManager:        assetManager,
 		pubbcAdmin:          pubbcAdmin,
+		pubbcCaller:         pubbcCaller,
 	}
 }
 
@@ -267,8 +271,12 @@ func (eventManager *EventManager) FinishEvent(
 		return nil, tickenerr.FromError(eventerr.FinishEventInPVTBCErrorCode, err)
 	}
 
-	event.Finish()
+	if _, err := eventManager.pubbcCaller.RaiseAnchors(event.PubBCAddress); err != nil {
+		log.TickenLogger.Error().Msg(
+			fmt.Sprintf("failed to raise event %s anchors: %s", event.EventID.String(), err.Error()))
+	}
 
+	event.Finish()
 	_ = eventManager.eventRepo.UpdateEventStatus(event)
 	_ = eventManager.eventRepo.UpdatePUBBCData(event)
 

@@ -14,7 +14,7 @@ require (
 	github.com/rabbitmq/amqp091-go v1.8.0
 	github.com/rs/zerolog v1.29.0
 	github.com/spf13/viper v1.15.0
-	github.com/ticken-ts/ticken-pubbc-connector v0.0.46
+	github.com/ticken-ts/ticken-pubbc-connector v0.0.48
 	github.com/ticken-ts/ticken-pvtbc-connector v0.2.49
 	go.mongodb.org/mongo-driver v1.11.3
 )
