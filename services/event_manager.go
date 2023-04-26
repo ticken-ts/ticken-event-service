@@ -43,14 +43,15 @@ func NewEventManager(
 	validatorServiceClient *sync.ValidatorServiceHTTPClient,
 ) IEventManager {
 	return &EventManager{
-		publisher:           publisher,
-		eventRepo:           repoProvider.GetEventRepository(),
-		organizerRepo:       repoProvider.GetOrganizerRepository(),
-		organizationRepo:    repoProvider.GetOrganizationRepository(),
-		organizationManager: organizationManager,
-		assetManager:        assetManager,
-		pubbcAdmin:          pubbcAdmin,
-		pubbcCaller:         pubbcCaller,
+		publisher:              publisher,
+		eventRepo:              repoProvider.GetEventRepository(),
+		organizerRepo:          repoProvider.GetOrganizerRepository(),
+		organizationRepo:       repoProvider.GetOrganizationRepository(),
+		organizationManager:    organizationManager,
+		assetManager:           assetManager,
+		pubbcAdmin:             pubbcAdmin,
+		pubbcCaller:            pubbcCaller,
+		validatorServiceClient: validatorServiceClient,
 	}
 }
 
